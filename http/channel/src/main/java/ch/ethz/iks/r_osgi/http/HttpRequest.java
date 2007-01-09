@@ -32,7 +32,7 @@ public class HttpRequest {
 		this.requestURI = requestURI;
 	}
 
-	public HttpRequest(DataInputStream in) throws IOException {
+	public HttpRequest(DataInputStream in) throws Exception {
 		// TODO: parse
 		in.readLine();
 
