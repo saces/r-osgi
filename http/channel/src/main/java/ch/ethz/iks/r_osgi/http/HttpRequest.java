@@ -25,7 +25,7 @@ public class HttpRequest {
 	private ByteArrayInputStream inStream;
 
 	private ByteArrayOutputStream outStream;
-	
+
 	private byte[] content;
 
 	public HttpRequest(String requestURI) {
@@ -79,7 +79,7 @@ public class HttpRequest {
 	public ObjectInputStream getInputStream() throws IOException {
 		return new ObjectInputStream(inStream);
 	}
-	
+
 	public byte[] getContent() {
 		return content;
 	}
