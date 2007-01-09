@@ -44,13 +44,14 @@ public class HttpBridge {
 	private class Incoming extends Thread {
 		public void run() {
 			while (running) {
+				System.out.println("in loop ...");
 				try {
 					HttpRequest msg = new HttpRequest(remoteIn);
 					if (msg instanceof HttpRequest) {
 						localOut.write(msg.getContent());
 					}
-				} catch (Exception ioe) {
-					ioe.printStackTrace();
+				} catch (Throwable t) {
+					t.printStackTrace();
 				}
 			}
 		}
