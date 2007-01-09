@@ -100,6 +100,8 @@ public class HttpRequest {
 		if (method == POST && content != null) {
 			buffer.append("Content-Length: " + content.length + "\r\n");
 		}
+		buffer.append("Connection: keep-alive");
+		buffer.append("Keep-Alive: 30000");
 		for (Enumeration keys = headerpairs.keys(); keys.hasMoreElements();) {
 			final String key = (String) keys.nextElement();
 			buffer.append(key);
@@ -114,6 +116,7 @@ public class HttpRequest {
 		}
 
 		out.write(buffer.toString().getBytes());
+		out.flush();
 	}
 
 }

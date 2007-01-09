@@ -211,7 +211,6 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			HttpRequest request = new HttpRequest("/r-osgi");
 			message.send(request.getOutputStream());
 			request.send(HttpRequest.POST, host.toString(), output);
-			output.flush();
 		}
 
 		/**
