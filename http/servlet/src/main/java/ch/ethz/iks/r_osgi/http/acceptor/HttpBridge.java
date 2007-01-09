@@ -30,6 +30,7 @@ public class HttpBridge {
 	public HttpBridge(String hostname, DataInputStream remoteIn,
 			DataOutputStream remoteOut) throws UnknownHostException,
 			IOException {
+		System.out.println("starting HTTP bridge for " + hostname);
 		this.hostname = hostname;
 		this.remoteIn = remoteIn;
 		this.remoteOut = remoteOut;
@@ -37,6 +38,7 @@ public class HttpBridge {
 		this.localIn = new DataInputStream(socket.getInputStream());
 		this.localOut = new DataOutputStream(socket.getOutputStream());
 		new Incoming().start();
+		System.out.println("bridge started.");
 	}
 
 	private class Incoming extends Thread {
@@ -47,7 +49,7 @@ public class HttpBridge {
 					if (msg instanceof HttpRequest) {
 						localOut.write(msg.getContent());
 					}
-				} catch (IOException ioe) {
+				} catch (Exception ioe) {
 					ioe.printStackTrace();
 				}
 			}
