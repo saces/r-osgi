@@ -23,7 +23,7 @@
 						<bundleActivator>ch.ethz.iks.r_osgi.http.acceptor.Activator</bundleActivator>
 						<bundleName>R-OSGi Http Servlet</bundleName>
 						<bundleVendor>Jan S. Rellermeyer, IKS, ETH Zurich</bundleVendor>
-						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi, javax.servlet</importPackage>
+						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi, javax.servlet, javax.servlet.http</importPackage>
 					</osgiManifest>
 				</configuration>
 			</plugin>

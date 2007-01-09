@@ -1,11 +1,16 @@
 package ch.ethz.iks.r_osgi.http;
 
-import java.io.DataInput;
-import java.io.UnsupportedEncodingException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-public class HttpRequest extends HttpMessage {
+public class HttpRequest {
 
 	public static final short GET = 0;
 
@@ -17,18 +22,34 @@ public class HttpRequest extends HttpMessage {
 
 	private Hashtable headerpairs = new Hashtable();
 
+	private ByteArrayInputStream inStream;
+
+	private ByteArrayOutputStream outStream;
+	
 	private byte[] content;
 
 	public HttpRequest(String requestURI) {
 		this.requestURI = requestURI;
 	}
 
-	protected HttpRequest(final String initline, final DataInput input) {
-		
-		
+	public HttpRequest(DataInputStream in) throws IOException {
+		// TODO: parse
+		in.readLine();
+
+		String line;
+		int pos;
+		while (!"".equals(line = in.readLine())) {
+			pos = line.indexOf(":");
+			headerpairs.put(line.substring(0, pos), line.substring(pos + 1));
+		}
+		Integer len = (Integer) headerpairs.get("Content-Length");
+		if (len != null) {
+			content = new byte[len.intValue()];
+			in.readFully(content);
+			inStream = new ByteArrayInputStream(content);
+		}
 	}
-	
-	
+
 	public void setHeader(String key, String value) {
 		headerpairs.put(key, value);
 	}
@@ -46,11 +67,23 @@ public class HttpRequest extends HttpMessage {
 		headerpairs.remove(key);
 	}
 
-	public void setContent(byte[] bytes) {
-		content = bytes;
+	public ObjectOutputStream getOutputStream() throws IOException {
+		outStream = new ByteArrayOutputStream();
+		return new ObjectOutputStream(outStream);
 	}
 
-	public byte[] getBytes(final String host, final short method) throws UnsupportedEncodingException {
+	public ObjectInputStream getInputStream() throws IOException {
+		return new ObjectInputStream(inStream);
+	}
+	
+	public byte[] getContent() {
+		return content;
+	}
+
+	public void send(final short method, final String host,
+			final DataOutputStream out) throws IOException {
+
+		final byte[] content = outStream.toByteArray();
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(methods[method]);
 		buffer.append(' ');
@@ -70,21 +103,12 @@ public class HttpRequest extends HttpMessage {
 			buffer.append("\r\n");
 		}
 		buffer.append("\r\n");
-		
-		byte[] bytes;
-		if (method == POST && content != null) {	
-			final int len = buffer.length();
-			bytes = new byte[len + content.length];
-			System.arraycopy(buffer.toString().getBytes(), 0, bytes, 0, len);
-			System.arraycopy(content, 0, bytes, len, content.length);
-		} else {
-			bytes = buffer.toString().getBytes();
+
+		if (content.length > 0) {
+			buffer.append(content);
 		}
 
-		return bytes;
+		out.write(buffer.toString().getBytes());
 	}
 
-	public byte[] getContent() {
-		return content;
-	}
 }

@@ -1,12 +1,13 @@
 package ch.ethz.iks.r_osgi.http;
 
-import java.io.DataInput;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.ProtocolException;
 import java.util.Hashtable;
 
-public class HttpResponse extends HttpMessage {
+public class HttpResponse {
 
 	private double version;
 
@@ -14,12 +15,10 @@ public class HttpResponse extends HttpMessage {
 
 	private Hashtable headerpairs = new Hashtable();
 
-	private byte[] content;
-	
-	private DataInputStream stream;
+	private ByteArrayInputStream inStream;
 
-	protected HttpResponse(final String startline, final DataInputStream in)
-			throws IOException {
+	protected HttpResponse(final DataInputStream in) throws IOException {
+		final String startline = in.readLine();
 		// HTTP/1.1 200 OK
 		if (!startline.startsWith("HTTP/")) {
 			throw new ProtocolException("Parse error: Not a HTTP message");
@@ -39,7 +38,12 @@ public class HttpResponse extends HttpMessage {
 			headerpairs.put(line.substring(0, pos), line.substring(pos + 1));
 		}
 
-		stream = in;
+		Integer len = (Integer) headerpairs.get("Content-Length");
+		if (len != null) {
+			byte[] content = new byte[len.intValue()];
+			in.readFully(content);
+			inStream = new ByteArrayInputStream(content);
+		}
 	}
 
 	public double getVersion() {
@@ -59,11 +63,8 @@ public class HttpResponse extends HttpMessage {
 				new String[headerpairs.size()]);
 	}
 
-	public byte[] getContent() {
-		return content;
+	public ObjectInputStream getInputStream() throws IOException {
+		return new ObjectInputStream(inStream);
 	}
-	
-	public DataInputStream getStream() {
-		return stream;
-	}
+
 }

@@ -2,6 +2,8 @@ package ch.ethz.iks.r_osgi.http;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -20,7 +22,7 @@ import ch.ethz.iks.r_osgi.NetworkChannelFactory;
 final class HttpChannelFactory implements NetworkChannelFactory {
 
 	static final String PROTOCOL = "http";
-	
+
 	/**
 	 * get a new connection.
 	 * 
@@ -78,12 +80,12 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		/**
 		 * the input stream.
 		 */
-		private ObjectInputStream input;
+		private DataInputStream input;
 
 		/**
 		 * the output stream.
 		 */
-		private ObjectOutputStream output;
+		private DataOutputStream output;
 
 		/**
 		 * the endpoint.
@@ -136,10 +138,10 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		private void open(final Socket socket) throws IOException {
 			this.socket = socket;
 			this.socket.setKeepAlive(true);
-			this.output = new ObjectOutputStream(new BufferedOutputStream(
-					socket.getOutputStream()));
+			this.output = new DataOutputStream(new BufferedOutputStream(socket
+					.getOutputStream()));
 			output.flush();
-			input = new ObjectInputStream(new BufferedInputStream(socket
+			input = new DataInputStream(new BufferedInputStream(socket
 					.getInputStream()));
 		}
 
@@ -207,9 +209,9 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 */
 		public void sendMessage(final RemoteOSGiMessage message)
 				throws IOException {
-			// TODO: send http header
-			// TODO: as content:			
-			message.send(output);
+			HttpRequest request = new HttpRequest("/r-osgi");
+			message.send(request.getOutputStream());
+			request.send(HttpRequest.POST, host.toString(), output);
 		}
 
 		/**
@@ -223,10 +225,9 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			public void run() {
 				while (connected) {
 					try {
-						// TODO: receive http header
-						// TODO: as content:
-						endpoint
-								.receivedMessage(RemoteOSGiMessage.parse(input));
+						final HttpResponse resp = new HttpResponse(input);
+						endpoint.receivedMessage(RemoteOSGiMessage.parse(resp
+								.getInputStream()));
 					} catch (Exception e) {
 						connected = false;
 						try {
