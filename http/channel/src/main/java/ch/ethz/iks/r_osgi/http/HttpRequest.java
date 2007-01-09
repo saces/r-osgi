@@ -34,6 +34,7 @@ public class HttpRequest {
 
 	public HttpRequest(DataInputStream in) throws Exception {
 		// TODO: parse
+		System.out.println("starting the parsing");
 		in.readLine();
 
 		String line;
@@ -42,12 +43,15 @@ public class HttpRequest {
 			pos = line.indexOf(":");
 			headerpairs.put(line.substring(0, pos), line.substring(pos + 1));
 		}
+		System.out.println("parsed the headers " + headerpairs);
 		Integer len = (Integer) headerpairs.get("Content-Length");
 		if (len != null) {
+			System.out.println("expecting content of length " + len);
 			content = new byte[len.intValue()];
 			in.readFully(content);
 			inStream = new ByteArrayInputStream(content);
 		}
+		System.out.println("finished parsing");
 	}
 
 	public void setHeader(String key, String value) {
