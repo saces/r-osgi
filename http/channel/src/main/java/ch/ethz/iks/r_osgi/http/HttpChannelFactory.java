@@ -5,8 +5,6 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import ch.ethz.iks.r_osgi.ChannelEndpoint;
@@ -136,13 +134,14 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 *             if something goes wrong.
 		 */
 		private void open(final Socket socket) throws IOException {
+			System.out.println();
+			System.out.println("REQUESTING HTTP CHANNEL TO " + host + ":"
+					+ port);
+			System.out.println();
 			this.socket = socket;
 			this.socket.setKeepAlive(true);
-			this.output = new DataOutputStream(new BufferedOutputStream(socket
-					.getOutputStream()));
-			output.flush();
-			input = new DataInputStream(new BufferedInputStream(socket
-					.getInputStream()));
+			this.output = new DataOutputStream(socket.getOutputStream());
+			input = new DataInputStream(socket.getInputStream());
 		}
 
 		public void bind(ChannelEndpoint endpoint) throws IOException {
@@ -212,6 +211,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			HttpRequest request = new HttpRequest("/r-osgi");
 			message.send(request.getOutputStream());
 			request.send(HttpRequest.POST, host.toString(), output);
+			output.flush();
 		}
 
 		/**

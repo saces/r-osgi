@@ -1,12 +1,8 @@
 package ch.ethz.iks.r_osgi.http.acceptor;
 
-import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -59,8 +55,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 					.getInputStream()), new DataOutputStream(resp
 					.getOutputStream()));
 			resp.setStatus(HttpServletResponse.SC_OK);
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Throwable t) {
+			System.err.println("oops, caught an exception.");
+			t.printStackTrace();
 		}
 	}
 }
