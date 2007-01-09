@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+  <properties>
+		<title>R-OSGi - transparent OSGi remote extension for distributed services - What's new</title>
+    <author email="rellermeyer_AT_inf.ethz.ch">Jan S. Rellermeyer</author>
+  </properties>
+	<meta name="keyword" content="Projects, using, OSGi, R-OSGi, rosgi, remote, remoting, Java, J2ME, embedded systems, Event, Service, EventAdmin, Remote Event, RemoteEvent, SLP, Remote services, service discovery"/>
+	<meta name="description" content="R-OSGi provides a transparent way to access services on remote OSGi service platforms. Additionally, it implements OSGi R4 EventAdmin service and is able to send RemoteEvents to other peers. It uses jSLP, the pure Java SLP implementation as underlying discovery protocol. Projects using R-OSGi:"/>
+	<meta http-equiv="cache-control" content="no-cache"/>
+	<meta http-equiv="pragma" content="no-cache"/>
+	<meta http-equiv="robots" content="index, follow"/>
+<body>
+	<section name="What's new in 0.5.x">
+	<p>
+		The API has been changed with the new release due to a different view on registration. The goal is to provide distribution as transparently as possible. Different to previous versions, 
+		registration of services now uses the <a href="http://www.osgi.org/documents/osgi_technology/whiteboard.pdf#search=%22R-OSGi%22">whiteboard pattern</a> with a special R-OSGi key in the property set of the service. This allows enabling services for remoting without big extra effort. 
+		The only disadvantage is that adding properties to services is restricted to holders of the 
+		service registrations. In this sense, legacy bundles that are not aware of R-OSGi cannot use this way of registration. Thus, R-OSGi still provides a method for explicit registration. But in 0.5.x, this directly takes a ServiceRegistration to
+		simplify the process of registration and to support services with multiple interfaces.  
+	</p>	
+	<p>
+		Deregistration is in most cases no longer necessary. Services are automatically deregistered with R-OSGi when they disappear from the framework. Only if a service has to be unregistered unly from the R-OSGi part, the explicit way over the 
+		R-OSGi API has to be taken.	
+	</p>
+	<p>
+		Registration of DiscoveryListeners now also follows the whiteboard pattern. Additionally, a property can be set to support a very common functionality: The service is directly fetched without further interaction with the application. In this sense, the application can signal interest in a remote service in advance. The old way is still supported.
+	</p>
+	<p>
+		Until now, the only way of moving services to a remote peer was to build some kind of proxy on the client side. This is not only feasible, sometimes it is better to migrate the whole bundle to the other peer because the communication overhead of remote calls 
+		is not affordable. To support this, we have introduces the new TRANSFER_BUNDLE policy. For the moment, this policy disregards import dependencies. Since it is a primary goal of R-OSGi to run on every OSGi framework implementation, it is not straightforward how to 
+		catch the bundle JAR that belongs to a service. On the one hand, the OSGi framework API has no way of getting access to the framework's private storage where the bundle JARs reside. On the other hand, even if R-OSGi can guess the storage location, some frameworks modify (e.g., extract) the bundle JARs. 
+		R-OSGi therefore has to rely on basic information that is common to all frameworks. This is the bundle location, which is often a valid URL to the original bundle. If this is not the case, there is a special header entry for R-OSGi that bundles can provide to point R-OSGi to the location where the bundle can be found.
+	</p>
+	<p>
+		Release 0.5.0 no longer implements EventAdmin functionalities. When the original design decision was taken, the R4 specs were just released and almost no EventAdmin implementations were available. This has changed now, open source R4 implementations are either already available or under development. 
+		To allow the usage of R-OSGi with the default EventAdmin of your framework, starting with the 0.5.0 release, R-OSGi now implements EventHandler to interact with registered EventAdmins. In case you are using R-OSGi with a R3 framework, you can use the EventAdmin backport of <a href="http://concierge.sourceforge.net">Concierge</a>.		
+	</p>
+	<p>
+		The mapping of services to SLP service URLs used in previous releases was ambiguous. To fix this, an interface <code>my.package.MyClass</code> is now mapped to <code>service:osgi:my/package/MyClass</code> and the service ID is added as path of the host identifier. This makes service URLs unique on the peer. But indeed, this also means that versions earlier than 0.5.0 are not interoperable 
+		with 0.5.x. Well, this is a research project :-)
+	</p>
+	</section>
+</body>
+</document>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Maven">
+  <skin>
+    <groupId>ch.ethz.iks.skin</groupId>
+    <artifactId>maven_iks_skin</artifactId>
+    <version>1.0.0</version>
+  </skin>
+  
+	<bannerLeft>
+		<src>images/eth_iks.jpg</src>
+		<href>http://www.iks.inf.ethz.ch</href>
+	</bannerLeft>
+	<bannerRight>
+		<src>images/r-osgi.jpg</src>
+		<href>http://sourceforge.net/projects/r-osgi</href>
+	</bannerRight>
+	<body>
+		<links>
+			<item name="Sourceforge" href="http://sourceforge.net/projects/r-osgi"/>
+			<item name="jSLP" href="http://jslp.sourceforge.net"/>
+			<item name="Concierge OSGi" href="http://concierge.sourceforge.net"/>
+			<item name="flowSGi" href="http://flowsgi.inf.ethz.ch"/>
+		</links>
+		<menu name="Overview">
+			<item name="Home" href="/index.html"/>
+			<item name="What's new" href="/whatsnew.html"/>
+			<item name="Getting Started" href="/userguide.html"/>
+			<item name="Advanced R-OSGi" href="/advanced.html"/>
+			<item name="ServiceUI" href="/serviceUI.html"/>
+			<item name="Examples" href="/mindstorm.html" collapse="false">
+				<item name="Lego Mindstorm Robots" href="/mindstorm.html"/>
+			</item>
+			<item name="R-OSGi Properties" href="/properties.html"/>
+			<item name="JavaDocs" href="/apidocs/index.html" target="new"/>
+			<item name="Download" href="http://sourceforge.net/project/showfiles.php?group_id=158382"/>
+			<item name="Project License" href="/license.html"/>
+			<item name="Projects Using R-OSGi" href="/using.html"/>
+		</menu>
+		<menu name="Project">
+			<item name="Source Repository"		href="/source-repository.html" />
+			<item name="Report a Bug" 			href="http://sourceforge.net/tracker/?group_id=158382&amp;atid=807609"/>
+			<item name="Request a Feature" 		href="http://sourceforge.net/tracker/?group_id=158382&amp;atid=807613"/>
+			<item name="Forum" 					href="http://sourceforge.net/forum/?group_id=158382"/>
+			<item name="Project Team" 			href="/team-list.html"/>
+		</menu>
+	</body>
+</project>

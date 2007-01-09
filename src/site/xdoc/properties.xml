@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+  <properties>
+		<title>R-OSGi - transparent OSGi remote extension for distributed services - R-OSGi Properties</title>
+    <author email="rellermeyer_AT_inf.ethz.ch">Jan S. Rellermeyer</author>
+  </properties>
+	<meta name="keyword" content="Properties, OSGi, R-OSGi, rosgi, remote, remoting, Java, J2ME, embedded systems, Event, Service, EventAdmin, Remote Event, RemoteEvent, SLP, jSLP, flowSGi, Remote services, service discovery"/>
+	<meta name="description" content="The properties of R-OSGi, the OSGi remote service framework based on jSLP, the pure java SLP implementation."/>
+	<meta http-equiv="cache-control" content="no-cache"/>
+	<meta http-equiv="pragma" content="no-cache"/>
+	<meta http-equiv="robots" content="index, follow"/>
+<body>
+	<section name="R-OSGi Properties">
+
+	<p>
+	Currently, R-OSGi supports the following properties:
+	<table>
+	<tr>
+		<th>Attribute</th>
+		<th>Default</th>
+		<th>Comment</th>
+	</tr>
+	<tr>
+		<td><code>osgi.service.proposition.remote.debug.proxyGeneration</code></td>
+		<td><i>false</i> = disabled</td>
+		<td>Enable debug output for dynamic proxy generation.</td>
+	</tr>
+	<tr>
+		<td><code>osgi.service.proposition.remote.debug.messages</code></td>
+		<td><i>false</i> = disabled</td>
+		<td>Enable debug output for R-OSGi messages (= network packets).</td>
+	</tr>
+	<tr>
+		<td><code>osgi.service.proposition.remote.debug.invocations</code></td>
+		<td><i>false</i> = disabled</td>
+		<td>Enable debug output for method invocation.</td>
+	</tr>
+	<tr>
+		<td><code>osgi.service.proposition.remote.discoveryInterval</code></td>
+		<td>20</td>
+		<td>Amout of time (in seconds) between two discovery attempts. This also sets the upper time bound for discovery.</td>
+	</tr>
+	<tr>
+		<td><code>osgi.service.proposition.remote.defaultLifetime</code></td>
+		<td>60</td>
+		<td>Amout of time (in seconds) that a service registration in SLP remains alive. R-OSGi will reregister the service unless 
+			the service is unregistered with R-OSGi. This property sets the lifetime for SLP registrations and affects how long
+			a registration remains stale if the R-OSGi service is shut down or if a SLP Directory Agent is used and the 
+			framework is shut down. Should be set to a reasonable value; too small values lead to increased resource consumptions
+			for the reregistration thread. Too large values lead to stale service references, especially if a Directory Agent for 
+			is present. (For details about the role of a Directory Agent, see <a href="http://www.openslp.org/doc/rfc/rfc2608.txt">RFC 2608</a>. Please 
+			note, that R-OSGi does not require the presence of a Directory Agent.)
+		</td>
+	</tr>	
+	</table>
+	</p>
+	</section>
+</body>
+</document>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+	<properties>
+		<title>R-OSGi - transparent OSGi remote extension for distributed services - Smart Proxies</title>
+		<author email="rellermeyer_AT_inf.ethz.ch">Jan S. Rellermeyer</author>
+	</properties>
+	<meta name="keyword" content="Advanced, OSGi, R-OSGi, rosgi, remote, remoting, Java, J2ME, embedded systems, Event, Service, EventAdmin, Remote Event, RemoteEvent, SLP, Remote services, service discovery"/>
+	<meta name="description" content="Advanced R-OSGi examples. R-OSGi provides a transparent way to access services on remote OSGi service platforms. Additionally, it implements OSGi R4 EventAdmin service and is able to send RemoteEvents to other peers. It uses jSLP, the pure Java SLP implementation as underlying discovery protocol. Smart proxies:"/>
+	<meta http-equiv="cache-control" content="no-cache"/>
+	<meta http-equiv="pragma" content="no-cache"/>
+	<meta http-equiv="robots" content="index, follow"/>
+	<body>
+		<section name="Advanced R-OSGi">
+			<p>
+			For reasons of saving service provider's resources or to have client dependent code parts, services can register smart proxies. These are 
+			abstract classes that implement the service interface and can have additional methods. The service consuming platform uses smart proxies during
+			proxy bundle generation and leaves all implemented (i.e. not abstract) methods untouched. Abstract methods are implemented with remote 
+			method invocations. 
+		</p>
+			<p>
+			It is e.g. possible to have a method that returns an attribute of the local framework or that uses a local service instead of redirecting the
+			invocation to the service provider. Implemented methods can themselves use every abstract or implemented method of the abstract class. For 
+			more sophisticated applications, it is possible to inject additional classes into the proxy bundle. This is also useful, if methods have
+			non standard objects as parameter and the developer does not want to assume that these classes are always present on the service consumer 
+			platform. 
+		</p>
+			<subsection name="Smart proxy example">
+				<p>
+		TestInterface:
+<source>			
+import osgi.service.proposition.remote.RemoteOSGiException;
+
+public interface TestInterface {
+    public String callMe(String str, int i) throws RemoteOSGiException;
+}			
+</source>
+					<br/>
+		TestSmartProxy:
+<source>			
+public abstract class TestSmartProxy implements TestInterface {
+
+    public abstract String callMe(String str, int i);
+
+    public void localMethod(String str) {
+        System.out.println("LOCAL METHOD CALLED WITH " + str);
+    }
+}		
+</source>
+					<br/>
+		Registration by whiteboard pattern:
+<source>
+(...)
+
+Dictionary properties = new Hashtable();
+properties.put(RemoteOSGiService.R_OSGi_REGISTRATION, USE_PROXY_POLICY);
+properties.put(RemoteOSGiService.SMART_PROXY, TestSmartProxy.class);
+
+context.registerService(TestInterface.class.getName(), new TestService(), properties);
+
+(...)
+</source>
+or use the legacy <i>remote.registerService(...)</i> method call for registration. 
+					<br/>
+			If the abstract smart proxy class does not implement the service interface, an Exception is thrown.
+		</p>
+			</subsection>
+			<subsection name="Class injection example">
+				<p>
+			Class injections can be every Java class or interface. They are injected into the proxy bundle with the same package that 
+			they had on the service provider platform. Example:
+<source>
+(...)
+
+Dictionary properties = new Hashtable();
+properties.put(RemoteOSGiService.R_OSGi_REGISTRATION, USE_PROXY_POLICY);
+properties.put(RemoteOSGiService.CLASS_INJECTIONS, new Class[] {javax.mail.Service.class, javax.mail.Message.class});
+
+(...)
+</source>
+			Class injections can be used with or, as in the example, without a smart proxy.	Please note that class injections will disappear in future versions when the 
+			system is able handle this issue in an automatic way.
+		</p>
+			</subsection>
+		</section>
+	</body>
+</document>

@@ -1,0 +1,86 @@
+<?xml version="1.0"?><project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>ch.ethz.iks.r-osgi</groupId>
+  <artifactId>project</artifactId>
+  <packaging>pom</packaging>
+  <name>R-OSGi</name>
+  <version>0.6.0_pre</version>
+  <description>R-OSGi Project</description>
+  <url>http://r-osgi.sourceforge.net</url>
+  <issueManagement>
+    <system>Sourceforge bug tracker</system>
+    <url>http://sourceforge.net/tracker/?group_id=158382&amp;atid=807609</url>
+  </issueManagement>
+  <developers>
+    <developer>
+      <id>rjan</id>
+      <name>Jan S. Rellermeyer</name>
+      <email>rellermeyer_at_inf.ethz.ch</email>
+      <url>http://people.inf.ethz.ch/rjan</url>
+      <organization>IKS, ETH Zurich</organization>
+      <organizationUrl>http://www.iks.inf.ethz.ch</organizationUrl>
+      <roles>
+        <role>Project creator</role>
+        <role>Researcher</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+  <licenses>
+    <license>
+      <name>BSD license</name>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:svn:https://r-osgi.svn.sourceforge.net/svnroot/r-osgi</connection>
+    <developerConnection>scm:svn:rjan@https://r-osgi.svn.sourceforge.net/svnroot/r-osgi</developerConnection>
+    <tag>jSLP</tag>
+    <url>http://r-osgi.svn.sourceforge.net/r-osgi</url>
+  </scm>
+  <organization>
+    <name>IKS, ETH Zurich</name>
+    <url>http://www.iks.inf.ethz.ch</url>
+  </organization>
+  <modules>
+    <module>remote</module>
+    <module>sample/api</module>
+    <module>sample/client</module>
+    <module>sample/service</module>
+    <module>http/channel</module>
+    <module>http/servlet</module>
+    <module>sample/http/client</module>
+    <module>sample/http/service</module>
+    <module>serviceUI</module>
+  </modules>
+  <dependencies>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>2.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.2</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+  <reporting>
+    <plugins>
+      <plugin>
+        <artifactId>maven-site-plugin</artifactId>
+        <configuration>
+          <templateFile>${basedir}/maven-site-r-osgi.vm</templateFile>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+  <distributionManagement>
+    <site>
+      <id>sourceforge-site</id>
+      <url>scp://shell.sourceforge.net/home/groups/r/r-/r-osgi/htdocs/</url>
+    </site>
+  </distributionManagement>
+</project>

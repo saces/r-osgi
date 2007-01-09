@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+	<properties>
+		<title>R-OSGi - transparent OSGi remote extension for distributed services - Lego Mindstorm Robots</title>
+		<author email="rellermeyer_AT_inf.ethz.ch">Jan S. Rellermeyer</author>
+	</properties>
+	<meta name="keyword" content="Projects, using, OSGi, R-OSGi, rosgi, remote, remoting, Java, J2ME, embedded systems, Event, Service, EventAdmin, Remote Event, RemoteEvent, SLP, Remote services, service discovery"/>
+	<meta name="description" content="The Lego mindstorm robots are controlled by R-OSGi, the OSGi remote service framework based on jSLP, the pure java slp implementation."/>
+	<meta http-equiv="cache-control" content="no-cache"/>
+	<meta http-equiv="pragma" content="no-cache"/>
+	<meta http-equiv="robots" content="index, follow"/>
+	<body>
+		<section name="Lego Mindstorm Robots">
+			<subsection name="The robots">
+				<p>
+			Our lego mindstorm robot was designed as result of the diploma thesis 
+			<a href="http://www.iks.inf.ethz.ch/publications/dsa/files/Diplom-Kaspar.pdf">Macrobot</a> by Kaspar von Gunten and enhanced in a series 
+			of student labs. The current state is documented in <a href="http://www.iks.inf.ethz.ch/sda/labor/index_html/docs/robotsSS2004.pdf">ARA</a>. 
+			<center>
+						<img src="/images/robot1.gif"/>
+					</center>
+			As basic feature, the robots can go forwards by following the line and turn left or right at crossing points. The middleware uses OSGi on 
+			iPAQ with <a href="http://familiar.handhelds.org">Familiar</a> Linux on Java. The iPAQs communicate with the RCX brick over the Lego infrared 
+			tower that is attached via serial port. On the RCX a modified version of <a href="http://lejos.sourceforge.net">LeJos</a> is running. 
+			<center>
+						<img src="/images/robot2.gif"/>
+					</center>
+				</p>
+			</subsection>
+			<subsection name="R-OSGi robot controller">
+				<p>
+			R-OSGi robot controller is a sample application to control the basic features of the robots by using R-OSGi and a ServiceUI sample. 
+			Every robot has an iPAQ with R-OSGi remoting a basic robot bundle that provides the basic features. Communication channel is a wireless
+			network card on the iPAQ that can either operate in managed, or in ad-hoc mode. Clients are iPAQs or a Sharp Zaurus running R-OSGi and 
+			a sample ServiceUI that notifies the user if a robot could be discovered and lets users send robot commands. <br/>
+			Please note that the current version of the ServiceUI looks slightly different than the screenshots below and allows to simultaneously connect to multiple services. This includes the possibility to connect to the same type of service running on different remote hosts. In our mindstorm example, that means, it is possible to control multiple robots with the same ServiceUI. Additionally, the getQueue button is no longer required. Changes in the content of the queue are signaled to all UI instances by remote events.
+					<center>
+						<b>sample serviceUI in discovery mode</b>
+						<br/>
+						<img src="/images/serviceUI_idle.png"/>
+					</center>
+					<br/>
+					<br/>
+					<center>
+						<b>user has decided to connect to a discovered service</b>
+						<br/>
+						<img src="/images/serviceUI_connecting.png"/>
+					</center>
+					<br/>
+					<br/>
+					<center>
+						<b>R-OSGi robot controller in action</b>
+						<br/>
+						<img src="/images/serviceUI_connected.png"/>
+					</center>
+					<br/>
+					<br/>
+				</p>
+			</subsection>
+		</section>
+	</body>
+</document>

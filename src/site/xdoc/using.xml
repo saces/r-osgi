@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+  <properties>
+		<title>R-OSGi - transparent OSGi remote extension for distributed services - Projects using R-OSGi</title>
+    <author email="rellermeyer_AT_inf.ethz.ch">Jan S. Rellermeyer</author>
+  </properties>
+	<meta name="keyword" content="Projects, using, OSGi, R-OSGi, rosgi, remote, remoting, Java, J2ME, embedded systems, Event, Service, EventAdmin, Remote Event, RemoteEvent, SLP, Remote services, service discovery"/>
+	<meta name="description" content="R-OSGi provides a transparent way to access services on remote OSGi service platforms. Additionally, it implements OSGi R4 EventAdmin service and is able to send RemoteEvents to other peers. It uses jSLP, the pure Java SLP implementation as underlying discovery protocol. Projects using R-OSGi:"/>
+	<meta http-equiv="cache-control" content="no-cache"/>
+	<meta http-equiv="pragma" content="no-cache"/>
+	<meta http-equiv="robots" content="index, follow"/>
+<body>
+	<section name="Projects using R-OSGi">
+		<p>
+		<table>
+			<tr>
+				<th>Project</th>
+				<th>Description</th>
+				<th>Link</th>
+			</tr>
+			<tr>
+				<td>flowSGi</td>
+				<td>Collaborative middleware for mobile devices based on OSGi</td>
+				<td><a href="http://flowsgi.inf.ethz.ch">flowSGi website</a></td>
+			</tr>
+			<tr>
+				<td><i>title pending</i></td>
+				<td>Dynamic adaptive caching strategies for distributed data-intensive applications. (ongoing master's thesis supervised by Angela Nicoara, ETH Zurich)</td>
+				<td></td>
+			</tr>
+		</table>
+		</p>
+		
+		<p>
+			If you use R-OSGi in your project, please let us know and send an <a href="mailto:rjan@users.sourceforge.net">email</a>.
+		</p>
+	</section>
+</body>
+</document>
