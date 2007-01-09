@@ -20,7 +20,7 @@
 				<extensions>true</extensions>
 				<configuration>
 					<osgiManifest>
-						<bundleActivator>ch.ethz.iks.r_osgi.sample.http.client.Activator</bundleActivator>
+						<bundleActivator>ch.ethz.iks.r_osgi.sample.http.client.HttpTransportTest</bundleActivator>
 						<bundleName>R-OSGi Sample Http Client</bundleName>
 						<bundleVendor>Jan S. Rellermeyer, IKS, ETH Zurich</bundleVendor>
 						<importPackage>org.osgi.framework, org.osgi.service.event, ch.ethz.iks.r_osgi, ch.ethz.iks.slp, ch.ethz.iks.r_osgi.sample.api</importPackage>
