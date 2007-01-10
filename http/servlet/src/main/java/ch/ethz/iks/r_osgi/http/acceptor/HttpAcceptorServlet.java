@@ -70,6 +70,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 			throws ServletException, IOException {
 		System.out.println("GOT POST REQUEST");
 		try {
+			System.out.println("Expecting " + req.getContentLength()
+					+ " bytes of content");
 			final InputStream remoteIn = req.getInputStream();
 			for (int i = 0; i < req.getContentLength(); i++) {
 				localOut.write(remoteIn.read());
