@@ -73,7 +73,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 			System.out.println("Expecting " + req.getContentLength()
 					+ " bytes of content");
 			final InputStream remoteIn = req.getInputStream();
-			for (int i = 0; i < req.getContentLength(); i++) {
+			while (remoteIn.available() > -1) {
 				localOut.write(remoteIn.read());
 			}
 
