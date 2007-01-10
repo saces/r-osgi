@@ -5,8 +5,10 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 
 import javax.servlet.ServletException;
@@ -40,6 +42,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 					.getInputStream()));
 			localOut = new ObjectOutputStream(new BufferedOutputStream(socket
 					.getOutputStream()));
+			localOut.flush();
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
@@ -67,7 +70,15 @@ public class HttpAcceptorServlet extends HttpServlet {
 			throws ServletException, IOException {
 		System.out.println("GOT POST REQUEST");
 		try {
-			
+			final InputStream remoteIn = req.getInputStream();
+			for (int i = 0; i < req.getContentLength(); i++) {
+				localOut.write(remoteIn.read());
+			}
+
+			final OutputStream remoteOut = resp.getOutputStream();
+			while (localIn.available() > -1) {
+				remoteOut.write(localIn.read());
+			}
 		} catch (Throwable t) {
 			System.err.println("oops, caught an exception.");
 			t.printStackTrace();
