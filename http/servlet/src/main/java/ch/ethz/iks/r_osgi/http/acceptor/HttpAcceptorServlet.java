@@ -1,8 +1,14 @@
 package ch.ethz.iks.r_osgi.http.acceptor;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -19,6 +25,27 @@ public class HttpAcceptorServlet extends HttpServlet {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	private static final int R_OSGi_PORT = 9278;
+
+	private static ObjectInputStream localIn;
+
+	private static ObjectOutputStream localOut;
+
+	static {
+		Socket socket = null;
+		try {
+			System.out.println("now opening local socket");
+			socket = new Socket("localhost", R_OSGi_PORT);
+			localIn = new ObjectInputStream(new BufferedInputStream(socket
+					.getInputStream()));
+			localOut = new ObjectOutputStream(new BufferedOutputStream(socket
+					.getOutputStream()));
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+
+	}
+
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		System.out.println();
@@ -29,17 +56,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		System.out.println("GOT GET REQUEST");
-		try {
-			new HttpBridge(req.getRemoteHost(), new DataInputStream(req
-					.getInputStream()), new DataOutputStream(resp
-					.getOutputStream()));
-
-			while (!resp.isCommitted()) {
-				Thread.sleep(60000);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	/**
@@ -51,10 +67,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 			throws ServletException, IOException {
 		System.out.println("GOT POST REQUEST");
 		try {
-			new HttpBridge(req.getRemoteHost(), new DataInputStream(req
-					.getInputStream()), new DataOutputStream(resp
-					.getOutputStream()));
-			resp.setStatus(HttpServletResponse.SC_OK);
+			
 		} catch (Throwable t) {
 			System.err.println("oops, caught an exception.");
 			t.printStackTrace();

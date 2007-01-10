@@ -16,47 +16,29 @@ public class HttpBridge {
 
 	private final int bufferSize = 1024;
 
-	private final DataInputStream remoteIn;
+	private static final ObjectInputStream localIn;
 
-	private final DataOutputStream remoteOut;
-
-	private final DataInputStream localIn;
-
-	private final DataOutputStream localOut;
+	private static final ObjectOutputStream localOut;
 
 	private boolean running = true;
 
 	private final String hostname;
 
-	public HttpBridge(String hostname, DataInputStream remoteIn,
-			DataOutputStream remoteOut) throws Exception {
-		System.out.println("starting HTTP bridge for " + hostname);
-		this.hostname = hostname;
-		this.remoteIn = remoteIn;
-		this.remoteOut = remoteOut;
-		System.out.println("now opening local socket");
-		Socket socket = new Socket("localhost", R_OSGi_PORT);
-		this.localIn = new DataInputStream(socket.getInputStream());
-		this.localOut = new DataOutputStream(socket.getOutputStream());
-		new Incoming().start();
-		System.out.println("bridge started.");
+	static {
+		try {
+			System.out.println("now opening local socket");
+			Socket socket = new Socket("localhost", R_OSGi_PORT);
+			localIn = new ObjectInputStream(socket.getInputStream());
+			localOut = new ObjectOutputStream(socket.getOutputStream());
+			localOut.flush();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
 	}
 
-	private class Incoming extends Thread {
-		public void run() {
-			try {
-				while (running) {
-					System.out.println("in loop ...");
-
-					HttpRequest msg = new HttpRequest(remoteIn);
-					if (msg instanceof HttpRequest) {
-						localOut.write(msg.getContent());
-					}
-				}
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-		}
+	public HttpBridge(String hostname, DataInputStream remoteIn,
+			DataOutputStream remoteOut) throws Exception {
+		System.out.println("bridge started.");
 	}
 
 }
