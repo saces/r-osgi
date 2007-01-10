@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import ch.ethz.iks.r_osgi.http.HttpRequest;
 
@@ -43,16 +44,17 @@ public class HttpBridge {
 
 	private class Incoming extends Thread {
 		public void run() {
-			while (running) {
-				System.out.println("in loop ...");
-				try {
+			try {
+				while (running) {
+					System.out.println("in loop ...");
+
 					HttpRequest msg = new HttpRequest(remoteIn);
 					if (msg instanceof HttpRequest) {
 						localOut.write(msg.getContent());
 					}
-				} catch (Throwable t) {
-					t.printStackTrace();
 				}
+			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 		}
 	}
