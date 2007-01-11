@@ -34,12 +34,16 @@ public class HttpResponse {
 		}
 		int pos2 = startline.indexOf(" ", pos + 1);
 		status = Integer.parseInt(startline.substring(pos + 1, pos2));
-
+		System.out.println("STATUS: " + status);
+		System.out.println();
+		System.out.println("HEADERS: ");
 		String line;
 		while (!"".equals(line = in.readLine())) {
 			pos = line.indexOf(":");
+			System.out.println(line);
 			headerpairs.put(line.substring(0, pos), line.substring(pos + 1));
 		}
+		System.out.println();
 
 		Integer len = (Integer) headerpairs.get("Content-Length");
 		if (len != null) {
