@@ -229,13 +229,14 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 						endpoint.receivedMessage(RemoteOSGiMessage.parse(resp
 								.getInputStream()));
 					} catch (Exception e) {
-						connected = false;
-						try {
-							socket.close();
-						} catch (IOException e1) {
-						}
-						endpoint.receivedMessage(null);
-						return;
+						e.printStackTrace();
+						// connected = false;
+						// try {
+						// socket.close();
+						// } catch (IOException e1) {
+						// }
+						// endpoint.receivedMessage(null);
+						// return;
 					}
 				}
 			}

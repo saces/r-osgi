@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.Writer;
 import java.net.Socket;
 
 import javax.servlet.ServletException;
@@ -60,6 +61,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		System.out.println("GOT GET REQUEST");
+		Writer writer = resp.getWriter();
+		writer.write("<h1>R-OSGi HTTP Channel Acceptor Servlet</h1>");
+		resp.setStatus(HttpServletResponse.SC_OK);
 	}
 
 	/**
