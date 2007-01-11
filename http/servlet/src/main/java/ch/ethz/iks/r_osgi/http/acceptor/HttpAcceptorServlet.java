@@ -80,6 +80,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 			for (; localIn.available() == 0 && !socket.isInputShutdown(); Thread
 					.sleep(100L)) {
 			}
+			System.out.println("NOW forwarding");
 			int available = localIn.available();
 			byte buffer[] = new byte[1024];
 			int len;

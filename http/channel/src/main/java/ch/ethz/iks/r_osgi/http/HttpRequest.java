@@ -101,7 +101,7 @@ public class HttpRequest {
 			buffer.append("Content-Length: " + content.length + "\r\n");
 		}
 		buffer.append("Connection: keep-alive\r\n");
-		buffer.append("Keep-Alive: 30000\r\n");
+		buffer.append("Keep-Alive: 60000\r\n");
 		for (Enumeration keys = headerpairs.keys(); keys.hasMoreElements();) {
 			final String key = (String) keys.nextElement();
 			buffer.append(key);
@@ -111,11 +111,17 @@ public class HttpRequest {
 		}
 		buffer.append("\r\n");
 
-		if (content.length > 0) {
-			buffer.append(content);
+		byte bytes[];
+		if (method == 1 && content != null) {
+			int len = buffer.length();
+			bytes = new byte[len + content.length];
+			System.arraycopy(buffer.toString().getBytes(), 0, bytes, 0, len);
+			System.arraycopy(content, 0, bytes, len, content.length);
+		} else {
+			bytes = buffer.toString().getBytes();
 		}
 
-		out.write(buffer.toString().getBytes());
+		out.write(bytes);
 		out.flush();
 	}
 
