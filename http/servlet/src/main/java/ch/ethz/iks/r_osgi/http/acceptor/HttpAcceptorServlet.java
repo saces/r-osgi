@@ -99,10 +99,11 @@ public class HttpAcceptorServlet extends HttpServlet {
 					&& (len = localIn.read(buffer, 0, available >= 1024 ? 1024
 							: available)) > -1; available = localIn.available()) {
 				remoteOut.write(buffer, 0, len);
+				System.out.println("YOHOO, sending " + len);
 			}
 			System.out.println("finished sending back");
+			remoteOut.flush();
 			resp.setStatus(HttpServletResponse.SC_OK);
-			resp.flushBuffer();
 		} catch (Throwable t) {
 			System.err.println("oops, caught an exception.");
 			t.printStackTrace();
