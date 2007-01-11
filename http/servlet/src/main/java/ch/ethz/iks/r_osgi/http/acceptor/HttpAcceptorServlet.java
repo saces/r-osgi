@@ -33,8 +33,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 	private static ObjectOutputStream localOut;
 
+	private static Socket socket;
+
 	static {
-		Socket socket = null;
 		try {
 			System.out.println("now opening local socket");
 			socket = new Socket("localhost", R_OSGi_PORT);
@@ -73,15 +74,22 @@ public class HttpAcceptorServlet extends HttpServlet {
 			System.out.println("Expecting " + req.getContentLength()
 					+ " bytes of content");
 			final InputStream remoteIn = req.getInputStream();
-			System.out.println("remotein available: " + remoteIn.available());
-			while (remoteIn.available() > -1) {
-				localOut.write(remoteIn.read());
-			}
-
 			final OutputStream remoteOut = resp.getOutputStream();
-			while (localIn.available() > -1) {
-				remoteOut.write(localIn.read());
+			System.out.println("remotein available: " + remoteIn.available());
+
+			for (; localIn.available() == 0 && !socket.isInputShutdown(); Thread
+					.sleep(100L)) {
 			}
+			int available = localIn.available();
+			byte buffer[] = new byte[1024];
+			int len;
+			for (; available > 0
+					&& (len = localIn.read(buffer, 0, available >= 1024 ? 1024
+							: available)) > -1; available = localIn.available()) {
+				remoteOut.write(buffer, 0, len);
+			}
+			remoteIn.close();
+			localIn.close();
 		} catch (Throwable t) {
 			System.err.println("oops, caught an exception.");
 			t.printStackTrace();
