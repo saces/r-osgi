@@ -86,7 +86,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 			for (; localIn.available() == 0 && !socket.isInputShutdown(); Thread
 					.sleep(100L)) {
 			}
-			System.out.println("NOW forwarding (" + localIn.available() + ")");
+			System.out.println("NOW sending back (" + localIn.available() + ")");
 			int available = localIn.available();
 			byte buffer[] = new byte[1024];
 			int len;
@@ -95,7 +95,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 							: available)) > -1; available = localIn.available()) {
 				remoteOut.write(buffer, 0, len);
 			}
-
+			System.out.println("finished sending back");
 		} catch (Throwable t) {
 			System.err.println("oops, caught an exception.");
 			t.printStackTrace();
