@@ -89,7 +89,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 				remoteOut.write(buffer, 0, len);
 			}
 			remoteIn.close();
-			localIn.close();
 		} catch (Throwable t) {
 			System.err.println("oops, caught an exception.");
 			t.printStackTrace();
