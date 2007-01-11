@@ -21,6 +21,9 @@ public class HttpResponse {
 		final String startline = in.readLine();
 		// HTTP/1.1 200 OK
 		if (!startline.startsWith("HTTP/")) {
+			System.out.println();
+			System.out.println(startline);
+			System.out.println();
 			throw new ProtocolException("Parse error: Not a HTTP message");
 		}
 		int pos = startline.indexOf(" ");

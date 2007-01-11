@@ -222,14 +222,15 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 */
 		private class ReceiverThread extends Thread {
 			public void run() {
-				while (connected) {
-					// while (Boolean.FALSE.booleanValue()) {
-					try {
+				try {
+					while (connected) {
+						// while (Boolean.FALSE.booleanValue()) {
+
 						final HttpResponse resp = new HttpResponse(input);
 						endpoint.receivedMessage(RemoteOSGiMessage.parse(resp
 								.getInputStream()));
-					} catch (Exception e) {
-						e.printStackTrace();
+						// } catch (Exception e) {
+						// e.printStackTrace();
 						// connected = false;
 						// try {
 						// socket.close();
@@ -237,7 +238,10 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 						// }
 						// endpoint.receivedMessage(null);
 						// return;
+						// }
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}
