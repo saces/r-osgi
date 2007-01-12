@@ -99,6 +99,7 @@ public class HttpRequest {
 			bytes = buffer.toString().getBytes();
 		}
 
+		System.out.println("OUT IS " + out);
 		out.write(bytes);
 		out.flush();
 	}
