@@ -1,8 +1,12 @@
 package ch.ethz.iks.r_osgi.http;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.net.ProtocolException;
 import java.util.Hashtable;
@@ -17,7 +21,9 @@ public class HttpResponse {
 
 	private ByteArrayInputStream inStream;
 
-	protected HttpResponse(final DataInputStream in) throws IOException {
+	protected HttpResponse(DataInputStream stream) throws IOException {
+		final BufferedReader in = new BufferedReader(new InputStreamReader(
+				stream));
 		final String startline = in.readLine();
 		// HTTP/1.1 200 OK
 		if (!startline.startsWith("HTTP/")) {
@@ -45,9 +51,9 @@ public class HttpResponse {
 		}
 		System.out.println();
 
-		System.out.println("STILL " + in.available() + " BYTES AVAILABLE.");
-		byte[] content = new byte[in.available()];
-		in.readFully(content);
+		System.out.println("STILL " + stream.available() + " BYTES AVAILABLE.");
+		byte[] content = new byte[stream.available()];
+		stream.readFully(content);
 		inStream = new ByteArrayInputStream(content);
 	}
 
