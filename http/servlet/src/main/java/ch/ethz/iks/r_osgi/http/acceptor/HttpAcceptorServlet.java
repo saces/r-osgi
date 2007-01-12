@@ -94,14 +94,16 @@ public class HttpAcceptorServlet extends HttpServlet {
 			System.out
 					.println("NOW sending back (" + localIn.available() + ")");
 			int available = localIn.available();
+			final ObjectOutputStream oout = new ObjectOutputStream(remoteOut);
 			byte buffer[] = new byte[1024];
 			int len;
 			for (; available > 0
 					&& (len = localIn.read(buffer, 0, available >= 1024 ? 1024
 							: available)) > -1; available = localIn.available()) {
-				remoteOut.write(buffer, 0, len);
+				oout.write(buffer, 0, len);
 				System.out.println("YOHOO, sending " + len);
 			}
+			oout.flush();
 			System.out.println("finished sending back");
 			remoteOut.flush();
 			resp.setStatus(HttpServletResponse.SC_OK);
