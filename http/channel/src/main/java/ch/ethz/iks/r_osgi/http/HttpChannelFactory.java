@@ -239,6 +239,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 						// endpoint.receivedMessage(null);
 						// return;
 						// }
+						System.out.println("ONE ITERATION SUCCESSFUL ...");
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
