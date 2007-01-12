@@ -21,9 +21,7 @@ public class HttpResponse {
 
 	private ByteArrayInputStream inStream;
 
-	protected HttpResponse(DataInputStream stream) throws IOException {
-		final BufferedReader in = new BufferedReader(new InputStreamReader(
-				stream));
+	protected HttpResponse(final DataInputStream in) throws IOException {
 		final String startline = in.readLine();
 		// HTTP/1.1 200 OK
 		if (!startline.startsWith("HTTP/")) {
@@ -51,9 +49,9 @@ public class HttpResponse {
 		}
 		System.out.println();
 
-		System.out.println("STILL " + stream.available() + " BYTES AVAILABLE.");
-		byte[] content = new byte[stream.available()];
-		stream.readFully(content);
+		System.out.println("STILL " + in.available() + " BYTES AVAILABLE.");
+		byte[] content = new byte[in.available()];
+		in.readFully(content);
 		inStream = new ByteArrayInputStream(content);
 	}
 
