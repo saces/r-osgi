@@ -208,6 +208,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 */
 		public void sendMessage(final RemoteOSGiMessage message)
 				throws IOException {
+			reconnect();
 			HttpRequest request = new HttpRequest("/r-osgi");
 			message.send(request.getOutputStream());
 			request.send(HttpRequest.POST, host.toString(), output);
@@ -223,7 +224,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		private class ReceiverThread extends Thread {
 			public void run() {
 				try {
-					while (connected) {
+					//while (connected) {
 						// while (Boolean.FALSE.booleanValue()) {
 						while(input.available() == -1) {
 							Thread.sleep(10);
@@ -242,7 +243,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 						// return;
 						// }
 						System.out.println("ONE ITERATION SUCCESSFUL ...");
-					}
+					//}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
