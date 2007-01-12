@@ -432,6 +432,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					}
 				}
 			} catch (Throwable t) {
+				// TODO: remove
+				t.printStackTrace();
 				lastException = t;
 				recoverConnection();
 
