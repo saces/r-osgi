@@ -25,8 +25,11 @@ public class HttpTransportTest implements BundleActivator {
 
 		System.out.println("TRYING TO ESTABLISH CONNECTION TO HOST");
 
+		//ServiceURL[] services = remote.connect(InetAddress
+		//		.getByName("10.1.9.204"), 8080, "http");
+
 		ServiceURL[] services = remote.connect(InetAddress
-				.getByName("10.1.9.204"), 8080, "http");
+				.getByName("192.168.24.1"), 8080, "http");
 
 		System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 				+ Arrays.asList(services));

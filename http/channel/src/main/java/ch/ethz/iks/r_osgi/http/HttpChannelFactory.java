@@ -5,6 +5,8 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import ch.ethz.iks.r_osgi.ChannelEndpoint;
@@ -78,12 +80,12 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		/**
 		 * the input stream.
 		 */
-		private DataInputStream input;
+		private ObjectInputStream input;
 
 		/**
 		 * the output stream.
 		 */
-		private DataOutputStream output;
+		private ObjectOutputStream output;
 
 		/**
 		 * the endpoint.
@@ -140,8 +142,8 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			System.out.println();
 			this.socket = socket;
 			this.socket.setKeepAlive(true);
-			this.output = new DataOutputStream(socket.getOutputStream());
-			input = new DataInputStream(socket.getInputStream());
+			this.output = new ObjectOutputStream(socket.getOutputStream());
+			input = new ObjectInputStream(socket.getInputStream());
 		}
 
 		public void bind(ChannelEndpoint endpoint) throws IOException {

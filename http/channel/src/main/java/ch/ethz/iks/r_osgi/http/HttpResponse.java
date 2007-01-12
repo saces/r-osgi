@@ -17,7 +17,7 @@ public class HttpResponse {
 
 	private ByteArrayInputStream inStream;
 
-	protected HttpResponse(final DataInputStream in) throws IOException {
+	protected HttpResponse(final ObjectInputStream in) throws IOException {
 		final String startline = in.readLine();
 		// HTTP/1.1 200 OK
 		if (!startline.startsWith("HTTP/")) {
@@ -45,12 +45,10 @@ public class HttpResponse {
 		}
 		System.out.println();
 
-		Integer len = (Integer) headerpairs.get("Content-Length");
-		if (len != null) {
-			byte[] content = new byte[len.intValue()];
-			in.readFully(content);
-			inStream = new ByteArrayInputStream(content);
-		}
+		System.out.println("STILL " + in.available() + " BYTES AVAILABLE.");
+		byte[] content = new byte[in.available()];
+		in.readFully(content);
+		inStream = new ByteArrayInputStream(content);
 	}
 
 	public double getVersion() {
