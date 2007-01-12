@@ -149,9 +149,6 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 				throw new IOException("Channel already bound to endpoint.");
 			}
 			this.endpoint = endpoint;
-
-			System.out.println("starting new receiver thread ...");
-			new ReceiverThread().start();
 		}
 
 		/**
@@ -164,7 +161,6 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		public void reconnect() throws IOException {
 			open(new Socket(host, port));
 			this.connected = true;
-			new ReceiverThread().start();
 		}
 
 		/**
@@ -212,42 +208,10 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			HttpRequest request = new HttpRequest("/r-osgi");
 			message.send(request.getOutputStream());
 			request.send(HttpRequest.POST, host.toString(), output);
-		}
-
-		/**
-		 * the receiver thread continuously tries to receive messages from the
-		 * other endpoint.
-		 * 
-		 * @author Jan S. Rellermeyer, ETH Zurich
-		 * @since 0.6
-		 */
-		private class ReceiverThread extends Thread {
-			public void run() {
-				try {
-					//while (connected) {
-						// while (Boolean.FALSE.booleanValue()) {
-						while(input.available() == -1) {
-							Thread.sleep(10);
-						}
-						final HttpResponse resp = new HttpResponse(input);
-						endpoint.receivedMessage(RemoteOSGiMessage.parse(resp
-								.getInputStream()));
-						// } catch (Exception e) {
-						// e.printStackTrace();
-						// connected = false;
-						// try {
-						// socket.close();
-						// } catch (IOException e1) {
-						// }
-						// endpoint.receivedMessage(null);
-						// return;
-						// }
-						System.out.println("ONE ITERATION SUCCESSFUL ...");
-					//}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
+			final HttpResponse resp = new HttpResponse(input);
+			endpoint.receivedMessage(RemoteOSGiMessage.parse(resp
+					.getInputStream()));
 		}
 	}
+
 }
