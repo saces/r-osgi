@@ -60,10 +60,10 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		// System.out.println("GOT GET REQUEST");
-		// Writer writer = resp.getWriter();
-		// writer.write("<h1>R-OSGi HTTP Channel Acceptor Servlet</h1>");
-		// resp.setStatus(HttpServletResponse.SC_OK);
+		//System.out.println("GOT GET REQUEST");
+		//Writer writer = resp.getWriter();
+		//writer.write("<h1>R-OSGi HTTP Channel Acceptor Servlet</h1>");
+		//resp.setStatus(HttpServletResponse.SC_OK);
 		doPost(req, resp);
 	}
 
@@ -79,7 +79,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 			System.out.println("Expecting " + req.getContentLength()
 					+ " bytes of content");
 			DataInputStream remoteIn = new DataInputStream(req.getInputStream());
-			ObjectOutputStream remoteOut = new ObjectOutputStream(resp
+			DataOutputStream remoteOut = new DataOutputStream(resp
 					.getOutputStream());
 
 			System.out.println("remotein available: " + remoteIn.available());
