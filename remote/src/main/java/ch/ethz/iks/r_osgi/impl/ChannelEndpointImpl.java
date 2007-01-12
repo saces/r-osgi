@@ -635,8 +635,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * 
 	 * @return true, if the connection could be recovered.
 	 */
-	boolean recoverConnection() {
+	boolean recoverConnection() {		
 		lostConnection = true;
+		throw new RuntimeException("in recovery");
+		/*
 		try {
 			networkChannel.reconnect();
 			lostConnection = false;
@@ -651,6 +653,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 		}
 		return false;
+		*/
 	}
 
 	/**
