@@ -17,7 +17,7 @@ public class HttpResponse {
 
 	private ByteArrayInputStream inStream;
 
-	protected HttpResponse(final ObjectInputStream in) throws IOException {
+	protected HttpResponse(final DataInputStream in) throws IOException {
 		final String startline = in.readLine();
 		// HTTP/1.1 200 OK
 		if (!startline.startsWith("HTTP/")) {
