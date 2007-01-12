@@ -6,8 +6,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import ch.ethz.iks.r_osgi.ChannelEndpoint;
@@ -86,9 +84,8 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		/**
 		 * the output stream.
 		 */
-		private ObjectOutputStream output;
+		private DataOutputStream output;
 
-		private OutputStream rawOut;
 		/**
 		 * the endpoint.
 		 */
@@ -144,8 +141,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			System.out.println();
 			this.socket = socket;
 			this.socket.setKeepAlive(true);
-			this.rawOut = socket.getOutputStream();
-			this.output = new ObjectOutputStream(rawOut);
+			this.output = new DataOutputStream(socket.getOutputStream());
 			input = new ObjectInputStream(socket.getInputStream());
 		}
 
@@ -216,7 +212,6 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			HttpRequest request = new HttpRequest("/r-osgi");
 			message.send(request.getOutputStream());
 			request.send(HttpRequest.POST, host.toString(), output);
-			rawOut.flush();
 		}
 
 		/**

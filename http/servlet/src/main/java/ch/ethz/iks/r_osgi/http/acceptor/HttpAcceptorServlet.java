@@ -78,8 +78,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 		try {
 			System.out.println("Expecting " + req.getContentLength()
 					+ " bytes of content");
-			ObjectInputStream remoteIn = new ObjectInputStream(req
-					.getInputStream());
+			DataInputStream remoteIn = new DataInputStream(req.getInputStream());
 			ObjectOutputStream remoteOut = new ObjectOutputStream(resp
 					.getOutputStream());
 

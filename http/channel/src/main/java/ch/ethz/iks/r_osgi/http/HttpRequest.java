@@ -63,7 +63,7 @@ public class HttpRequest {
 	}
 
 	public void send(final short method, final String host,
-			final ObjectOutputStream out) throws IOException {
+			final DataOutputStream out) throws IOException {
 		outStream.flush();
 		final byte[] content = outStream.toByteArray();
 		System.out.println("sending content of " + content.length + " bytes");
