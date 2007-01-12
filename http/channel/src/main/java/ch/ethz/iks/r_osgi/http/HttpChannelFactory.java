@@ -91,11 +91,6 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		private ChannelEndpoint endpoint;
 
 		/**
-		 * connected ?
-		 */
-		private boolean connected = true;
-
-		/**
 		 * create a new TCPChannel.
 		 * 
 		 * @param host
@@ -108,7 +103,6 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		HttpChannel(final InetAddress host, final int port) throws IOException {
 			this.host = host;
 			this.port = port;
-			open(new Socket(host, port));
 		}
 
 		/**
@@ -122,7 +116,6 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		public HttpChannel(final Socket socket) throws IOException {
 			this.host = socket.getInetAddress();
 			this.port = socket.getPort();
-			open(socket);
 		}
 
 		/**
@@ -159,8 +152,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 * @see ch.ethz.iks.r_osgi.NetworkChannel#reconnect()
 		 */
 		public void reconnect() throws IOException {
-			open(new Socket(host, port));
-			this.connected = true;
+
 		}
 
 		/**
