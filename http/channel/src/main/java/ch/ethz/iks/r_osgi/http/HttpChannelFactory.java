@@ -225,7 +225,9 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 				try {
 					while (connected) {
 						// while (Boolean.FALSE.booleanValue()) {
-
+						while(input.available() == -1) {
+							Thread.sleep(10);
+						}
 						final HttpResponse resp = new HttpResponse(input);
 						endpoint.receivedMessage(RemoteOSGiMessage.parse(resp
 								.getInputStream()));
