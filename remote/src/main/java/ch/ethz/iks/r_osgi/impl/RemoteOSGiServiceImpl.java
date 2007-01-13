@@ -999,9 +999,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 							+ DiscoveryListener.SERVICE_INTERFACES + "="
 							+ interfaceName + ")");
 
-			for (int i = 0; i < refs.length; i++) {
-				((DiscoveryListener) context.getService(refs[i]))
-						.notifyServiceLost(service);
+			if (refs != null) {
+				for (int i = 0; i < refs.length; i++) {
+					((DiscoveryListener) context.getService(refs[i]))
+							.notifyServiceLost(service);
+				}
 			}
 		} catch (InvalidSyntaxException i) {
 			i.printStackTrace();
