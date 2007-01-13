@@ -184,8 +184,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		renewLease(RemoteOSGiServiceImpl.getServices(), RemoteOSGiServiceImpl
-				.getTopics());
 		RemoteOSGiServiceImpl.registerChannel(this);				
 	}
 
