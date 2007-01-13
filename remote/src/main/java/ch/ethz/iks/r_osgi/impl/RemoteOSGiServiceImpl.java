@@ -905,6 +905,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * update the leases.
 	 */
 	static void updateLeases() {
+		Throwable t = new Throwable();
+		System.err.print("updateLeases called. Caused by:");
+		t.printStackTrace();
 		ChannelEndpointImpl[] endpoints = (ChannelEndpointImpl[]) channels
 				.values().toArray(new ChannelEndpointImpl[channels.size()]);
 		final String[] myServices = getServices();
