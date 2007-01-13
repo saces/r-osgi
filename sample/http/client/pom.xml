@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>ch.ethz.iks.slp</groupId>
 			<artifactId>jslp-osgi</artifactId>
-			<version>0.5.10_pre</version>
+			<version>0.7.0_pre</version>
 			<scope>provided</scope>
 		</dependency>		
 	</dependencies>
