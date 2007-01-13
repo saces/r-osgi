@@ -28,10 +28,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 	private static final int R_OSGi_PORT = 9278;
 
-	private static ObjectInputStream localIn;
-
-	private static ObjectOutputStream localOut;
-
 	private static Socket socket;
 
 	private static HashMap channelInputs = new HashMap();
@@ -54,16 +50,18 @@ public class HttpAcceptorServlet extends HttpServlet {
 		doPost(req, resp);
 	}
 
-	static void openChannel() {
+	static void openChannel(final String host) {
 		try {
 			System.out.println("now opening local socket");
 			socket = new Socket("localhost", R_OSGi_PORT);
-			localIn = new ObjectInputStream(new BufferedInputStream(socket
-					.getInputStream()));
+			final ObjectInputStream localIn = new ObjectInputStream(
+					new BufferedInputStream(socket.getInputStream()));
 
-			localOut = new ObjectOutputStream(new BufferedOutputStream(socket
-					.getOutputStream()));
+			final ObjectOutputStream localOut = new ObjectOutputStream(
+					new BufferedOutputStream(socket.getOutputStream()));
 			localOut.flush();
+			channelInputs.put(host, localIn);
+			channelOutputs.put(host, localOut);
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
@@ -78,6 +76,17 @@ public class HttpAcceptorServlet extends HttpServlet {
 			throws ServletException, IOException {
 
 		System.out.println("GOT POST REQUEST FROM " + req.getRemoteAddr());
+
+		final String host = req.getRemoteAddr();
+		ObjectInputStream localIn = (ObjectInputStream) channelInputs.get(host);
+		if (localIn == null) {
+			openChannel(host);
+			localIn = (ObjectInputStream) channelInputs
+					.get(req.getRemoteAddr());
+		}
+		ObjectOutputStream localOut = (ObjectOutputStream) channelOutputs
+				.get(host);
+
 		try {
 			System.out.println("Expecting " + req.getContentLength()
 					+ " bytes of content");
@@ -92,8 +101,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 			localOut.write(content);
 
 			for (; localIn.available() == 0 && !socket.isInputShutdown(); Thread
-					.sleep(100L)) {
+					.sleep(10L)) {
 			}
+
 			System.out
 					.println("NOW sending back (" + localIn.available() + ")");
 			int available = localIn.available();
