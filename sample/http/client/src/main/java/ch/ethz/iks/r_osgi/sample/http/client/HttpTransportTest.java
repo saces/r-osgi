@@ -34,6 +34,7 @@ public class HttpTransportTest implements BundleActivator {
 		System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 				+ Arrays.asList(services));
 
+		/*
 		final ServiceURL url = new ServiceURL(services[0].getServiceType()
 				+ "://" + "http://" + services[0].getHost() + ":"
 				+ services[0].getPort(), -1);
@@ -49,6 +50,7 @@ public class HttpTransportTest implements BundleActivator {
 						"THIS IS TRANSMITTED BY HTTP !!!", new Integer(1)));
 			}
 		}.start();
+		*/
 	}
 
 	public void stop(BundleContext context) throws Exception {
