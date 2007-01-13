@@ -34,7 +34,10 @@ public class HttpTransportTest implements BundleActivator {
 		System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 				+ Arrays.asList(services));
 
-		remote.fetchService(services[0]);
+		final ServiceURL url = new ServiceURL(services[0].getServiceType()
+				+ "://" + "http://" + services[0].getHost() + ":"
+				+ services[0].getPort(), -1);
+		remote.fetchService(url);
 		final ServiceInterface test = (ServiceInterface) remote
 				.getFetchedService(services[0]);
 		new Thread() {
