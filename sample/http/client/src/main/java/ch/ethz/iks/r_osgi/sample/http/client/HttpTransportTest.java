@@ -28,8 +28,8 @@ public class HttpTransportTest implements BundleActivator {
 		ServiceURL[] services = remote.connect(InetAddress
 				.getByName("10.1.9.204"), 8080, "http");
 
-		//ServiceURL[] services = remote.connect(InetAddress
-		//		.getByName("192.168.24.1"), 8080, "http");
+		// ServiceURL[] services = remote.connect(InetAddress
+		// .getByName("192.168.24.1"), 8080, "http");
 
 		System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 				+ Arrays.asList(services));
@@ -37,11 +37,15 @@ public class HttpTransportTest implements BundleActivator {
 		remote.fetchService(services[0]);
 		final ServiceInterface test = (ServiceInterface) remote
 				.getFetchedService(services[0]);
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println(test.echoService("THIS IS TRANSMITTED BY HTTP !!!",
-				new Integer(1)));
+		new Thread() {
+			public void run() {
+				System.out.println();
+				System.out.println();
+				System.out.println();
+				System.out.println(test.echoService(
+						"THIS IS TRANSMITTED BY HTTP !!!", new Integer(1)));
+			}
+		}.start();
 	}
 
 	public void stop(BundleContext context) throws Exception {
