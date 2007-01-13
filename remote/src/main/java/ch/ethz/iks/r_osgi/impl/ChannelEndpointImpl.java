@@ -181,6 +181,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	ChannelEndpointImpl(Socket socket) throws IOException {
+		System.out.println("GOING TO ACCEPT NEW CONNECTION " + networkChannel);
 		this.networkChannel = TCP_FACTORY.bind(this, socket);
 		System.out.println("HAVE ACCEPTED CONNECTION " + networkChannel);
 		RemoteOSGiServiceImpl.registerChannel(this);
