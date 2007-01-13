@@ -22,12 +22,15 @@ public class HttpResponse {
 	private ByteArrayInputStream inStream;
 
 	protected HttpResponse(final DataInputStream in) throws IOException {
-		StringBuffer buffer = new StringBuffer();
-		char c;
-		while ((c = in.readChar()) != '\n') {
-			buffer.append(c);
+		System.out.println("available bytes: " + in.available());
+		while (in.available() == 0) {
+			try {
+				Thread.sleep(10);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
-		final String startline = buffer.toString();
+		final String startline = in.readLine();
 		// HTTP/1.1 200 OK
 		if (!startline.startsWith("HTTP/")) {
 			System.out.println();
