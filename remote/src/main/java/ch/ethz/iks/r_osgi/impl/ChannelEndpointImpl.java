@@ -178,6 +178,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 	
 	void bind(NetworkChannel connection) {
+		System.out.println("HAVE ACCEPTED CONNECTION " + connection);
 		this.networkChannel = connection;
 		try {
 			this.networkChannel.bind(this);
