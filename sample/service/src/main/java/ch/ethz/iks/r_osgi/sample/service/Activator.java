@@ -18,13 +18,15 @@ public class Activator implements BundleActivator {
 		Hashtable properties = new Hashtable();
 		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
 				RemoteOSGiService.USE_PROXY_POLICY);
-		properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class.getName());
+		properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class
+				.getName());
 
-		//properties.put(RemoteOSGiService.R_OSGi_REGISTRATION, RemoteOSGiService.TRANSFER_BUNDLE_POLICY);
-		
+		// properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
+		// RemoteOSGiService.TRANSFER_BUNDLE_POLICY);
+
 		context.registerService(ServiceInterface.class.getName(),
 				new ServiceImpl(), properties);
-		
+
 		System.out.println("Registered service "
 				+ ServiceInterface.class.getName());
 
@@ -49,7 +51,8 @@ public class Activator implements BundleActivator {
 			}.start();
 		} else {
 			System.err.println();
-			System.err.println("NO EVENT ADMIN FOUND. CANNOT SEND REMOTE EVENTS.");
+			System.err
+					.println("NO EVENT ADMIN FOUND. CANNOT SEND REMOTE EVENTS.");
 			System.err.println();
 		}
 	}

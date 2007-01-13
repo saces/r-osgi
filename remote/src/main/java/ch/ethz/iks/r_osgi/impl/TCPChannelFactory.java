@@ -234,6 +234,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		public void sendMessage(final RemoteOSGiMessage message)
 				throws IOException {
+			System.out.println("sending " + message);
 			message.send(output);
 		}
 
