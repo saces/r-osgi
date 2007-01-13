@@ -445,13 +445,13 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	}
 
 	/**
-	 * get the service that has been fetched under a
-	 * certain <code>ServiceURL</code>.
+	 * get the service that has been fetched under a certain
+	 * <code>ServiceURL</code>.
 	 * 
 	 * @param url
 	 *            the <code>ServiceURL</code>.
-	 * @return the service object or
-	 *         <code>null</code> if the service is not (yet) present.
+	 * @return the service object or <code>null</code> if the service is not
+	 *         (yet) present.
 	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getFetchedService(ch.ethz.iks.slp.ServiceURL)
 	 * @category RemoteOSGiService
 	 * @since 0.6
@@ -460,7 +460,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		final ServiceReference ref = getFetchedServiceReference(url);
 		return ref == null ? null : context.getService(ref);
 	}
-	
+
 	/**
 	 * get the service reference for the service that has been fetched under a
 	 * certain <code>ServiceURL</code>.
@@ -494,7 +494,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		} catch (InvalidSyntaxException doesNotHappen) {
 			doesNotHappen.printStackTrace();
 		}
-		return null;	
+		return null;
 	}
 
 	/**
@@ -965,13 +965,14 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 					DiscoveryListener.class.getName(), "("
 							+ DiscoveryListener.SERVICE_INTERFACES + "="
 							+ interfaceName + ")");
-
-			for (int i = 0; i < refs.length; i++) {
-				((DiscoveryListener) context.getService(refs[i]))
-						.notifyDiscovery(service);
-				if (refs[i].getProperty(DiscoveryListener.AUTO_FETCH) != null) {
-					fetchService(service);
-					// TODO: track fetched to keep the attributes fresh.
+			if (refs != null) {
+				for (int i = 0; i < refs.length; i++) {
+					((DiscoveryListener) context.getService(refs[i]))
+							.notifyDiscovery(service);
+					if (refs[i].getProperty(DiscoveryListener.AUTO_FETCH) != null) {
+						fetchService(service);
+						// TODO: track fetched to keep the attributes fresh.
+					}
 				}
 			}
 		} catch (InvalidSyntaxException i) {
