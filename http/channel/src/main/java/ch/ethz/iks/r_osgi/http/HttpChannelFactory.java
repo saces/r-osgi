@@ -203,8 +203,10 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			message.send(request.getOutputStream());
 			request.send(HttpRequest.POST, host.toString(), output);
 			final HttpResponse resp = new HttpResponse(input);
-			endpoint.receivedMessage(RemoteOSGiMessage.parse(resp
-					.getInputStream()));
+			final RemoteOSGiMessage msg = RemoteOSGiMessage.parse(resp
+					.getInputStream());
+			System.out.println("received " + msg);
+			endpoint.receivedMessage(msg);
 		}
 	}
 
