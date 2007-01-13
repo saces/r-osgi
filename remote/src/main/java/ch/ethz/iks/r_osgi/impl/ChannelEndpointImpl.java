@@ -32,6 +32,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -45,6 +47,7 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import ch.ethz.iks.r_osgi.ChannelEndpoint;
+import ch.ethz.iks.r_osgi.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
@@ -155,37 +158,32 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			+ RemoteOSGiServiceImpl.EVENT_SENDER_URL + "=*))";
 
 	/**
+	 * the TCPChannel factory.
+	 */
+	private static final TCPChannelFactory TCP_FACTORY = new TCPChannelFactory();
+
+	/**
 	 * create a new channel endpoint.
 	 * 
 	 * @param connection
 	 *            the transport channel.
 	 * @throws RemoteOSGiException
+	 * @throws IOException
 	 */
-	ChannelEndpointImpl(final NetworkChannel connection)
-			throws RemoteOSGiException {
-		this.networkChannel = connection;
-		try {
-			this.networkChannel.bind(this);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	ChannelEndpointImpl(final NetworkChannelFactory factory,
+			final InetAddress address, final int port, final String protocol)
+			throws RemoteOSGiException, IOException {
+		this.networkChannel = (factory == null ? TCP_FACTORY : factory)
+				.getConnection(address, port, protocol);
 		renewLease(RemoteOSGiServiceImpl.getServices(), RemoteOSGiServiceImpl
 				.getTopics());
 		RemoteOSGiServiceImpl.registerChannel(this);
 	}
-	
-	ChannelEndpointImpl() {
-	}
-	
-	void bind(NetworkChannel connection) {
-		System.out.println("HAVE ACCEPTED CONNECTION " + connection);
-		this.networkChannel = connection;
-		try {
-			this.networkChannel.bind(this);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		RemoteOSGiServiceImpl.registerChannel(this);				
+
+	ChannelEndpointImpl(Socket socket) throws IOException {
+		this.networkChannel = TCP_FACTORY.bind(socket);
+		System.out.println("HAVE ACCEPTED CONNECTION " + networkChannel);
+		RemoteOSGiServiceImpl.registerChannel(this);
 	}
 
 	/**

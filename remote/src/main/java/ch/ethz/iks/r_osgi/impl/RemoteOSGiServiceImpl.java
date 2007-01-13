@@ -245,11 +245,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	private static Map factories = new HashMap(0);
 
 	/**
-	 * the TCPChannel factory.
-	 */
-	private static final TCPChannelFactory TCP_FACTORY = new TCPChannelFactory();
-
-	/**
 	 * Channel ID --> ChannelEndpoint.
 	 */
 	private static Map channels = new HashMap(0);
@@ -637,18 +632,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 */
 	public ServiceURL[] connect(final InetAddress host, final int port,
 			final String protocol) throws RemoteOSGiException {
-
-		final NetworkChannel networkChannel;
 		try {
-			if (protocol == null || "r-osgi".equals(protocol)) {
-				networkChannel = TCP_FACTORY
-						.getConnection(host, port, protocol);
-			} else {
-				networkChannel = ((NetworkChannelFactory) factories
-						.get(protocol)).getConnection(host, port, protocol);
-			}
 			final ChannelEndpointImpl channel = new ChannelEndpointImpl(
-					networkChannel);
+					((NetworkChannelFactory) factories.get(protocol)), host,
+					port, protocol);
 
 			final String[] remoteServices = channel.getRemoteServices();
 			final ServiceURL[] result = new ServiceURL[remoteServices.length];
@@ -1043,8 +1030,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				try {
 					// accept incoming connections and build channel endpoints
 					// for them
-					new ChannelEndpointImpl().bind(TCP_FACTORY.bind(socket
-							.accept()));
+					new ChannelEndpointImpl(socket.accept());
 				} catch (IOException ioe) {
 					ioe.printStackTrace();
 				}
