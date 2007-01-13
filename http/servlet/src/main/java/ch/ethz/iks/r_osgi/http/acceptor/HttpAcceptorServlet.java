@@ -15,6 +15,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
+
 /**
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
@@ -100,22 +102,10 @@ public class HttpAcceptorServlet extends HttpServlet {
 			remoteIn.readFully(content);
 			localOut.write(content);
 
-			for (; localIn.available() == 0 && !socket.isInputShutdown(); Thread
-					.sleep(10L)) {
-			}
-
 			System.out
 					.println("NOW sending back (" + localIn.available() + ")");
-			int available = localIn.available();
 			final ObjectOutputStream oout = new ObjectOutputStream(remoteOut);
-			byte buffer[] = new byte[1024];
-			int len;
-			for (; available > 0
-					&& (len = localIn.read(buffer, 0, available >= 1024 ? 1024
-							: available)) > -1; available = localIn.available()) {
-				oout.write(buffer, 0, len);
-				System.out.println("YOHOO, sending " + len);
-			}
+			RemoteOSGiMessage.parse(localIn).send(oout);
 			oout.flush();
 			System.out.println("finished sending back");
 			remoteOut.flush();
