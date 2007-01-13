@@ -92,17 +92,12 @@ public class HttpAcceptorServlet extends HttpServlet {
 		try {
 			System.out.println("Expecting " + req.getContentLength()
 					+ " bytes of content");
-			DataInputStream remoteIn = new DataInputStream(req.getInputStream());
+			ObjectInputStream remoteIn = new ObjectInputStream(req
+					.getInputStream());
 			DataOutputStream remoteOut = new DataOutputStream(resp
 					.getOutputStream());
 
-			System.out.println("remotein available: " + remoteIn.available());
-
-			byte content[] = new byte[req.getContentLength()];
-			remoteIn.readFully(content);
-			localOut.write(content);
-			localOut.flush();
-
+			RemoteOSGiMessage.parse(remoteIn).send(localOut);
 			System.out
 					.println("NOW sending back (" + localIn.available() + ")");
 			final ObjectOutputStream oout = new ObjectOutputStream(remoteOut);
