@@ -152,7 +152,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 * @see ch.ethz.iks.r_osgi.NetworkChannel#reconnect()
 		 */
 		public void reconnect() throws IOException {
-
+			open(new Socket(host, port));
 		}
 
 		/**
@@ -196,7 +196,9 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 */
 		public void sendMessage(final RemoteOSGiMessage message)
 				throws IOException {
-			open(new Socket(host, port));
+			if (!socket.isConnected()) {
+				open(new Socket(host, port));
+			}
 			HttpRequest request = new HttpRequest("/r-osgi");
 			message.send(request.getOutputStream());
 			request.send(HttpRequest.POST, host.toString(), output);

@@ -434,6 +434,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			} catch (Throwable t) {
 				// TODO: remove
 				t.printStackTrace();
+
 				lastException = t;
 				recoverConnection();
 
@@ -602,15 +603,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * 
 	 * @param msg
 	 *            the message.
+	 * @throws IOException
 	 */
-	void dispatchMessage(final RemoteOSGiMessage msg) {
-		try {
-			networkChannel.sendMessage(msg);
-		} catch (IOException e) {
-			if (!recoverConnection()) {
-				throw new RemoteOSGiException("Channel closed " + e);
-			}
-		}
+	void dispatchMessage(final RemoteOSGiMessage msg) throws IOException {
+		networkChannel.sendMessage(msg);
 	}
 
 	/**
@@ -637,25 +633,16 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * 
 	 * @return true, if the connection could be recovered.
 	 */
-	boolean recoverConnection() {		
+	boolean recoverConnection() {
 		lostConnection = true;
 		throw new RuntimeException("in recovery");
 		/*
-		try {
-			networkChannel.reconnect();
-			lostConnection = false;
-			System.out.println("Channel " + getID() + " recovery successful");
-		} catch (IOException ioe) {
-			System.out.println("failed: " + ioe.getMessage());
-			dispose();
-			return true;
-		} finally {
-			synchronized (receiveQueue) {
-				receiveQueue.notifyAll();
-			}
-		}
-		return false;
-		*/
+		 * try { networkChannel.reconnect(); lostConnection = false;
+		 * System.out.println("Channel " + getID() + " recovery successful"); }
+		 * catch (IOException ioe) { System.out.println("failed: " +
+		 * ioe.getMessage()); dispose(); return true; } finally { synchronized
+		 * (receiveQueue) { receiveQueue.notifyAll(); } } return false;
+		 */
 	}
 
 	/**
@@ -681,7 +668,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			} else {
 				RemoteOSGiMessage reply = handleMessage(msg);
 				if (reply != null) {
-					dispatchMessage(reply);
+					try {
+						dispatchMessage(reply);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
