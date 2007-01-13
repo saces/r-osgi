@@ -255,7 +255,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 					try {
 						final RemoteOSGiMessage msg = RemoteOSGiMessage
 								.parse(input);
-						System.out.println("RECEIVED " + msg);
+						System.out.println("XXXXXXX received " + msg);
 						endpoint.receivedMessage(msg);
 					} catch (Exception e) {
 						connected = false;
