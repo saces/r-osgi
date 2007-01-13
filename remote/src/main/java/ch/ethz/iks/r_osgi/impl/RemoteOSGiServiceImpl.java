@@ -1043,7 +1043,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				try {
 					// accept incoming connections and build channel endpoints
 					// for them
-					new ChannelEndpointImpl(TCP_FACTORY.bind(socket.accept()));
+					new ChannelEndpointImpl().bind(TCP_FACTORY.bind(socket
+							.accept()));
 				} catch (IOException ioe) {
 					ioe.printStackTrace();
 				}

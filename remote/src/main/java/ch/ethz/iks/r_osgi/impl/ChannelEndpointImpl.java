@@ -173,6 +173,21 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				.getTopics());
 		RemoteOSGiServiceImpl.registerChannel(this);
 	}
+	
+	ChannelEndpointImpl() {
+	}
+	
+	void bind(NetworkChannel connection) {
+		this.networkChannel = connection;
+		try {
+			this.networkChannel.bind(this);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		renewLease(RemoteOSGiServiceImpl.getServices(), RemoteOSGiServiceImpl
+				.getTopics());
+		RemoteOSGiServiceImpl.registerChannel(this);				
+	}
 
 	/**
 	 * get the channel ID.
