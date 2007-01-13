@@ -180,6 +180,10 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			new ReceiverThread().start();
 		}
 
+		public String toString() {
+			return "TCPChannel (" + host + ":" + port + ")";
+		}
+
 		/**
 		 * reconnect the channel.
 		 * 
