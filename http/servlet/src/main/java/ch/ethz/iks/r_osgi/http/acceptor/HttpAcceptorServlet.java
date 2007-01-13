@@ -5,12 +5,10 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.Writer;
 import java.net.Socket;
+import java.util.HashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -36,20 +34,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 	private static Socket socket;
 
-	static {
-		try {
-			System.out.println("now opening local socket");
-			socket = new Socket("localhost", R_OSGi_PORT);
-			localIn = new ObjectInputStream(new BufferedInputStream(socket
-					.getInputStream()));
-			localOut = new ObjectOutputStream(new BufferedOutputStream(socket
-					.getOutputStream()));
-			localOut.flush();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
+	private static HashMap channelInputs = new HashMap();
 
-	}
+	private static HashMap channelOutputs = new HashMap();
 
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -60,11 +47,26 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		//System.out.println("GOT GET REQUEST");
-		//Writer writer = resp.getWriter();
-		//writer.write("<h1>R-OSGi HTTP Channel Acceptor Servlet</h1>");
-		//resp.setStatus(HttpServletResponse.SC_OK);
+		// System.out.println("GOT GET REQUEST");
+		// Writer writer = resp.getWriter();
+		// writer.write("<h1>R-OSGi HTTP Channel Acceptor Servlet</h1>");
+		// resp.setStatus(HttpServletResponse.SC_OK);
 		doPost(req, resp);
+	}
+
+	static void openChannel() {
+		try {
+			System.out.println("now opening local socket");
+			socket = new Socket("localhost", R_OSGi_PORT);
+			localIn = new ObjectInputStream(new BufferedInputStream(socket
+					.getInputStream()));
+
+			localOut = new ObjectOutputStream(new BufferedOutputStream(socket
+					.getOutputStream()));
+			localOut.flush();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
 	}
 
 	/**
@@ -74,7 +76,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		System.out.println("GOT POST REQUEST");
+
+		System.out.println("GOT POST REQUEST FROM " + req.getRemoteHost()
+				+ " PORT " + req.getServerName() + ":" + req.getServerPort());
 		try {
 			System.out.println("Expecting " + req.getContentLength()
 					+ " bytes of content");
