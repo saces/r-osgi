@@ -94,20 +94,19 @@ public class HttpAcceptorServlet extends HttpServlet {
 					+ " bytes of content");
 			ObjectInputStream remoteIn = new ObjectInputStream(req
 					.getInputStream());
-			DataOutputStream remoteOut = new DataOutputStream(resp
+			ObjectOutputStream remoteOut = new ObjectOutputStream(resp
 					.getOutputStream());
 
-			RemoteOSGiMessage.parse(remoteIn).send(localOut);
-			System.out
-					.println("NOW sending back (" + localIn.available() + ")");
-			final ObjectOutputStream oout = new ObjectOutputStream(remoteOut);
+			RemoteOSGiMessage msg = RemoteOSGiMessage.parse(remoteIn);
+			System.out.println("{REMOTE -> LOCAL}: " + msg);
+			msg.send(localOut);
 
-			RemoteOSGiMessage.parse(localIn).send(oout);
-			oout.flush();
+			msg = RemoteOSGiMessage.parse(localIn);
+			System.out.println("{LOCAL -> REMOTE}: " + msg);
+			msg.send(remoteOut);
+			remoteOut.flush();
 
 			System.out.println("finished sending back");
-			remoteOut.flush();
-			resp.setStatus(HttpServletResponse.SC_OK);
 		} catch (Throwable t) {
 			System.err.println("oops, caught an exception.");
 			t.printStackTrace();
