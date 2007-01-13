@@ -77,8 +77,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 
-		System.out.println("GOT POST REQUEST FROM " + req.getRemoteHost()
-				+ " PORT " + req.getServerName() + ":" + req.getServerPort());
+		System.out.println("GOT POST REQUEST FROM " + req.getRemoteAddr());
 		try {
 			System.out.println("Expecting " + req.getContentLength()
 					+ " bytes of content");
