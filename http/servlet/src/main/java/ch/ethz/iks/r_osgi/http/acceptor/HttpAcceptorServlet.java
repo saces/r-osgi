@@ -101,12 +101,15 @@ public class HttpAcceptorServlet extends HttpServlet {
 			byte content[] = new byte[req.getContentLength()];
 			remoteIn.readFully(content);
 			localOut.write(content);
+			localOut.flush();
 
 			System.out
 					.println("NOW sending back (" + localIn.available() + ")");
 			final ObjectOutputStream oout = new ObjectOutputStream(remoteOut);
+
 			RemoteOSGiMessage.parse(localIn).send(oout);
 			oout.flush();
+
 			System.out.println("finished sending back");
 			remoteOut.flush();
 			resp.setStatus(HttpServletResponse.SC_OK);
