@@ -253,6 +253,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			public void run() {
 				while (connected) {
 					try {
+						System.out.println("XXXXXXX starting to recieve ...");
 						final RemoteOSGiMessage msg = RemoteOSGiMessage
 								.parse(input);
 						System.out.println("XXXXXXX received " + msg);
