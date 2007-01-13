@@ -34,9 +34,10 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 	 * @see ch.ethz.iks.r_osgi.NetworkChannelFactory#getConnection(java.net.InetAddress,
 	 *      int, java.lang.String)
 	 */
-	public NetworkChannel getConnection(final InetAddress host, final int port,
-			final String protocol) throws IOException {
-		return new HttpChannel(host, port);
+	public NetworkChannel getConnection(final ChannelEndpoint endpoint,
+			final InetAddress host, final int port, final String protocol)
+			throws IOException {
+		return new HttpChannel(endpoint, host, port);
 	}
 
 	/**
@@ -49,8 +50,9 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 	 * @throws IOException
 	 *             in case of IO errors.
 	 */
-	public NetworkChannel bind(final Socket socket) throws IOException {
-		return new HttpChannel(socket);
+	public NetworkChannel bind(final ChannelEndpoint endpoint,
+			final Socket socket) throws IOException {
+		return new HttpChannel(endpoint, socket);
 	}
 
 	/**
@@ -100,9 +102,11 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 * @throws IOException
 		 *             in case of IO errors.
 		 */
-		HttpChannel(final InetAddress host, final int port) throws IOException {
+		HttpChannel(final ChannelEndpoint endpoint, final InetAddress host,
+				final int port) throws IOException {
 			this.host = host;
 			this.port = port;
+			this.endpoint = endpoint;
 		}
 
 		/**
@@ -113,9 +117,11 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 * @throws IOException
 		 *             in case of IO errors.
 		 */
-		public HttpChannel(final Socket socket) throws IOException {
+		public HttpChannel(final ChannelEndpoint endpoint, final Socket socket)
+				throws IOException {
 			this.host = socket.getInetAddress();
 			this.port = socket.getPort();
+			this.endpoint = endpoint;
 		}
 
 		/**
@@ -135,13 +141,6 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			this.socket.setKeepAlive(true);
 			this.output = new DataOutputStream(socket.getOutputStream());
 			input = new DataInputStream(socket.getInputStream());
-		}
-
-		public void bind(ChannelEndpoint endpoint) throws IOException {
-			if (this.endpoint != null) {
-				throw new IOException("Channel already bound to endpoint.");
-			}
-			this.endpoint = endpoint;
 		}
 
 		/**

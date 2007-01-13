@@ -88,14 +88,4 @@ public interface NetworkChannel {
 	 */
 	void sendMessage(final RemoteOSGiMessage message) throws IOException;
 
-	/**
-	 * bind the channel to an endpoint.
-	 * 
-	 * @param endpoint
-	 *            the channel endpoint.
-	 * @throws IOException
-	 *             if the binding fails.
-	 */
-	void bind(ChannelEndpoint endpoint) throws IOException;
-
 }

@@ -174,14 +174,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final InetAddress address, final int port, final String protocol)
 			throws RemoteOSGiException, IOException {
 		this.networkChannel = (factory == null ? TCP_FACTORY : factory)
-				.getConnection(address, port, protocol);
+				.getConnection(this, address, port, protocol);
 		renewLease(RemoteOSGiServiceImpl.getServices(), RemoteOSGiServiceImpl
 				.getTopics());
 		RemoteOSGiServiceImpl.registerChannel(this);
 	}
 
 	ChannelEndpointImpl(Socket socket) throws IOException {
-		this.networkChannel = TCP_FACTORY.bind(socket);
+		this.networkChannel = TCP_FACTORY.bind(this, socket);
 		System.out.println("HAVE ACCEPTED CONNECTION " + networkChannel);
 		RemoteOSGiServiceImpl.registerChannel(this);
 	}

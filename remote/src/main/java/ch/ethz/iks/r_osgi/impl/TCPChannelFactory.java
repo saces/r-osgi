@@ -61,9 +61,10 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	 * @see ch.ethz.iks.r_osgi.NetworkChannelFactory#getConnection(java.net.InetAddress,
 	 *      int, java.lang.String)
 	 */
-	public NetworkChannel getConnection(final InetAddress host, final int port,
-			final String protocol) throws IOException {
-		return new TCPChannel(host, port);
+	public NetworkChannel getConnection(final ChannelEndpoint endpoint,
+			final InetAddress host, final int port, final String protocol)
+			throws IOException {
+		return new TCPChannel(endpoint, host, port);
 	}
 
 	/**
@@ -76,8 +77,9 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	 * @throws IOException
 	 *             in case of IO errors.
 	 */
-	public NetworkChannel bind(final Socket socket) throws IOException {
-		return new TCPChannel(socket);
+	public NetworkChannel bind(final ChannelEndpoint endpoint,
+			final Socket socket) throws IOException {
+		return new TCPChannel(endpoint, socket);
 	}
 
 	/**
@@ -123,8 +125,10 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		private boolean connected = true;
 
 		/**
-		 * create a new TCPChannel.
+		 * create a new TCPChannel
 		 * 
+		 * @param endpoint
+		 *            the channel endpoint.
 		 * @param host
 		 *            the host address.
 		 * @param port
@@ -132,9 +136,11 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @throws IOException
 		 *             in case of IO errors.
 		 */
-		TCPChannel(final InetAddress host, final int port) throws IOException {
+		TCPChannel(final ChannelEndpoint endpoint, final InetAddress host,
+				final int port) throws IOException {
 			this.host = host;
 			this.port = port;
+			this.endpoint = endpoint;
 			open(new Socket(host, port));
 		}
 
@@ -146,9 +152,11 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @throws IOException
 		 *             in case of IO errors.
 		 */
-		public TCPChannel(final Socket socket) throws IOException {
+		public TCPChannel(final ChannelEndpoint endpoint, final Socket socket)
+				throws IOException {
 			this.host = socket.getInetAddress();
 			this.port = socket.getPort();
+			this.endpoint = endpoint;
 			open(socket);
 		}
 
@@ -168,14 +176,6 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			output.flush();
 			input = new ObjectInputStream(new BufferedInputStream(socket
 					.getInputStream()));
-		}
-
-		public void bind(ChannelEndpoint endpoint) throws IOException {
-			if (this.endpoint != null) {
-				throw new IOException("Channel already bound to endpoint.");
-			}
-			this.endpoint = endpoint;
-
 			System.out.println("starting new receiver thread ...");
 			new ReceiverThread().start();
 		}

@@ -51,6 +51,8 @@ public interface NetworkChannelFactory {
 	/**
 	 * get a new connection to a remote OSGi framework.
 	 * 
+	 * @param endpoint
+	 *            the channel endpoint.
 	 * @param address
 	 *            the address to connect to.
 	 * @param port
@@ -63,7 +65,8 @@ public interface NetworkChannelFactory {
 	 * @throws IOException
 	 *             in case of connection errors.
 	 */
-	NetworkChannel getConnection(final InetAddress address, final int port,
-			final String protocol) throws IOException;
+	NetworkChannel getConnection(final ChannelEndpoint endpoint,
+			final InetAddress address, final int port, final String protocol)
+			throws IOException;
 
 }
