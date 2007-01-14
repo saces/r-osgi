@@ -73,6 +73,12 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 		private final ObjectOutputStream localOut;
 
+		private ObjectOutputStream leaseResponse;
+
+		private final HashMap waitMap = new HashMap();
+
+		private static final Object WAITING = new Object();
+
 		private ChannelBridge() throws IOException {
 			System.out.println("now opening local socket");
 			socket = new Socket("localhost", R_OSGi_PORT);
@@ -96,19 +102,54 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 			RemoteOSGiMessage msg = RemoteOSGiMessage.parse(remoteIn);
 			System.out.println("{REMOTE -> LOCAL}: " + msg);
+
 			System.out.println(msg.getClass().getName());
 			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
-				System.out.println();
-				System.out.println("YYYYYYY DETECTED LEASE YYYYYYY");
-				System.out.println();
+				leaseResponse = remoteOut;
+				resp.setContentType("x-multipart");
 			}
 
+			final Integer xid = new Integer(msg.getXID());
+			synchronized (waitMap) {
+				waitMap.put(xid, WAITING);
+			}
 			msg.send(localOut);
 
-			msg = RemoteOSGiMessage.parse(localIn);
+			Object response = null;
+			synchronized (waitMap) {
+				try {
+					while ((response = waitMap.get(xid)) == WAITING) {
+						waitMap.wait();
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 			System.out.println("{LOCAL -> REMOTE}: " + msg);
-			msg.send(remoteOut);
+			((RemoteOSGiMessage) response).send(remoteOut);
 			remoteOut.flush();
+		}
+
+		public void run() {
+			while (!Thread.interrupted()) {
+				try {
+					RemoteOSGiMessage msg = RemoteOSGiMessage.parse(localIn);
+					if (msg.getFuncID() == RemoteOSGiMessage.REMOTE_EVENT) {
+						// deliver remote event as response of the lease request
+						leaseResponse.write("--next\r\n".getBytes());
+						msg.send(leaseResponse);
+						leaseResponse.flush();
+					} else {
+						// put into wait queue
+						synchronized (waitMap) {
+							waitMap.put(new Integer(msg.getXID()), msg);
+							waitMap.notifyAll();
+						}
+					}
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+				}
+			}
 		}
 	}
 
