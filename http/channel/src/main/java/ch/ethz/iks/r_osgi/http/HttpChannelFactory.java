@@ -131,7 +131,8 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 *             if something goes wrong.
 		 */
 		private void init() throws IOException {
-			url = new URL("http://" + host + ":" + port + "/r-osgi");
+			url = new URL("http", host.getHostName(), port, "/r-osgi");
+			System.out.println("URL is " + url);
 		}
 
 		/**
