@@ -90,13 +90,15 @@ public class HttpAcceptorServlet extends HttpServlet {
 				.get(host);
 
 		try {
+
+			ObjectInputStream remoteIn = new ObjectInputStream(req
+					.getInputStream());
+			ObjectOutputStream remoteOut = new ObjectOutputStream(resp
+					.getOutputStream());
+
 			while (true) {
-				System.out.println("Expecting " + req.getContentLength()
+				System.out.println("Expecting " + remoteIn.available()
 						+ " bytes of content");
-				ObjectInputStream remoteIn = new ObjectInputStream(req
-						.getInputStream());
-				ObjectOutputStream remoteOut = new ObjectOutputStream(resp
-						.getOutputStream());
 
 				RemoteOSGiMessage msg = RemoteOSGiMessage.parse(remoteIn);
 				System.out.println("{REMOTE -> LOCAL}: " + msg);
