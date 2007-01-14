@@ -39,6 +39,8 @@ public class HttpTransportTest implements BundleActivator {
 				-1);
 		
 		System.out.println("URL IS " + url);
+		System.out.println("HOST IS " + url.getHost());
+		System.out.println("PORT IS " + url.getPort());
 		System.out.println("URL PROTOCOL " + url.getProtocol());
 		System.out.println("FETCHING ...");
 		remote.fetchService(url);
