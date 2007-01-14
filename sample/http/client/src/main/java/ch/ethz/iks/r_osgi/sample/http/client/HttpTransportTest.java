@@ -37,7 +37,7 @@ public class HttpTransportTest implements BundleActivator {
 		final ServiceURL url = new ServiceURL(
 				"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://10.1.9.204:8080/9",
 				-1);
-		
+
 		System.out.println("URL IS " + url);
 		System.out.println("HOST IS " + url.getHost());
 		System.out.println("PORT IS " + url.getPort());
@@ -49,11 +49,20 @@ public class HttpTransportTest implements BundleActivator {
 				.getFetchedService(services[0]);
 		new Thread() {
 			public void run() {
-				System.out.println();
-				System.out.println();
-				System.out.println();
-				System.out.println(test.echoService(
-						"THIS IS TRANSMITTED BY HTTP !!!", new Integer(1)));
+				try {
+					int i = 0;
+					while (true) {
+						System.out.println();
+						System.out.println();
+						System.out.println();
+						System.out.println(test.echoService(
+								"THIS IS TRANSMITTED BY HTTP !!!", new Integer(
+										1 + (i++ % 5))));
+						Thread.sleep(2000);
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}.start();
 	}
