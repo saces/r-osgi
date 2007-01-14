@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 
 import javax.servlet.ServletException;
@@ -32,9 +33,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 	private static Socket socket;
 
-	private static HashMap channelInputs = new HashMap();
-
-	private static HashMap channelOutputs = new HashMap();
+	private static HashMap bridges = new HashMap();
 
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -52,23 +51,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 		doPost(req, resp);
 	}
 
-	static void openChannel(final String host) {
-		try {
-			System.out.println("now opening local socket");
-			socket = new Socket("localhost", R_OSGi_PORT);
-			final ObjectInputStream localIn = new ObjectInputStream(
-					new BufferedInputStream(socket.getInputStream()));
-
-			final ObjectOutputStream localOut = new ObjectOutputStream(
-					new BufferedOutputStream(socket.getOutputStream()));
-			localOut.flush();
-			channelInputs.put(host, localIn);
-			channelOutputs.put(host, localOut);
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
-	}
-
 	/**
 	 * 
 	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest,
@@ -80,17 +62,34 @@ public class HttpAcceptorServlet extends HttpServlet {
 		System.out.println("GOT POST REQUEST FROM " + req.getRemoteAddr());
 
 		final String host = req.getRemoteAddr();
-		ObjectInputStream localIn = (ObjectInputStream) channelInputs.get(host);
-		if (localIn == null) {
-			openChannel(host);
-			localIn = (ObjectInputStream) channelInputs
-					.get(req.getRemoteAddr());
+
+		ChannelBridge bridge = (ChannelBridge) bridges.get(host);
+		if (bridge == null) {
+			bridge = new ChannelBridge();
+			bridges.put(host, bridge);
 		}
-		ObjectOutputStream localOut = (ObjectOutputStream) channelOutputs
-				.get(host);
 
-		try {
+		bridge.forwardRequest(req, resp);
+	}
 
+	private static class ChannelBridge extends Thread {
+		private final ObjectInputStream localIn;
+
+		private final ObjectOutputStream localOut;
+
+		private ChannelBridge() throws IOException {
+			System.out.println("now opening local socket");
+			socket = new Socket("localhost", R_OSGi_PORT);
+			localIn = new ObjectInputStream(new BufferedInputStream(socket
+					.getInputStream()));
+
+			localOut = new ObjectOutputStream(new BufferedOutputStream(socket
+					.getOutputStream()));
+			localOut.flush();
+		}
+
+		private void forwardRequest(HttpServletRequest req,
+				HttpServletResponse resp) throws IOException {
 			ObjectInputStream remoteIn = new ObjectInputStream(req
 					.getInputStream());
 			ObjectOutputStream remoteOut = new ObjectOutputStream(resp
@@ -114,12 +113,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 			System.out.println("{LOCAL -> REMOTE}: " + msg);
 			msg.send(remoteOut);
 			remoteOut.flush();
-
-			System.out.println("finished sending back");
-
-		} catch (Throwable t) {
-			System.err.println("oops, caught an exception.");
-			t.printStackTrace();
 		}
 	}
+
 }
