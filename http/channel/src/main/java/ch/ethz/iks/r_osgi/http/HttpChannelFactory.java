@@ -5,8 +5,14 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.URL;
+import java.net.URLConnection;
+
 import ch.ethz.iks.r_osgi.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.NetworkChannel;
@@ -65,7 +71,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		/**
 		 * the socket.
 		 */
-		private Socket socket;
+		private URL url;
 
 		/**
 		 * the host address.
@@ -76,16 +82,6 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 * the port.
 		 */
 		private int port;
-
-		/**
-		 * the input stream.
-		 */
-		private DataInputStream input;
-
-		/**
-		 * the output stream.
-		 */
-		private DataOutputStream output;
 
 		/**
 		 * the endpoint.
@@ -107,6 +103,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			this.host = host;
 			this.port = port;
 			this.endpoint = endpoint;
+			init();
 		}
 
 		/**
@@ -122,6 +119,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			this.host = socket.getInetAddress();
 			this.port = socket.getPort();
 			this.endpoint = endpoint;
+			init();
 		}
 
 		/**
@@ -132,15 +130,8 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 * @throws IOException
 		 *             if something goes wrong.
 		 */
-		private void open(final Socket socket) throws IOException {
-			System.out.println();
-			System.out.println("REQUESTING HTTP CHANNEL TO " + host + ":"
-					+ port);
-			System.out.println();
-			this.socket = socket;
-			this.socket.setKeepAlive(true);
-			this.output = new DataOutputStream(socket.getOutputStream());
-			input = new DataInputStream(socket.getInputStream());
+		private void init() throws IOException {
+			url = new URL("http://" + host + ":" + port + "/r-osgi");
 		}
 
 		/**
@@ -151,7 +142,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 * @see ch.ethz.iks.r_osgi.NetworkChannel#reconnect()
 		 */
 		public void reconnect() throws IOException {
-			open(new Socket(host, port));
+			init();
 		}
 
 		/**
@@ -195,20 +186,22 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 */
 		public void sendMessage(final RemoteOSGiMessage message)
 				throws IOException {
-			//if (socket == null || !socket.isConnected() || socket.isOutputShutdown()) {
-				open(new Socket(host, port));
-			//}
-			HttpRequest request = new HttpRequest("/r-osgi");
-			System.out.println("{HTTP} sending " + message);
-			message.send(request.getOutputStream());
-			request.send(HttpRequest.POST, host.toString(), output);
-			output.flush();
-			final HttpResponse resp = new HttpResponse(input);
-			final RemoteOSGiMessage msg = RemoteOSGiMessage.parse(resp
-					.getInputStream());
-			System.out.println("received " + msg);
-			endpoint.receivedMessage(msg);
-			socket.close();
+			HttpURLConnection connection = (HttpURLConnection) url
+					.openConnection();
+
+			connection.setRequestMethod("POST");
+			connection.setUseCaches(false);
+			message.send(new ObjectOutputStream(connection.getOutputStream()));
+
+			if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+				System.out.println(connection.getResponseMessage());
+			} else {
+				final RemoteOSGiMessage msg = RemoteOSGiMessage
+						.parse(new ObjectInputStream(connection
+								.getInputStream()));
+				System.out.println("received " + msg);
+				endpoint.receivedMessage(msg);
+			}
 		}
 	}
 
