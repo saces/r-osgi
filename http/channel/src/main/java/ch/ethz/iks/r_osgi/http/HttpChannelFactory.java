@@ -191,6 +191,8 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 
 			connection.setRequestMethod("POST");
 			connection.setUseCaches(false);
+			connection.setDoInput(true);
+			connection.setDoOutput(true);
 			message.send(new ObjectOutputStream(connection.getOutputStream()));
 
 			if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
