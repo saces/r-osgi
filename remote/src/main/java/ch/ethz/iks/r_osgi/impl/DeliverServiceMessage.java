@@ -122,7 +122,7 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 		funcID = DELIVER_SERVICE;
 
 		this.serviceInterfaceName = serviceInterfaceName;
-		this.smartProxyName = smartProxyName == null ? "" : smartProxyName;
+		this.smartProxyName = smartProxyName;
 		this.injections = injections;
 		this.imports = imports;
 		this.exports = exports;
@@ -209,7 +209,7 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 		out.writeUTF(imports);
 		out.writeUTF(exports);
 		out.writeUTF(serviceInterfaceName);
-		out.writeUTF(smartProxyName);
+		out.writeUTF(smartProxyName == null ? "" : smartProxyName);
 		final int blocks = injections.size();
 		out.writeInt(blocks);
 		final String[] injectionNames = (String[]) injections.keySet().toArray(
