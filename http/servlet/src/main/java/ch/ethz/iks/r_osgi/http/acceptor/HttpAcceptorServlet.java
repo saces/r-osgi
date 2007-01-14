@@ -101,8 +101,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 			RemoteOSGiMessage msg = RemoteOSGiMessage.parse(remoteIn);
 			System.out.println("{REMOTE -> LOCAL}: " + msg);
+			System.out.println(msg.getClass().getName());
 			if (msg.getClass().equals("ch.ethz.iks.r_osgi.impl.LeaseMessage")) {
-				System.out.println("XXXX DETECTED LEASE XXXX");
+				System.out.println("YYYYYYY DETECTED LEASE YYYYYYY");
 			}
 
 			msg.send(localOut);
