@@ -37,7 +37,12 @@ public class HttpTransportTest implements BundleActivator {
 		final ServiceURL url = new ServiceURL(
 				"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://10.1.9.204:8080/9",
 				-1);
+		
+		System.out.println("URL IS " + url);
+		System.out.println("URL PROTOCOL " + url.getProtocol());
+		System.out.println("FETCHING ...");
 		remote.fetchService(url);
+		System.out.println("FETCHED ...");
 		final ServiceInterface test = (ServiceInterface) remote
 				.getFetchedService(services[0]);
 		new Thread() {
