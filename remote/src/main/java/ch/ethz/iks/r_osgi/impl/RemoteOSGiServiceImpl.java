@@ -922,8 +922,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * get the channel endpoint for the service url.
 	 */
 	private ChannelEndpointImpl getChannel(final ServiceURL service) {
-		final String id = service.getProtocol() != null ? service.getProtocol()
-				: "r-osgi" + "://" + service.getHost() + ":"
+		final String id = (service.getProtocol() != null ? service.getProtocol()
+				: "r-osgi") + "://" + service.getHost() + ":"
 						+ service.getPort();
 		final ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
 				.get(id);
