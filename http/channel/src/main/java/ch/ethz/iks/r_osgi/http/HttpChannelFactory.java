@@ -195,9 +195,9 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 */
 		public void sendMessage(final RemoteOSGiMessage message)
 				throws IOException {
-			if (socket == null || !socket.isConnected() || socket.isOutputShutdown()) {
+			//if (socket == null || !socket.isConnected() || socket.isOutputShutdown()) {
 				open(new Socket(host, port));
-			}
+			//}
 			HttpRequest request = new HttpRequest("/r-osgi");
 			System.out.println("{HTTP} sending " + message);
 			message.send(request.getOutputStream());
@@ -208,6 +208,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 					.getInputStream());
 			System.out.println("received " + msg);
 			endpoint.receivedMessage(msg);
+			socket.close();
 		}
 	}
 
