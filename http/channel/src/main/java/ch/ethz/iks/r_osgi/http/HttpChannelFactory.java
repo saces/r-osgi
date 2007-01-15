@@ -199,13 +199,35 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
 				System.out.println(connection.getResponseMessage());
 			} else {
-				final RemoteOSGiMessage msg = RemoteOSGiMessage
-						.parse(new ObjectInputStream(connection
-								.getInputStream()));
+				final ObjectInputStream in = new ObjectInputStream(connection
+						.getInputStream());
+				final RemoteOSGiMessage msg = RemoteOSGiMessage.parse(in);
 				System.out.println("received " + msg);
 				endpoint.receivedMessage(msg);
+				if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
+					new CallbackThread(in).start();
+				}
+			}
+		}
+
+		private class CallbackThread extends Thread {
+			private ObjectInputStream input;
+
+			private CallbackThread(ObjectInputStream in) {
+				this.input = in;
+			}
+
+			public void run() {
+				while (!Thread.interrupted()) {
+					try {
+						System.out.println(input.readLine());
+						System.out.println("ASYNCHRONOUSLY RECEIVED "
+								+ RemoteOSGiMessage.parse(input));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 	}
-
 }
