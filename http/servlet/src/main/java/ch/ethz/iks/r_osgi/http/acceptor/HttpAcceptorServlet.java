@@ -88,7 +88,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 			localOut = new ObjectOutputStream(new BufferedOutputStream(socket
 					.getOutputStream()));
 			localOut.flush();
-			start();
+			// start();
 		}
 
 		private void forwardRequest(HttpServletRequest req,
@@ -102,17 +102,18 @@ public class HttpAcceptorServlet extends HttpServlet {
 			System.out.println("{REMOTE -> LOCAL}: " + msg);
 
 			System.out.println(msg.getClass().getName());
-			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
-				System.out.println();
-				leaseResponse = remoteOut;
-				resp.setContentType("multipart/x-mixed-replace;boundary=next");
-			}
 
 			final Integer xid = new Integer(msg.getXID());
 			synchronized (waitMap) {
 				waitMap.put(xid, WAITING);
 			}
 			msg.send(localOut);
+
+			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
+				leaseResponse = remoteOut;
+				resp.setContentType("multipart/x-mixed-replace;boundary=next");
+				run();
+			}
 
 			Object response = null;
 			synchronized (waitMap) {
@@ -140,7 +141,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 						System.out.println("{LOCAL -> REMOTE (ASYNC)}: " + msg);
 
 						// deliver remote event as response of the lease request
-						//leaseResponse.write("--next\r\n".getBytes());
+						// leaseResponse.write("--next\r\n".getBytes());
 						msg.send(leaseResponse);
 						leaseResponse.flush();
 					} else {
