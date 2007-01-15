@@ -196,22 +196,18 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			connection.setDoOutput(true);
 			message.send(new ObjectOutputStream(connection.getOutputStream()));
 
-			if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-				System.out.println(connection.getResponseMessage());
-			} else {
-				final ObjectInputStream in = new ObjectInputStream(connection
-						.getInputStream());
+			final ObjectInputStream in = new ObjectInputStream(connection
+					.getInputStream());
 
-				if (message.getFuncID() == RemoteOSGiMessage.LEASE) {
-					System.out.println("USING " + connection + " FOR CALLBACK");
-					new CallbackThread(in).start();
-					return;
-				}
-
-				final RemoteOSGiMessage msg = RemoteOSGiMessage.parse(in);
-				System.out.println("received " + msg);
-				endpoint.receivedMessage(msg);
+			if (message.getFuncID() == RemoteOSGiMessage.LEASE) {
+				System.out.println("USING " + connection + " FOR CALLBACK");
+				new CallbackThread(in).start();
+				return;
 			}
+
+			final RemoteOSGiMessage msg = RemoteOSGiMessage.parse(in);
+			System.out.println("received " + msg);
+			endpoint.receivedMessage(msg);
 		}
 
 		private class CallbackThread extends Thread {
