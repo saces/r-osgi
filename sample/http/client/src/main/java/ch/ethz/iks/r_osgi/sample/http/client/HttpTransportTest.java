@@ -2,10 +2,16 @@ package ch.ethz.iks.r_osgi.sample.http.client;
 
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventConstants;
+import org.osgi.service.event.EventHandler;
+
 import ch.ethz.iks.slp.ServiceURL;
 
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
@@ -16,6 +22,20 @@ public class HttpTransportTest implements BundleActivator {
 	private RemoteOSGiService remote;
 
 	public void start(BundleContext context) throws Exception {
+
+		// register event handler
+		final Dictionary properties = new Hashtable();
+		properties.put(EventConstants.EVENT_TOPIC,
+				new String[] { "test.topic" });
+		context.registerService(EventHandler.class.getName(),
+				new EventHandler() {
+
+					public void handleEvent(Event event) {
+						System.out.println("RECEIVED EVENT BY HTTP: " + event);
+					}
+
+				}, properties);
+
 		ServiceReference sref = context
 				.getServiceReference(RemoteOSGiService.class.getName());
 		if (sref == null) {
@@ -43,9 +63,6 @@ public class HttpTransportTest implements BundleActivator {
 				-1);
 
 		System.out.println("URL IS " + url);
-		System.out.println("HOST IS " + url.getHost());
-		System.out.println("PORT IS " + url.getPort());
-		System.out.println("URL PROTOCOL " + url.getProtocol());
 		System.out.println("FETCHING ...");
 		remote.fetchService(url);
 		System.out.println("FETCHED ...");
