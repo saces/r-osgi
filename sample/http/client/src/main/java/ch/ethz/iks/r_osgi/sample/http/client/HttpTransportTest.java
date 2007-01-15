@@ -26,7 +26,7 @@ public class HttpTransportTest implements BundleActivator {
 		// register event handler
 		final Dictionary properties = new Hashtable();
 		properties.put(EventConstants.EVENT_TOPIC,
-				new String[] { "test.topic" });
+				new String[] { "test/topic" });
 		context.registerService(EventHandler.class.getName(),
 				new EventHandler() {
 
