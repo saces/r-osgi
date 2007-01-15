@@ -54,7 +54,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-
+		System.out.println("-----------------------------------------------");
 		System.out.println("GOT POST REQUEST FROM " + req.getRemoteAddr());
 
 		final String host = req.getRemoteAddr();
@@ -98,16 +98,13 @@ public class HttpAcceptorServlet extends HttpServlet {
 			ObjectOutputStream remoteOut = new ObjectOutputStream(resp
 					.getOutputStream());
 
-			System.out.println("Expecting " + remoteIn.available()
-					+ " bytes of content");
-
 			RemoteOSGiMessage msg = RemoteOSGiMessage.parse(remoteIn);
 			System.out.println("{REMOTE -> LOCAL}: " + msg);
 
 			System.out.println(msg.getClass().getName());
 			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
 				leaseResponse = remoteOut;
-				resp.setContentType("x-multipart");
+				resp.setContentType("multipart/x-mixed-replace;boundary=next");
 			}
 
 			final Integer xid = new Integer(msg.getXID());
@@ -119,14 +116,16 @@ public class HttpAcceptorServlet extends HttpServlet {
 			Object response = null;
 			synchronized (waitMap) {
 				try {
-					while ((response = waitMap.get(xid)) == WAITING) {
+					while (waitMap.get(xid) == WAITING) {
 						System.out.println("...waiting for " + xid + "...");
 						waitMap.wait();
 					}
+					response = waitMap.remove(xid);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
+
 			System.out.println("{LOCAL -> REMOTE}: " + msg);
 			((RemoteOSGiMessage) response).send(remoteOut);
 			remoteOut.flush();
