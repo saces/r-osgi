@@ -103,6 +103,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 			System.out.println(msg.getClass().getName());
 			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
+				System.out.println();
+				System.out.println("USING " + req.getRemoteAddr() + ":"
+						+ req.getRemoteHost() + " FOR CALLBACK");
 				leaseResponse = remoteOut;
 				resp.setContentType("multipart/x-mixed-replace;boundary=next");
 			}
@@ -137,7 +140,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 					RemoteOSGiMessage msg = RemoteOSGiMessage.parse(localIn);
 					if (msg.getFuncID() == RemoteOSGiMessage.REMOTE_EVENT) {
 						System.out.println("{LOCAL -> REMOTE (ASYNC)}: " + msg);
-						
+
 						// deliver remote event as response of the lease request
 						leaseResponse.write("--next\r\n".getBytes());
 						msg.send(leaseResponse);

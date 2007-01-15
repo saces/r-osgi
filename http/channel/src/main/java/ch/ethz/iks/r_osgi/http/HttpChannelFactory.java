@@ -204,7 +204,9 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 				final RemoteOSGiMessage msg = RemoteOSGiMessage.parse(in);
 				System.out.println("received " + msg);
 				endpoint.receivedMessage(msg);
+
 				if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
+					System.out.println("USING " + connection + " FOR CALLBACK");
 					new CallbackThread(in).start();
 				}
 			}
