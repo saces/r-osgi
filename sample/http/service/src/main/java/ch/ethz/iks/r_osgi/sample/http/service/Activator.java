@@ -46,6 +46,7 @@ public class Activator implements BundleActivator {
 		public void run() {
 			try {
 				while (!Thread.interrupted()) {
+					System.out.println("XXXXXXXXXX POSTING EVENT " + event);
 					eadmin.postEvent(event);
 					Thread.sleep(2000L);
 				}
