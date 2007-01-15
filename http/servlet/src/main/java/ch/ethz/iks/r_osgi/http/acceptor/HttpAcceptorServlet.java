@@ -137,7 +137,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 			while (!Thread.interrupted()) {
 				try {
 					RemoteOSGiMessage msg = RemoteOSGiMessage.parse(localIn);
-					if (msg.getFuncID() == RemoteOSGiMessage.REMOTE_EVENT) {
+					if (msg.getFuncID() == RemoteOSGiMessage.REMOTE_EVENT
+							|| msg.getFuncID() == RemoteOSGiMessage.LEASE) {
 						System.out.println("{LOCAL -> REMOTE (ASYNC)}: " + msg);
 
 						// deliver remote event as response of the lease request
