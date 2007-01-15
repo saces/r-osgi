@@ -120,6 +120,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 			synchronized (waitMap) {
 				try {
 					while ((response = waitMap.get(xid)) == WAITING) {
+						System.out.println("...waiting for " + xid + "...");
 						waitMap.wait();
 					}
 				} catch (InterruptedException e) {
