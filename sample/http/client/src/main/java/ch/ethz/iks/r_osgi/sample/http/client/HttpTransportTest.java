@@ -85,7 +85,7 @@ public class HttpTransportTest implements BundleActivator {
 						System.out.println(test.echoService(
 								"THIS IS TRANSMITTED BY HTTP !!!", new Integer(
 										1 + (i++ % 5))));
-						Thread.sleep(2000);
+						Thread.sleep(8000);
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
