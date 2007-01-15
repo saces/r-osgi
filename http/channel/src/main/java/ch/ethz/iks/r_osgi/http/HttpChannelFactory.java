@@ -187,6 +187,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 */
 		public void sendMessage(final RemoteOSGiMessage message)
 				throws IOException {
+			init();
 			HttpURLConnection connection = (HttpURLConnection) url
 					.openConnection();
 
