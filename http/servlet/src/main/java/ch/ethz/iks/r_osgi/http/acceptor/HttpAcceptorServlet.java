@@ -111,6 +111,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
 				leaseResponse = remoteOut;
+				resp.setHeader("Transfer-Encoding", "Chunked Encoding");
 				resp.setContentType("multipart/x-mixed-replace;boundary=next");
 				run();
 			}
