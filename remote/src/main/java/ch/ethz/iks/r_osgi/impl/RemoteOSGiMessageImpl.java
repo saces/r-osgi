@@ -72,13 +72,13 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	 * RemoteOSGiMessage from it. The header is:
 	 * 
 	 * <pre>
-	 *   0                   1                   2                   3
-	 *   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *  |    Version    |  Function-ID  |            Length             |
-	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *  | Length, contd.                |              XID              |
-	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *    0                   1                   2                   3
+	 *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *   |    Version    |  Function-ID  |            Length             |
+	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *   | Length, contd.                |              XID              |
+	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
 	 * the body is processed by the subtype class.
@@ -131,6 +131,8 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 		} catch (SocketException se) {
 			throw se;
 		} catch (IOException ioe) {
+			// TODO: remove debug output
+			ioe.printStackTrace();
 			throw new RemoteOSGiException("Parse error");
 		}
 	}
