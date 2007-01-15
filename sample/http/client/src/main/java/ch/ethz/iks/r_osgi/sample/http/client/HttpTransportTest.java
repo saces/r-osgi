@@ -31,7 +31,13 @@ public class HttpTransportTest implements BundleActivator {
 				new EventHandler() {
 
 					public void handleEvent(Event event) {
+						System.out.println();
+						System.out
+								.println("-----------------------------------");
 						System.out.println("RECEIVED EVENT BY HTTP: " + event);
+						System.out
+								.println("-----------------------------------");
+						System.out.println();
 					}
 
 				}, properties);
