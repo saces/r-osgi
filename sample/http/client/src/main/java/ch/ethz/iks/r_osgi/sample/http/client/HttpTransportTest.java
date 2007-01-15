@@ -34,8 +34,12 @@ public class HttpTransportTest implements BundleActivator {
 		System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 				+ Arrays.asList(services));
 
+		// final ServiceURL url = new ServiceURL(
+		// "service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://10.1.9.204:8080/9",
+		// -1);
+
 		final ServiceURL url = new ServiceURL(
-				"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://10.1.9.204:8080/9",
+				"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://192.168.24.1:8080/9",
 				-1);
 
 		System.out.println("URL IS " + url);
