@@ -88,6 +88,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 			localOut = new ObjectOutputStream(new BufferedOutputStream(socket
 					.getOutputStream()));
 			localOut.flush();
+			start();
 		}
 
 		private void forwardRequest(HttpServletRequest req,
