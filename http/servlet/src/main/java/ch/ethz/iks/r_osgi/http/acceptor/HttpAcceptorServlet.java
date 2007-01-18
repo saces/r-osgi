@@ -150,7 +150,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 						// deliver remote event as response of the lease request
 						// leaseResponse.write("--next\r\n".getBytes());
 						msg.send(baseOut);
-						// baseOut.flush();
+						baseOut.flush();
 						//baseResp.flushBuffer();
 					} else {
 						// put into wait queue
