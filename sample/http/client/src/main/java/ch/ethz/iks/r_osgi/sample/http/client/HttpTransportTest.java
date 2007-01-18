@@ -51,22 +51,22 @@ public class HttpTransportTest implements BundleActivator {
 
 		System.out.println("TRYING TO ESTABLISH CONNECTION TO HOST");
 
-		// ServiceURL[] services = remote.connect(InetAddress
-		// .getByName("10.1.9.204"), 8080, "http");
-
 		ServiceURL[] services = remote.connect(InetAddress
-				.getByName("192.168.24.1"), 8080, "http");
+				.getByName("10.1.9.204"), 8080, "http");
+
+		// ServiceURL[] services = remote.connect(InetAddress
+		// .getByName("192.168.24.1"), 8080, "http");
 
 		System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 				+ Arrays.asList(services));
 
-		// final ServiceURL url = new ServiceURL(
-		// "service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://10.1.9.204:8080/9",
-		// -1);
-
 		final ServiceURL url = new ServiceURL(
-				"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://192.168.24.1:8080/9",
+				"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://10.1.9.204:8080/9",
 				-1);
+
+		// final ServiceURL url = new ServiceURL(
+		// "service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://192.168.24.1:8080/9",
+		// -1);
 
 		System.out.println("URL IS " + url);
 		System.out.println("FETCHING ...");
