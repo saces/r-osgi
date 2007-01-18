@@ -97,8 +97,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 				HttpServletResponse resp) throws IOException {
 			ObjectInputStream remoteIn = new ObjectInputStream(req
 					.getInputStream());
-			ObjectOutputStream remoteOut = new ObjectOutputStream(resp
-					.getOutputStream());
 
 			RemoteOSGiMessage msg = RemoteOSGiMessage.parse(remoteIn);
 			System.out.println("{REMOTE -> LOCAL}: " + msg);
@@ -113,7 +111,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
 				baseResp = resp;
-				baseOut = remoteOut;
+				baseOut = new ObjectOutputStream(
+						new ChunkedEncoderOutputStream(resp.getOutputStream()));
 				resp.setHeader("Transfer-Encoding", "chunked");
 				resp.setContentType("multipart/x-mixed-replace;boundary=next");
 				run();
@@ -132,6 +131,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 				}
 			}
 
+			ObjectOutputStream remoteOut = new ObjectOutputStream(resp
+					.getOutputStream());
+
 			System.out.println("{LOCAL -> REMOTE}: " + msg);
 			((RemoteOSGiMessage) response).send(remoteOut);
 			remoteOut.flush();
@@ -148,7 +150,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 						// deliver remote event as response of the lease request
 						// leaseResponse.write("--next\r\n".getBytes());
 						msg.send(baseOut);
-						//baseOut.flush();
+						// baseOut.flush();
 						baseResp.flushBuffer();
 					} else {
 						// put into wait queue
