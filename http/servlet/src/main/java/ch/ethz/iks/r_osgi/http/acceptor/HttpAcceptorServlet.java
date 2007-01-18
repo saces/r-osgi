@@ -81,17 +81,16 @@ public class HttpAcceptorServlet extends HttpServlet {
 			System.out.println("now opening local socket");
 			socket = new Socket("localhost", R_OSGi_PORT);
 			localIn = new ObjectInputStream(socket.getInputStream());
-
 			localOut = new ObjectOutputStream(socket.getOutputStream());
 			localOut.flush();
 		}
 
 		private void forwardRequest(HttpServletRequest req,
 				HttpServletResponse resp) throws IOException {
-			ObjectInputStream remoteIn = new ObjectInputStream(req
+			final ObjectInputStream remoteIn = new ObjectInputStream(req
 					.getInputStream());
 
-			RemoteOSGiMessage msg = RemoteOSGiMessage.parse(remoteIn);
+			final RemoteOSGiMessage msg = RemoteOSGiMessage.parse(remoteIn);
 			System.out.println("{REMOTE -> LOCAL}: " + msg);
 
 			final Integer xid = new Integer(msg.getXID());
@@ -99,6 +98,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 				waitMap.put(xid, WAITING);
 			}
 			msg.send(localOut);
+			localOut.flush();
 
 			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
 				ObjectOutputStream baseOut = new ObjectOutputStream(
@@ -107,10 +107,10 @@ public class HttpAcceptorServlet extends HttpServlet {
 						new ChunkedEncoderOutputStream(resp.getOutputStream()));
 				resp.setHeader("Transfer-Encoding", "chunked");
 				resp.setContentType("multipart/x-r_osgi");
+				
 				// intentionally, the request that carried the lease does not
 				// terminate (as long as the connection is open). It is used to
 				// ship remote events.
-
 				try {
 					while (!Thread.interrupted()) {
 						RemoteOSGiMessage response = RemoteOSGiMessage
@@ -125,7 +125,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 							// deliver remote event as response of the lease
 							// request
 							response.send(baseOut);
-							baseOut.flush();
 							resp.flushBuffer();
 							continue;
 						default:
@@ -141,7 +140,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 					ioe.printStackTrace();
 				}
 			} else {
-
 				Object response = null;
 
 				try {
