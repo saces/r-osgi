@@ -122,6 +122,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 					try {
 						RemoteOSGiMessage response = RemoteOSGiMessage
 								.parse(localIn);
+						System.out.println("received " + response);
 						if (response.getFuncID() == RemoteOSGiMessage.REMOTE_EVENT
 								|| response.getFuncID() == RemoteOSGiMessage.LEASE) {
 							System.out.println("{LOCAL -> REMOTE (ASYNC)}: "
@@ -146,16 +147,17 @@ public class HttpAcceptorServlet extends HttpServlet {
 			} else {
 
 				Object response = null;
-				synchronized (waitMap) {
-					try {
+
+				try {
+					synchronized (waitMap) {
 						while (waitMap.get(xid) == WAITING) {
 							System.out.println("...waiting for " + xid + "...");
 							waitMap.wait();
 						}
 						response = waitMap.remove(xid);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
 					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 
 				System.out.println();
