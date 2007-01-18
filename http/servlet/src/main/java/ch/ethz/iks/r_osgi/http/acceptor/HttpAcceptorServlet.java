@@ -134,7 +134,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 							resp.flushBuffer();
 							continue;
 						default:
-							System.out.println("======== enqueueing");
 							// put into wait queue
 							synchronized (waitMap) {
 								waitMap.put(new Integer(response.getXID()),
@@ -153,7 +152,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 				try {
 					synchronized (waitMap) {
 						while (waitMap.get(xid) == WAITING) {
-							System.out.println("...waiting for " + xid + "...");
 							waitMap.wait();
 						}
 						response = waitMap.remove(xid);
