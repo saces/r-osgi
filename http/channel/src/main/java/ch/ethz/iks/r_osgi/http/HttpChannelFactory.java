@@ -204,6 +204,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			}
 
 			final RemoteOSGiMessage msg = RemoteOSGiMessage.parse(in);
+			System.out.println("received " + msg);
 			endpoint.receivedMessage(msg);
 		}
 
