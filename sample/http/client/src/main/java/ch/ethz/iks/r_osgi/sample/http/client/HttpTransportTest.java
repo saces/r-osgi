@@ -22,6 +22,7 @@ public class HttpTransportTest implements BundleActivator {
 	private RemoteOSGiService remote;
 
 	public void start(BundleContext context) throws Exception {
+		final boolean home = true;
 
 		// register event handler
 		final Dictionary properties = new Hashtable();
@@ -51,22 +52,31 @@ public class HttpTransportTest implements BundleActivator {
 
 		System.out.println("TRYING TO ESTABLISH CONNECTION TO HOST");
 
-		// ServiceURL[] services = remote.connect(InetAddress
-		// .getByName("10.1.9.204"), 8080, "http");
-
-		ServiceURL[] services = remote.connect(InetAddress
-				.getByName("flowsgi.inf.ethz.ch"), 8080, "http");
-
-		System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
-				+ Arrays.asList(services));
-
-		// final ServiceURL url = new ServiceURL(
-		// "service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://10.1.9.204:8080/9",
-		// -1);
-
-		final ServiceURL url = new ServiceURL(
-				"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://flowsgi.inf.ethz.ch:8080/9",
-				-1);
+		final ServiceURL[] services;
+		final ServiceURL url;
+		if (home) {
+			System.out.println("============================================");
+			System.out.println("CONFIGURED FOR TESTS IN THE HOME NETWORK ...");
+			System.out.println("============================================");
+			services = remote.connect(InetAddress.getByName("10.1.9.204"),
+					8080, "http");
+			System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
+					+ Arrays.asList(services));
+			url = new ServiceURL(
+					"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://10.1.9.204:8080/9",
+					-1);
+		} else {
+			System.out.println("============================================");
+			System.out.println("CONFIGURED FOR TESTS IN THE ETH NETWORK ... ");
+			System.out.println("============================================");
+			services = remote.connect(InetAddress
+					.getByName("flowsgi.inf.ethz.ch"), 8080, "http");
+			System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
+					+ Arrays.asList(services));
+			url = new ServiceURL(
+					"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://flowsgi.inf.ethz.ch:8080/9",
+					-1);
+		}
 
 		System.out.println("URL IS " + url);
 		System.out.println("FETCHING ...");
