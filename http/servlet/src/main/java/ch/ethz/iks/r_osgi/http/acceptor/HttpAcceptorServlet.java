@@ -73,8 +73,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 		private final ObjectOutputStream localOut;
 
-		private HttpServletResponse baseResp;
-
 		private final HashMap waitMap = new HashMap();
 
 		private static final Object WAITING = new Object();
@@ -82,13 +80,10 @@ public class HttpAcceptorServlet extends HttpServlet {
 		private ChannelBridge() throws IOException {
 			System.out.println("now opening local socket");
 			socket = new Socket("localhost", R_OSGi_PORT);
-			localIn = new ObjectInputStream(new BufferedInputStream(socket
-					.getInputStream()));
+			localIn = new ObjectInputStream(socket.getInputStream());
 
-			localOut = new ObjectOutputStream(new BufferedOutputStream(socket
-					.getOutputStream()));
+			localOut = new ObjectOutputStream(socket.getOutputStream());
 			localOut.flush();
-			// start();
 		}
 
 		private void forwardRequest(HttpServletRequest req,
@@ -108,7 +103,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
 				ObjectOutputStream baseOut = new ObjectOutputStream(
 						new ChunkedEncoderOutputStream(resp.getOutputStream()));
-				baseResp = resp;
 				baseOut = new ObjectOutputStream(
 						new ChunkedEncoderOutputStream(resp.getOutputStream()));
 				resp.setHeader("Transfer-Encoding", "chunked");
@@ -116,8 +110,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 				// intentionally, the request that carried the lease does not
 				// terminate (as long as the connection is open). It is used to
 				// ship remote events.
-				while (!Thread.interrupted()) {
-					try {
+
+				try {
+					while (!Thread.interrupted()) {
 						RemoteOSGiMessage response = RemoteOSGiMessage
 								.parse(localIn);
 						System.out.println("received " + response);
@@ -141,9 +136,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 								waitMap.notifyAll();
 							}
 						}
-					} catch (IOException ioe) {
-						ioe.printStackTrace();
 					}
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
 				}
 			} else {
 
@@ -166,10 +161,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 				System.out.println("{LOCAL -> REMOTE}: " + msg);
 				((RemoteOSGiMessage) response).send(remoteOut);
-				remoteOut.flush();
 			}
 		}
-
 	}
 
 }
