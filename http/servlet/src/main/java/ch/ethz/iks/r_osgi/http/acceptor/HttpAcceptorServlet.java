@@ -73,7 +73,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 		private final ObjectOutputStream localOut;
 
-		private ObjectOutputStream leaseResponse;
+		private HttpServletResponse baseResp;
+
+		private ObjectOutputStream baseOut;
 
 		private final HashMap waitMap = new HashMap();
 
@@ -110,7 +112,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 			msg.send(localOut);
 
 			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
-				leaseResponse = remoteOut;
+				baseResp = resp;
+				baseOut = remoteOut;
 				resp.setHeader("Transfer-Encoding", "Chunked Encoding");
 				resp.setContentType("multipart/x-mixed-replace;boundary=next");
 				run();
@@ -144,8 +147,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 						// deliver remote event as response of the lease request
 						// leaseResponse.write("--next\r\n".getBytes());
-						msg.send(leaseResponse);
-						leaseResponse.flush();
+						msg.send(baseOut);
+						baseOut.flush();
+						baseResp.flushBuffer();
 					} else {
 						// put into wait queue
 						synchronized (waitMap) {
