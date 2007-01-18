@@ -81,7 +81,7 @@ public class HttpTransportTest implements BundleActivator {
 					while (true) {
 						System.out.println();
 						System.out.println();
-						System.out.println();
+						System.out.println("Invoking the remote service ...");
 						System.out.println(test.echoService(
 								"THIS IS TRANSMITTED BY HTTP !!!", new Integer(
 										1 + (i++ % 5))));
