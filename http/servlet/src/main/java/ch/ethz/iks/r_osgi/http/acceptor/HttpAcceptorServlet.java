@@ -112,7 +112,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 				baseOut = new ObjectOutputStream(
 						new ChunkedEncoderOutputStream(resp.getOutputStream()));
 				resp.setHeader("Transfer-Encoding", "chunked");
-				// resp.setContentType("multipart/x-r_osgi");
+				resp.setContentType("multipart/x-r_osgi");
 				// intentionally, the request that carried the lease does not
 				// terminate (as long as the connection is open). It is used to
 				// ship remote events.
@@ -160,10 +160,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 					e.printStackTrace();
 				}
 
-				System.out.println();
-				System.out.println(" GOT " + xid);
-				System.out.println();
-
+				resp.setContentType("application/x-r_osgi");
 				ObjectOutputStream remoteOut = new ObjectOutputStream(resp
 						.getOutputStream());
 

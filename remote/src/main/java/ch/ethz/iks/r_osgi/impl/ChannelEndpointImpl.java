@@ -650,14 +650,21 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	boolean recoverConnection() {
 		lostConnection = true;
-		throw new RuntimeException("in recovery");
-		/*
-		 * try { networkChannel.reconnect(); lostConnection = false;
-		 * System.out.println("Channel " + getID() + " recovery successful"); }
-		 * catch (IOException ioe) { System.out.println("failed: " +
-		 * ioe.getMessage()); dispose(); return true; } finally { synchronized
-		 * (receiveQueue) { receiveQueue.notifyAll(); } } return false;
-		 */
+
+		try {
+			networkChannel.reconnect();
+			lostConnection = false;
+			System.out.println("Channel " + getID() + " recovery successful");
+		} catch (IOException ioe) {
+			System.err.println("Recovery failed: " + ioe.getMessage());
+			dispose();
+			return true;
+		} finally {
+			synchronized (receiveQueue) {
+				receiveQueue.notifyAll();
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -744,7 +751,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		public void handleEvent(Event event) {
 			try {
-				System.out.println("FORWARDING " + event);
 				sendMessage(new RemoteEventMessage(event, getID()));
 			} catch (Exception e) {
 				e.printStackTrace();

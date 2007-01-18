@@ -186,6 +186,8 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 					.openConnection();
 
 			connection.setRequestMethod("POST");
+			connection.setRequestProperty("Content-Type",
+					"application/x-r_osgi");
 			connection.setUseCaches(false);
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
