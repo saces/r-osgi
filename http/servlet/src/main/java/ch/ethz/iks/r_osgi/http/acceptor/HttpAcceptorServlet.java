@@ -151,7 +151,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 						// leaseResponse.write("--next\r\n".getBytes());
 						msg.send(baseOut);
 						// baseOut.flush();
-						baseResp.flushBuffer();
+						//baseResp.flushBuffer();
 					} else {
 						// put into wait queue
 						synchronized (waitMap) {
