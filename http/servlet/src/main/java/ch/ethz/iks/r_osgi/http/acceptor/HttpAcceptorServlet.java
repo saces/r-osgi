@@ -164,7 +164,11 @@ public class HttpAcceptorServlet extends HttpServlet {
 					e.printStackTrace();
 				}
 			}
-
+			
+			System.out.println();
+			System.out.println(" GOT " + xid);
+			System.out.println();
+			
 			ObjectOutputStream remoteOut = new ObjectOutputStream(resp
 					.getOutputStream());
 
