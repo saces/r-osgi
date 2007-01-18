@@ -114,7 +114,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
 				baseResp = resp;
 				baseOut = remoteOut;
-				resp.setHeader("Transfer-Encoding", "Chunked Encoding");
+				resp.setHeader("Transfer-Encoding", "chunked");
 				resp.setContentType("multipart/x-mixed-replace;boundary=next");
 				run();
 			}
@@ -148,7 +148,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 						// deliver remote event as response of the lease request
 						// leaseResponse.write("--next\r\n".getBytes());
 						msg.send(baseOut);
-						baseOut.flush();
+						//baseOut.flush();
 						baseResp.flushBuffer();
 					} else {
 						// put into wait queue
