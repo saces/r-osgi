@@ -77,6 +77,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 		private ObjectOutputStream baseOut;
 
+		private ChunkedEncoderOutputStream baseChunked;
+
 		private final HashMap waitMap = new HashMap();
 
 		private static final Object WAITING = new Object();
@@ -111,8 +113,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
 				baseResp = resp;
-				baseOut = new ObjectOutputStream(
-						new ChunkedEncoderOutputStream(resp.getOutputStream()));
+				baseChunked = new ChunkedEncoderOutputStream(resp
+						.getOutputStream());
+				baseOut = new ObjectOutputStream(baseChunked);
 				resp.setHeader("Transfer-Encoding", "chunked");
 				resp.setContentType("multipart/x-mixed-replace;boundary=next");
 				run();
@@ -151,7 +154,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 						// leaseResponse.write("--next\r\n".getBytes());
 						msg.send(baseOut);
 						baseOut.flush();
-						//baseResp.flushBuffer();
+						baseChunked.flush();
+						// baseResp.flushBuffer();
 					} else {
 						// put into wait queue
 						synchronized (waitMap) {
