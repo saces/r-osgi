@@ -155,7 +155,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 						msg.send(baseOut);
 						baseOut.flush();
 						baseChunked.flush();
-						// baseResp.flushBuffer();
+						baseResp.flushBuffer();
 					} else {
 						// put into wait queue
 						synchronized (waitMap) {
