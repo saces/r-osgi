@@ -99,7 +99,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 			RemoteOSGiMessage msg = RemoteOSGiMessage.parse(remoteIn);
 			System.out.println("{REMOTE -> LOCAL}: " + msg);
 
-			System.out.println(msg.getClass().getName());
 
 			final Integer xid = new Integer(msg.getXID());
 			synchronized (waitMap) {
