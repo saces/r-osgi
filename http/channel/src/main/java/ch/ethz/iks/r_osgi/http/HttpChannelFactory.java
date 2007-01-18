@@ -211,7 +211,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		private class CallbackThread extends Thread {
 			private ObjectInputStream input;
 
-			private CallbackThread(ObjectInputStream in) {
+			private CallbackThread(final ObjectInputStream in) {
 				this.input = in;
 			}
 

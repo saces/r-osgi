@@ -83,16 +83,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 		/**
 		 * 
 		 */
-		private HttpServletResponse baseResp;
-
-		/**
-		 * 
-		 */
-		private ObjectOutputStream baseOut;
-
-		/**
-		 * 
-		 */
 		private final HashMap waitMap = new HashMap();
 
 		/**
@@ -138,8 +128,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 			msg.send(localOut);
 
 			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
-				baseResp = resp;
-				baseOut = new ObjectOutputStream(
+				ObjectOutputStream baseOut = new ObjectOutputStream(
 						new ChunkedEncoderOutputStream(resp.getOutputStream()));
 				resp.setHeader("Transfer-Encoding", "chunked");
 				resp.setContentType("multipart/x-r_osgi");
@@ -159,7 +148,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 							// request
 							response.send(baseOut);
 							baseOut.flush();
-							baseResp.flushBuffer();
+							resp.flushBuffer();
 						} else {
 							// put into wait queue
 							synchronized (waitMap) {
