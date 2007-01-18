@@ -5,7 +5,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Writer;
 import java.net.Socket;
 import java.util.HashMap;
 import javax.servlet.ServletException;
@@ -34,14 +33,18 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
+		System.out.println();
+		System.out.println("Servlet called");
 		super.service(req, resp);
 	}
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		Writer writer = resp.getWriter();
-		writer.write("<h1>R-OSGi HTTP Channel Acceptor Servlet</h1>");
-		resp.setStatus(HttpServletResponse.SC_OK);
+		// System.out.println("GOT GET REQUEST");
+		// Writer writer = resp.getWriter();
+		// writer.write("<h1>R-OSGi HTTP Channel Acceptor Servlet</h1>");
+		// resp.setStatus(HttpServletResponse.SC_OK);
+		doPost(req, resp);
 	}
 
 	/**
@@ -65,35 +68,21 @@ public class HttpAcceptorServlet extends HttpServlet {
 		bridge.forwardRequest(req, resp);
 	}
 
-	/**
-	 * 
-	 * @author Jan S. Rellermeyer, ETH Zurich
-	 */
-	private static class ChannelBridge {
-		/**
-		 * 
-		 */
+	private static class ChannelBridge extends Thread {
 		private final ObjectInputStream localIn;
 
-		/**
-		 * 
-		 */
 		private final ObjectOutputStream localOut;
 
-		/**
-		 * 
-		 */
+		private HttpServletResponse baseResp;
+
+		private ObjectOutputStream baseOut;
+
+		private ChunkedEncoderOutputStream baseChunked;
+
 		private final HashMap waitMap = new HashMap();
 
-		/**
-		 * 
-		 */
 		private static final Object WAITING = new Object();
 
-		/**
-		 * 
-		 * @throws IOException
-		 */
 		private ChannelBridge() throws IOException {
 			System.out.println("now opening local socket");
 			socket = new Socket("localhost", R_OSGi_PORT);
@@ -103,16 +92,11 @@ public class HttpAcceptorServlet extends HttpServlet {
 			localOut = new ObjectOutputStream(new BufferedOutputStream(socket
 					.getOutputStream()));
 			localOut.flush();
+			// start();
 		}
 
-		/**
-		 * 
-		 * @param req
-		 * @param resp
-		 * @throws IOException
-		 */
-		private void forwardRequest(final HttpServletRequest req,
-				final HttpServletResponse resp) throws IOException {
+		private void forwardRequest(HttpServletRequest req,
+				HttpServletResponse resp) throws IOException {
 			ObjectInputStream remoteIn = new ObjectInputStream(req
 					.getInputStream());
 
@@ -130,8 +114,12 @@ public class HttpAcceptorServlet extends HttpServlet {
 			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
 				ObjectOutputStream baseOut = new ObjectOutputStream(
 						new ChunkedEncoderOutputStream(resp.getOutputStream()));
+				baseResp = resp;
+				baseChunked = new ChunkedEncoderOutputStream(resp
+						.getOutputStream());
+				baseOut = new ObjectOutputStream(baseChunked);
 				resp.setHeader("Transfer-Encoding", "chunked");
-				resp.setContentType("multipart/x-r_osgi");
+				// resp.setContentType("multipart/x-r_osgi");
 				// intentionally, the request that carried the lease does not
 				// terminate (as long as the connection is open). It is used to
 				// ship remote events.
@@ -160,6 +148,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 						ioe.printStackTrace();
 					}
 				}
+				resp.setContentType("multipart/x-mixed-replace;boundary=next");
+				run();
 			}
 
 			Object response = null;
@@ -175,7 +165,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 				}
 			}
 
-			resp.setContentType("application/x-r_osgi");
 			ObjectOutputStream remoteOut = new ObjectOutputStream(resp
 					.getOutputStream());
 
@@ -184,6 +173,32 @@ public class HttpAcceptorServlet extends HttpServlet {
 			remoteOut.flush();
 		}
 
+		public void run() {
+			while (!Thread.interrupted()) {
+				try {
+					RemoteOSGiMessage msg = RemoteOSGiMessage.parse(localIn);
+					if (msg.getFuncID() == RemoteOSGiMessage.REMOTE_EVENT
+							|| msg.getFuncID() == RemoteOSGiMessage.LEASE) {
+						System.out.println("{LOCAL -> REMOTE (ASYNC)}: " + msg);
+
+						// deliver remote event as response of the lease request
+						// leaseResponse.write("--next\r\n".getBytes());
+						msg.send(baseOut);
+						baseOut.flush();
+						baseChunked.flush();
+						baseResp.flushBuffer();
+					} else {
+						// put into wait queue
+						synchronized (waitMap) {
+							waitMap.put(new Integer(msg.getXID()), msg);
+							waitMap.notifyAll();
+						}
+					}
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+				}
+			}
+		}
 	}
 
 }
