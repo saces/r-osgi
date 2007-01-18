@@ -223,10 +223,11 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			public void run() {
 				while (!Thread.interrupted()) {
 					try {
+
 						System.out.println("READY TO RECEIVE...");
-						System.out.println("ASYNCHRONOUSLY RECEIVED "
-								+ RemoteOSGiMessage.parse(input));
-						System.exit(0);
+						RemoteOSGiMessage msg = RemoteOSGiMessage.parse(input);
+						System.out.println("ASYNCHRONOUSLY RECEIVED " + msg);
+						endpoint.receivedMessage(msg);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
