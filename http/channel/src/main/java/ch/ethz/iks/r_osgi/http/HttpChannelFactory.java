@@ -196,20 +196,14 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			connection.setDoOutput(true);
 			message.send(new ObjectOutputStream(connection.getOutputStream()));
 
-			System.out.println("A");
 			final ObjectInputStream in = new ObjectInputStream(connection
 					.getInputStream());
-
-			System.out.println("B");
 			if (message.getFuncID() == RemoteOSGiMessage.LEASE) {
-				System.out.println("USING " + connection + " FOR CALLBACK");
 				new CallbackThread(in).start();
 				return;
 			}
-			System.out.println("C");
 
 			final RemoteOSGiMessage msg = RemoteOSGiMessage.parse(in);
-			System.out.println("received " + msg);
 			endpoint.receivedMessage(msg);
 		}
 
@@ -221,16 +215,14 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			}
 
 			public void run() {
-				while (!Thread.interrupted()) {
-					try {
-
-						System.out.println("READY TO RECEIVE...");
+				try {
+					while (!Thread.interrupted()) {
 						RemoteOSGiMessage msg = RemoteOSGiMessage.parse(input);
 						System.out.println("ASYNCHRONOUSLY RECEIVED " + msg);
 						endpoint.receivedMessage(msg);
-					} catch (Exception e) {
-						e.printStackTrace();
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}
