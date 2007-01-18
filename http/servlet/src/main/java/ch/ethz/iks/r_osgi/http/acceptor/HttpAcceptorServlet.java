@@ -121,9 +121,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 						RemoteOSGiMessage response = RemoteOSGiMessage
 								.parse(localIn);
 						System.out.println("received " + response);
-						final short id = response.getFuncID();
-						if (id == RemoteOSGiMessage.REMOTE_EVENT
-								|| id == RemoteOSGiMessage.LEASE) {
+						switch (response.getFuncID()) {
+						case RemoteOSGiMessage.LEASE:
+						case RemoteOSGiMessage.REMOTE_EVENT:
 							System.out.println("{LOCAL -> REMOTE (ASYNC)}: "
 									+ msg);
 
@@ -132,7 +132,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 							response.send(baseOut);
 							baseOut.flush();
 							resp.flushBuffer();
-						} else {
+							continue;
+						default:
 							System.out.println("======== enqueueing");
 							// put into wait queue
 							synchronized (waitMap) {
