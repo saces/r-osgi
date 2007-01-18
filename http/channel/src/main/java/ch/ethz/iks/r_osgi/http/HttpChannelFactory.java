@@ -184,12 +184,12 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			// open a new connection
 			HttpURLConnection connection = (HttpURLConnection) url
 					.openConnection();
-			
+
 			connection.setRequestMethod("POST");
 			connection.setUseCaches(false);
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
-			
+
 			message.send(new ObjectOutputStream(connection.getOutputStream()));
 
 			final ObjectInputStream in = new ObjectInputStream(connection
@@ -213,15 +213,14 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			}
 
 			public void run() {
-				while (!Thread.interrupted()) {
-					try {
-						System.out.println("READY TO RECEIVE...");
+				try {
+					while (!Thread.interrupted()) {
 						RemoteOSGiMessage msg = RemoteOSGiMessage.parse(input);
 						System.out.println("asynchronously received " + msg);
 						endpoint.receivedMessage(msg);
-					} catch (Exception e) {
-						e.printStackTrace();
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}
