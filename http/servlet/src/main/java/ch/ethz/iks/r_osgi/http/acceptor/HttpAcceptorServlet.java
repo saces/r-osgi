@@ -68,16 +68,12 @@ public class HttpAcceptorServlet extends HttpServlet {
 		bridge.forwardRequest(req, resp);
 	}
 
-	private static class ChannelBridge extends Thread {
+	private static class ChannelBridge {
 		private final ObjectInputStream localIn;
 
 		private final ObjectOutputStream localOut;
 
 		private HttpServletResponse baseResp;
-
-		private ObjectOutputStream baseOut;
-
-		private ChunkedEncoderOutputStream baseChunked;
 
 		private final HashMap waitMap = new HashMap();
 
@@ -115,9 +111,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 				ObjectOutputStream baseOut = new ObjectOutputStream(
 						new ChunkedEncoderOutputStream(resp.getOutputStream()));
 				baseResp = resp;
-				baseChunked = new ChunkedEncoderOutputStream(resp
-						.getOutputStream());
-				baseOut = new ObjectOutputStream(baseChunked);
+				baseOut = new ObjectOutputStream(
+						new ChunkedEncoderOutputStream(resp.getOutputStream()));
 				resp.setHeader("Transfer-Encoding", "chunked");
 				// resp.setContentType("multipart/x-r_osgi");
 				// intentionally, the request that carried the lease does not
@@ -127,8 +122,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 					try {
 						RemoteOSGiMessage response = RemoteOSGiMessage
 								.parse(localIn);
-						if (msg.getFuncID() == RemoteOSGiMessage.REMOTE_EVENT
-								|| msg.getFuncID() == RemoteOSGiMessage.LEASE) {
+						if (response.getFuncID() == RemoteOSGiMessage.REMOTE_EVENT
+								|| response.getFuncID() == RemoteOSGiMessage.LEASE) {
 							System.out.println("{LOCAL -> REMOTE (ASYNC)}: "
 									+ msg);
 
@@ -148,63 +143,34 @@ public class HttpAcceptorServlet extends HttpServlet {
 						ioe.printStackTrace();
 					}
 				}
-				resp.setContentType("multipart/x-mixed-replace;boundary=next");
-				run();
-			}
+			} else {
 
-			Object response = null;
-			synchronized (waitMap) {
-				try {
-					while (waitMap.get(xid) == WAITING) {
-						System.out.println("...waiting for " + xid + "...");
-						waitMap.wait();
+				Object response = null;
+				synchronized (waitMap) {
+					try {
+						while (waitMap.get(xid) == WAITING) {
+							System.out.println("...waiting for " + xid + "...");
+							waitMap.wait();
+						}
+						response = waitMap.remove(xid);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
-					response = waitMap.remove(xid);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
 				}
-			}
-			
-			System.out.println();
-			System.out.println(" GOT " + xid);
-			System.out.println();
-			
-			ObjectOutputStream remoteOut = new ObjectOutputStream(resp
-					.getOutputStream());
 
-			System.out.println("{LOCAL -> REMOTE}: " + msg);
-			((RemoteOSGiMessage) response).send(remoteOut);
-			remoteOut.flush();
+				System.out.println();
+				System.out.println(" GOT " + xid);
+				System.out.println();
+
+				ObjectOutputStream remoteOut = new ObjectOutputStream(resp
+						.getOutputStream());
+
+				System.out.println("{LOCAL -> REMOTE}: " + msg);
+				((RemoteOSGiMessage) response).send(remoteOut);
+				remoteOut.flush();
+			}
 		}
 
-		public void run() {
-			while (!Thread.interrupted()) {
-				try {
-					RemoteOSGiMessage msg = RemoteOSGiMessage.parse(localIn);
-					if (msg.getFuncID() == RemoteOSGiMessage.REMOTE_EVENT
-							|| msg.getFuncID() == RemoteOSGiMessage.LEASE) {
-						System.out.println("{LOCAL -> REMOTE (ASYNC)}: " + msg);
-
-						// deliver remote event as response of the lease request
-						// leaseResponse.write("--next\r\n".getBytes());
-						msg.send(baseOut);
-						baseOut.flush();
-						baseChunked.flush();
-						if (!baseResp.isCommitted()) {
-							baseResp.flushBuffer();
-						}
-					} else {
-						// put into wait queue
-						synchronized (waitMap) {
-							waitMap.put(new Integer(msg.getXID()), msg);
-							waitMap.notifyAll();
-						}
-					}
-				} catch (IOException ioe) {
-					ioe.printStackTrace();
-				}
-			}
-		}
 	}
 
 }
