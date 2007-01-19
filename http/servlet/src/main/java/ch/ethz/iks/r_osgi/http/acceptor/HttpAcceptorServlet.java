@@ -120,7 +120,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 						case RemoteOSGiMessage.LEASE:
 						case RemoteOSGiMessage.REMOTE_EVENT:
 							System.out.println("{LOCAL -> REMOTE (ASYNC)}: "
-									+ msg);
+									+ response);
 
 							// deliver remote event as response of the lease
 							// request
