@@ -54,7 +54,6 @@ public class HttpTransportTest implements BundleActivator {
 		System.out.println("TRYING TO ESTABLISH CONNECTION TO HOST");
 
 		final ServiceURL[] services;
-		final ServiceURL url;
 		if (home) {
 			System.out.println("============================================");
 			System.out.println("CONFIGURED FOR TESTS IN THE HOME NETWORK ...");
@@ -63,9 +62,6 @@ public class HttpTransportTest implements BundleActivator {
 					8080, "http");
 			System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 					+ Arrays.asList(services));
-			url = new ServiceURL(
-					"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://10.1.9.204:8080/9",
-					-1);
 		} else {
 			System.out.println("============================================");
 			System.out.println("CONFIGURED FOR TESTS IN THE ETH NETWORK ... ");
@@ -74,14 +70,10 @@ public class HttpTransportTest implements BundleActivator {
 					.getByName("flowsgi.inf.ethz.ch"), 8080, "http");
 			System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 					+ Arrays.asList(services));
-			url = new ServiceURL(
-					"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://flowsgi.inf.ethz.ch:8080/9",
-					-1);
 		}
 
-		System.out.println("URL IS " + url);
-		System.out.println("FETCHING ...");
-		remote.fetchService(url);
+		System.out.println("FETCHING " + services[0]);
+		remote.fetchService(services[0]);
 		System.out.println("FETCHED ...");
 		final ServiceInterface test = (ServiceInterface) remote
 				.getFetchedService(services[0]);

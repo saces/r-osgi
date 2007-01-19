@@ -31,9 +31,7 @@ package ch.ethz.iks.r_osgi;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
-
 import ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl;
-import ch.ethz.iks.slp.ServiceLocationException;
 
 /**
  * Abstract base class for all R-OSGi Messages.
@@ -131,6 +129,19 @@ public abstract class RemoteOSGiMessage {
 		return RemoteOSGiMessageImpl.parse(input);
 	}
 
-	public abstract void restamp(String protocol, String host, int port) throws IllegalArgumentException;
+	/**
+	 * restamp the message for bridging.
+	 * 
+	 * @param protocol
+	 *            the protocol.
+	 * @param host
+	 *            the host name/address.
+	 * @param port
+	 *            the port.
+	 * @throws IllegalArgumentException
+	 *             if the result is an invalid SLP serviceURL.
+	 */
+	public abstract void restamp(final String protocol, final String host,
+			final int port) throws IllegalArgumentException;
 
 }
