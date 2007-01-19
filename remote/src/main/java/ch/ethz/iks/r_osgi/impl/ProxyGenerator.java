@@ -680,7 +680,6 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					signature, exceptions);
 			return new MethodRewriter(method);
 		}
-
 	}
 
 	/**
