@@ -925,11 +925,13 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		final String id = (service.getProtocol() != null ? service.getProtocol()
 				: "r-osgi") + "://" + service.getHost() + ":"
 						+ service.getPort();
+		System.out.println("REQUESTING CHANNEL FOR " + id);
 		final ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
 				.get(id);
 		if (channel != null) {
 			return channel;
 		}
+		System.out.println("NO CHANNEL PRESENT. HAVING " + channels);
 		throw new RemoteOSGiException("No TransportChannel to " + id
 				+ " established");
 	}

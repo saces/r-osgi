@@ -100,8 +100,12 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			this.host = host;
 			this.port = port;
 			this.endpoint = endpoint;
+			System.out
+					.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 			System.out.println("OPENING NEW HTTP CHANNEL FOR " + host + ":"
 					+ port);
+			System.out
+					.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 			init();
 		}
 
