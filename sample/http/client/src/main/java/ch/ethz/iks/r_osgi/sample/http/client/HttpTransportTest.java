@@ -71,11 +71,11 @@ public class HttpTransportTest implements BundleActivator {
 			System.out.println("CONFIGURED FOR TESTS IN THE ETH NETWORK ... ");
 			System.out.println("============================================");
 			services = remote.connect(InetAddress
-					.getByName("192.168.24.1"), 8080, "http");
+					.getByName("129.132.130.18"), 8080, "http");
 			System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 					+ Arrays.asList(services));
 			url = new ServiceURL(
-					"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://192.168.24.1:8080/9",
+					"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://129.132.130.18:8080/9",
 					-1);
 		}
 
