@@ -31,6 +31,8 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
+
+import ch.ethz.iks.slp.ServiceLocationException;
 import ch.ethz.iks.slp.ServiceURL;
 
 /**
@@ -70,13 +72,13 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 * creates a new FetchServiceMessage from network packet.
 	 * 
 	 * <pre>
-	 *   0                   1                   2                   3
-	 *   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *  |       R-OSGi header (function = Fetch = 1)                    |
-	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *  |   length of &lt;ServiceURL&gt;     |     &lt;ServiceURL&gt; String      \
-	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *    0                   1                   2                   3
+	 *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *   |       R-OSGi header (function = Fetch = 1)                    |
+	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *   |   length of &lt;ServiceURL&gt;     |     &lt;ServiceURL&gt; String      \
+	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
 	 * @param input
@@ -109,6 +111,28 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 */
 	String getServiceURL() {
 		return serviceURL;
+	}
+
+	/**
+	 * restamp the service URL to a new address.
+	 * 
+	 * @param protocol
+	 *            the protocol.
+	 * @param host
+	 *            the host.
+	 * @param port
+	 *            the port.
+	 * @throws ServiceLocationException
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#restamp(java.lang.String,
+	 *      java.lang.String, int)
+	 */
+	public void restamp(final String protocol, final String host, final int port)
+			throws ServiceLocationException {
+		final ServiceURL original = new ServiceURL(serviceURL, 0);
+		final ServiceURL restamped = new ServiceURL(original.getServiceType()
+				+ "://" + (protocol != null ? (protocol + "://") : "") + host
+				+ ":" + port + original.getURLPath(), 0);
+		serviceURL = restamped.toString();
 	}
 
 	/**

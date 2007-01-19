@@ -33,6 +33,7 @@ import java.io.ObjectOutputStream;
 import java.net.SocketException;
 
 import ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl;
+import ch.ethz.iks.slp.ServiceLocationException;
 
 /**
  * Abstract base class for all R-OSGi Messages.
@@ -129,5 +130,7 @@ public abstract class RemoteOSGiMessage {
 			throws SocketException {
 		return RemoteOSGiMessageImpl.parse(input);
 	}
+
+	public abstract void restamp(String protocol, String host, int port) throws ServiceLocationException;
 
 }

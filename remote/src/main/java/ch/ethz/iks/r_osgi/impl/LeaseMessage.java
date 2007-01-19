@@ -33,6 +33,9 @@ import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
+import ch.ethz.iks.slp.ServiceLocationException;
+import ch.ethz.iks.slp.ServiceURL;
+
 /**
  * Lease message. Is exchanged when a channel is established. Leases are the
  * implementations of the statements of supply and demand.
@@ -70,15 +73,15 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * creates a new LeaseMessage from network packet.
 	 * 
 	 * <pre>
-	 *       0                   1                   2                   3
-	 *       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |       R-OSGi header (function = Fetch = 1)                    |
-	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |  Array of service strings                                     \
-	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |  Array of topic strings                                       \
-	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *         0                   1                   2                   3
+	 *         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *        |       R-OSGi header (function = Fetch = 1)                    |
+	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *        |  Array of service strings                                     \
+	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *        |  Array of topic strings                                       \
+	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
 	 * @param input
@@ -158,6 +161,32 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		out.writeShort(tlen);
 		for (int i = 0; i < tlen; i++) {
 			out.writeUTF(topics[i]);
+		}
+	}
+
+	/**
+	 * restamp the service URL to a new address.
+	 * 
+	 * @param protocol
+	 *            the protocol.
+	 * @param host
+	 *            the host.
+	 * @param port
+	 *            the port.
+	 * @throws ServiceLocationException
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#restamp(java.lang.String,
+	 *      java.lang.String, int)
+	 */
+	public void restamp(final String protocol, final String host, final int port)
+			throws ServiceLocationException {
+		for (int i = 0; i < services.length; i++) {
+			final ServiceURL original = new ServiceURL(services[i], 0);
+			final ServiceURL restamped = new ServiceURL(original
+					.getServiceType()
+					+ "://"
+					+ (protocol != null ? (protocol + "://") : "")
+					+ host + ":" + port + original.getURLPath(), 0);
+			services[i] = restamped.toString();
 		}
 	}
 

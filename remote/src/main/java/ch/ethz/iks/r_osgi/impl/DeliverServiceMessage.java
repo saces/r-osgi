@@ -35,6 +35,8 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
+import ch.ethz.iks.slp.ServiceLocationException;
+import ch.ethz.iks.slp.ServiceURL;
 import ch.ethz.iks.util.SmartSerializer;
 
 /**
@@ -144,25 +146,25 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * Create a new DeliverServiceMessage from a network packet.
 	 * 
 	 * <pre>
-	 *     0                   1                   2                   3
-	 *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    |       R-OSGi header (function = Service = 2)                  |
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    |   length of &lt;ServiceURL&gt;     |    &lt;ServiceURL&gt; String       \
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    | Attribute Dictionary MarshalledObject                         \
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    |          imports                                              \ 
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    |          exports                                              \ 
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    |          interface name                                       \ 
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    | length of &lt;ProxyClassName&gt;    |    &lt;ProxyClassName&gt; String    \
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    |    number of injection blocks   |   class inj blocks          \
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *       0                   1                   2                   3
+	 *       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *      |       R-OSGi header (function = Service = 2)                  |
+	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *      |   length of &lt;ServiceURL&gt;     |    &lt;ServiceURL&gt; String       \
+	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *      | Attribute Dictionary MarshalledObject                         \
+	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *      |          imports                                              \ 
+	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *      |          exports                                              \ 
+	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *      |          interface name                                       \ 
+	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *      | length of &lt;ProxyClassName&gt;    |    &lt;ProxyClassName&gt; String    \
+	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *      |    number of injection blocks   |   class inj blocks          \
+	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
 	 * @param input
@@ -310,6 +312,28 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 */
 	String getExports() {
 		return exports;
+	}
+
+	/**
+	 * restamp the service URL to a new address.
+	 * 
+	 * @param protocol
+	 *            the protocol.
+	 * @param host
+	 *            the host.
+	 * @param port
+	 *            the port.
+	 * @throws ServiceLocationException
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#restamp(java.lang.String,
+	 *      java.lang.String, int)
+	 */
+	public void restamp(final String protocol, final String host, final int port)
+			throws ServiceLocationException {
+		final ServiceURL original = new ServiceURL(serviceURL, 0);
+		final ServiceURL restamped = new ServiceURL(original.getServiceType()
+				+ "://" + (protocol != null ? (protocol + "://") : "") + host
+				+ ":" + port + original.getURLPath(), 0);
+		serviceURL = restamped.toString();
 	}
 
 	/**

@@ -76,13 +76,13 @@ final class DeliverBundleMessage extends RemoteOSGiMessageImpl {
 	 * Create a new DeliverBundleMessage from network packet.
 	 * 
 	 * <pre>
-	 *        0                   1                   2                   3
-	 *        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *       |       R-OSGi header (function = DeliverBundle = 8)            |
-	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *       |   length of &lt;Bundle&gt;      |     &lt;Bundle&gt; Bytes        \
-	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *               0                   1                   2                   3
+	 *               0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *              +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *              |       R-OSGi header (function = DeliverBundle = 8)            |
+	 *              +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *              |   length of &lt;Bundle&gt;      |     &lt;Bundle&gt; Bytes        \
+	 *              +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
 	 * @param input
@@ -100,7 +100,8 @@ final class DeliverBundleMessage extends RemoteOSGiMessageImpl {
 	 * Write the body of the DeliverServiceMessage as raw bytes to an output
 	 * stream.
 	 * 
-	 * @param out the ObjectOutputStream.
+	 * @param out
+	 *            the ObjectOutputStream.
 	 * @throws IOException
 	 *             in case of parse errors.
 	 */
@@ -115,6 +116,22 @@ final class DeliverBundleMessage extends RemoteOSGiMessageImpl {
 	 */
 	byte[] getBundle() {
 		return bytes;
+	}
+
+	/**
+	 * has no effect for this type.
+	 * 
+	 * @param protocol
+	 *            the protocol.
+	 * @param host
+	 *            the host.
+	 * @param port
+	 *            the port.
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#restamp(java.lang.String,
+	 *      java.lang.String, int)
+	 */
+	public void restamp(final String protocol, final String host, final int port) {
+
 	}
 
 	/**

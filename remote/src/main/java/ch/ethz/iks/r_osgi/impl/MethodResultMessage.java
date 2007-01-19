@@ -172,6 +172,22 @@ class MethodResultMessage extends RemoteOSGiMessageImpl {
 	final Throwable getException() {
 		return exception;
 	}
+	
+	/**
+	 * has no effect for this type.
+	 * 
+	 * @param protocol
+	 *            the protocol.
+	 * @param host
+	 *            the host.
+	 * @param port
+	 *            the port.
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#restamp(java.lang.String,
+	 *      java.lang.String, int)
+	 */
+	public void restamp(final String protocol, final String host, final int port) {
+
+	}
 
 	/**
 	 * String representation for debug outputs.

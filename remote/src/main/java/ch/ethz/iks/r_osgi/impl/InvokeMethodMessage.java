@@ -33,6 +33,8 @@ import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
+import ch.ethz.iks.slp.ServiceLocationException;
+import ch.ethz.iks.slp.ServiceURL;
 import ch.ethz.iks.util.SmartSerializer;
 
 /**
@@ -70,7 +72,8 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 * @param params
 	 *            the parameter that are passed to the method.
 	 */
-	InvokeMethodMessage(final String service, final String methodSignature, final Object[] params) {
+	InvokeMethodMessage(final String service, final String methodSignature,
+			final Object[] params) {
 		funcID = INVOKE_METHOD;
 		this.serviceURL = service;
 		this.methodSignature = methodSignature;
@@ -81,17 +84,17 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 * creates a new InvokeMethodMessage from network packet:
 	 * 
 	 * <pre>
-	 *    0                   1                   2                   3
-	 *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *   |       R-OSGi header (function = InvokeMsg = 3)                |
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *   |   length of &lt;ServiceURL&gt;     |    &lt;ServiceURL&gt; String       \
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *   |    length of &lt;MethodSignature&gt;     |     &lt;MethodSignature&gt; String       \
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *   |   number of param blocks      |     Param blocks (if any)     \
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *      0                   1                   2                   3
+	 *      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *     |       R-OSGi header (function = InvokeMsg = 3)                |
+	 *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *     |   length of &lt;ServiceURL&gt;     |    &lt;ServiceURL&gt; String       \
+	 *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *     |    length of &lt;MethodSignature&gt;     |     &lt;MethodSignature&gt; String       \
+	 *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *     |   number of param blocks      |     Param blocks (if any)     \
+	 *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>.
 	 * 
 	 * @param input
@@ -114,7 +117,8 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	/**
 	 * write the body of the message to a stream.
 	 * 
-	 * @param out the ObjectOutputStream.
+	 * @param out
+	 *            the ObjectOutputStream.
 	 * @throws IOException
 	 *             in case of IO failures.
 	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
@@ -153,6 +157,28 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 */
 	String getMethodSignature() {
 		return methodSignature;
+	}
+
+	/**
+	 * restamp the service URL to a new address.
+	 * 
+	 * @param protocol
+	 *            the protocol.
+	 * @param host
+	 *            the host.
+	 * @param port
+	 *            the port.
+	 * @throws ServiceLocationException
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#restamp(java.lang.String,
+	 *      java.lang.String, int)
+	 */
+	public void restamp(final String protocol, final String host, final int port)
+			throws ServiceLocationException {
+		final ServiceURL original = new ServiceURL(serviceURL, 0);
+		final ServiceURL restamped = new ServiceURL(original.getServiceType()
+				+ "://" + (protocol != null ? (protocol + "://") : "") + host
+				+ ":" + port + original.getURLPath(), 0);
+		serviceURL = restamped.toString();
 	}
 
 	/**

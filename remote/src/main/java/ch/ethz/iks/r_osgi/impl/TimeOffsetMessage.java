@@ -62,13 +62,13 @@ class TimeOffsetMessage extends RemoteOSGiMessageImpl {
 	 * creates a new TimeSyncMessage from network packet:
 	 * 
 	 * <pre>
-	 *       0                   1                   2                   3
-	 *       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |       R-OSGi header (function = TimeOffset = 7)               |
-	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |                   Marshalled Long[]                           \
-	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *        0                   1                   2                   3
+	 *        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *       |       R-OSGi header (function = TimeOffset = 7)               |
+	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *       |                   Marshalled Long[]                           \
+	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>.
 	 * 
 	 * @param input
@@ -85,7 +85,8 @@ class TimeOffsetMessage extends RemoteOSGiMessageImpl {
 	/**
 	 * write the body of the message to a stream.
 	 * 
-	 * @param out the ObjectOutputStream.
+	 * @param out
+	 *            the ObjectOutputStream.
 	 * @throws IOException
 	 *             in case of IO failures.
 	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
@@ -123,6 +124,22 @@ class TimeOffsetMessage extends RemoteOSGiMessageImpl {
 	 */
 	final Long[] getTimeSeries() {
 		return timeSeries;
+	}
+
+	/**
+	 * has no effect for this type.
+	 * 
+	 * @param protocol
+	 *            the protocol.
+	 * @param host
+	 *            the host.
+	 * @param port
+	 *            the port.
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#restamp(java.lang.String,
+	 *      java.lang.String, int)
+	 */
+	public void restamp(final String protocol, final String host, final int port) {
+
 	}
 
 	/**
