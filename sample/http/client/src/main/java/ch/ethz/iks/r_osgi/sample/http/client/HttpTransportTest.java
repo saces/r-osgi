@@ -20,7 +20,7 @@ import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 public class HttpTransportTest implements BundleActivator {
 
 	static final boolean home = false;
-	
+
 	private RemoteOSGiService remote;
 
 	public void start(BundleContext context) throws Exception {
@@ -75,7 +75,7 @@ public class HttpTransportTest implements BundleActivator {
 			System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 					+ Arrays.asList(services));
 			url = new ServiceURL(
-					"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://129.132.130.18:8080/9",
+					"service:osgi:ch/ethz/iks/r_osgi/sample/api/ServiceInterface://http://flowsgi.inf.ethz.ch:8080/9",
 					-1);
 		}
 
