@@ -238,7 +238,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		public void sendMessage(final RemoteOSGiMessage message)
 				throws IOException {
-			System.out.println("sending " + message);
+			System.out.println("{TCP Channel} sending " + message);
 			message.send(output);
 		}
 
@@ -255,7 +255,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 					try {
 						final RemoteOSGiMessage msg = RemoteOSGiMessage
 								.parse(input);
-						// TODO: LOG
+						System.out.println("{TCP Channel} received " + msg);
 						endpoint.receivedMessage(msg);
 					} catch (Exception e) {
 						connected = false;
