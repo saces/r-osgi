@@ -189,7 +189,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		attr.putValue("Import-Package",
 				"".equals(imports) ? "ch.ethz.iks.r_osgi"
 						: "ch.ethz.iks.r_osgi, " + imports);
-		if (! "".equals(deliv.getExports())) {
+		if (!"".equals(deliv.getExports())) {
 			attr.putValue("Export-Package", deliv.getExports());
 		}
 		File file = RemoteOSGiServiceImpl.context.getDataFile(fileName + "_"
@@ -664,7 +664,6 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitInsn(ARETURN);
 				break;
 			default:
-				System.out.println("RETURN TYPE " + sort);
 				method.visitTypeInsn(CHECKCAST, returnType.getInternalName());
 				method.visitInsn(ARETURN);
 				break;
