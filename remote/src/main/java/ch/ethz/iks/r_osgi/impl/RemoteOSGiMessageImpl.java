@@ -72,13 +72,13 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	 * RemoteOSGiMessage from it. The header is:
 	 * 
 	 * <pre>
-	 *     0                   1                   2                   3
-	 *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    |    Version    |  Function-ID  |            Length             |
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    | Length, contd.                |              XID              |
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *      0                   1                   2                   3
+	 *      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *     |    Version    |         Function-ID           |     XID       |
+	 *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *     |    XID cntd.  | 
+	 *     +-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
 	 * the body is processed by the subtype class.
@@ -92,10 +92,15 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	public static RemoteOSGiMessage parse(final ObjectInputStream input)
 			throws SocketException {
 		try {
-			System.out.println("::::::::::::::::::::::::::::: available "
-					+ input.available());
 			input.readByte(); // version, currently unused
-			short funcID = input.readByte();
+			short funcID = 0;
+			try {
+				funcID = input.readByte();
+			} catch (Throwable t) {
+				t.printStackTrace();
+				System.out.println("AVAILABLE: " + input.available());
+				System.exit(1);
+			}
 			short xid = input.readShort();
 			RemoteOSGiMessageImpl msg;
 			switch (funcID) {
