@@ -71,7 +71,7 @@ public class HttpTransportTest implements BundleActivator {
 			System.out.println("CONFIGURED FOR TESTS IN THE ETH NETWORK ... ");
 			System.out.println("============================================");
 			services = remote.connect(InetAddress
-					.getByName("129.132.130.18"), 8080, "http");
+					.getByName("flowsgi.inf.ethz.ch"), 8080, "http");
 			System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 					+ Arrays.asList(services));
 			url = new ServiceURL(
