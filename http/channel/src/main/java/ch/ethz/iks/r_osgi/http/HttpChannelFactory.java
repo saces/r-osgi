@@ -192,6 +192,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
 
+			System.out.println("{HTTP Channel} sending " + message);
 			message.send(new ObjectOutputStream(connection.getOutputStream()));
 
 			final ObjectInputStream in = new ObjectInputStream(connection
@@ -203,7 +204,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			}
 
 			final RemoteOSGiMessage msg = RemoteOSGiMessage.parse(in);
-			System.out.println("received " + msg);
+			System.out.println("{HTTP Channel} received " + msg);
 			endpoint.receivedMessage(msg);
 		}
 
@@ -218,7 +219,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 				try {
 					while (!Thread.interrupted()) {
 						RemoteOSGiMessage msg = RemoteOSGiMessage.parse(input);
-						System.out.println("asynchronously received " + msg);
+						System.out.println("{HTTP Channel} asynchronously received " + msg);
 						endpoint.receivedMessage(msg);
 					}
 				} catch (Exception e) {
