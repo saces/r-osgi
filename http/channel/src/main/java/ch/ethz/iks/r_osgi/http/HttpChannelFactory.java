@@ -177,6 +177,16 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		}
 
 		/**
+		 * get the (unique) ID of the channel.
+		 * 
+		 * @return the ID.
+		 * @see ch.ethz.iks.r_osgi.NetworkChannel#getID()
+		 */
+		public String getID() {
+			return PROTOCOL + "://" + host.getHostAddress() + ":" + port;
+		}
+
+		/**
 		 * send a message through the channel.
 		 * 
 		 * @param message

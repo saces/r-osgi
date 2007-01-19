@@ -134,7 +134,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private final List proxies = new ArrayList(0);
 
 	/**
-	 * 
+	 * the handler registration, if the remote topic space is not empty.
 	 */
 	private ServiceRegistration handlerReg = null;
 
@@ -165,10 +165,18 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	/**
 	 * create a new channel endpoint.
 	 * 
-	 * @param connection
-	 *            the transport channel.
+	 * @param factory
+	 *            the transport channel factory.
+	 * @param address
+	 *            the remote endpoint address.
+	 * @param port
+	 *            the remote endpoint port.
+	 * @param protocol
+	 *            the protocol of the channel.
 	 * @throws RemoteOSGiException
+	 *             if something goes wrong.
 	 * @throws IOException
+	 *             if something goes wrong on the network layer.
 	 */
 	ChannelEndpointImpl(final NetworkChannelFactory factory,
 			final InetAddress address, final int port, final String protocol)
@@ -180,11 +188,18 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		RemoteOSGiServiceImpl.registerChannel(this);
 	}
 
-	ChannelEndpointImpl(Socket socket) throws IOException {
-		System.out.println("GOING TO ACCEPT NEW CONNECTION "
-				+ socket.getInetAddress() + ":" + socket.getPort());
+	/**
+	 * create a new channel endpoint from an incoming connection. Incoming
+	 * connections are always TCP connections, either directly by the remote
+	 * peer or over localloop by a bridge.
+	 * 
+	 * @param socket
+	 *            the socket on which the incoming connection was accepted.
+	 * @throws IOException
+	 *             if something goes wrong.
+	 */
+	ChannelEndpointImpl(final Socket socket) throws IOException {
 		this.networkChannel = TCP_FACTORY.bind(this, socket);
-		System.out.println("HAVE ACCEPTED CONNECTION " + networkChannel);
 		RemoteOSGiServiceImpl.registerChannel(this);
 	}
 
@@ -192,80 +207,118 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * get the channel ID.
 	 * 
 	 * @return the channel ID.
+	 * @see ch.ethz.iks.r_osgi.ChannelEndpoint#getID() *
+	 * @category ChannelEndpoint
 	 */
 	public String getID() {
-		final String protocol = networkChannel.getProtocol();
-		return (protocol != null ? protocol : "r-osgi") + "://"
-				+ networkChannel.getInetAddress().getHostAddress() + ":"
-				+ networkChannel.getPort();
+		return networkChannel.getID();
+	}
+
+	/**
+	 * process a recieved message. Called by the channel.
+	 * 
+	 * @param msg
+	 *            the received message.
+	 * @see ch.ethz.iks.r_osgi.ChannelEndpoint#receivedMessage(ch.ethz.iks.r_osgi.RemoteOSGiMessage)
+	 * @category ChannelEndpoint
+	 */
+	public void receivedMessage(final RemoteOSGiMessage msg) {
+		if (msg == null) {
+			// TODO: maybe add a debug message
+			recoverConnection();
+			return;
+		}
+		final Integer xid = new Integer(msg.getXID());
+		synchronized (receiveQueue) {
+			final Object state = receiveQueue.get(xid);
+			if (state == WAITING) {
+				receiveQueue.put(xid, msg);
+				receiveQueue.notifyAll();
+				return;
+			} else {
+				RemoteOSGiMessage reply = handleMessage(msg);
+				if (reply != null) {
+					try {
+						networkChannel.sendMessage(reply);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * invoke a method on the remote host. This function is used by all proxy
+	 * bundles.
+	 * 
+	 * @param service
+	 *            the service URL.
+	 * @param methodSignature
+	 *            the method signature.
+	 * @param args
+	 *            the method parameter.
+	 * @return the result of the remote method invokation.
+	 * @see ch.ethz.iks.r_osgi.Remoting#invokeMethod(java.lang.String,
+	 *      java.lang.String, java.lang.String, java.lang.Object[])
+	 * @category ChannelEndpoint
+	 */
+	public Object invokeMethod(final String service,
+			final String methodSignature, final Object[] args) throws Throwable {
+		final InvokeMethodMessage invokeMsg = new InvokeMethodMessage(service
+				.toString(), methodSignature, args);
+
+		try {
+			// send the message and get a MethodResultMessage in return
+			final MethodResultMessage result = (MethodResultMessage) sendMessage(invokeMsg);
+			if (result.causedException()) {
+				throw result.getException();
+			}
+			return result.getResult();
+		} catch (RemoteOSGiException e) {
+			throw new RemoteOSGiException("Method invocation of "
+					+ methodSignature + " failed.", e);
+		}
+	}
+
+	/**
+	 * dispose the channel.
+	 * 
+	 * @category ChannelEndpoint
+	 */
+	public void dispose() {
+		// TODO: make a debug message of it.
+		System.out.println("DISPOSING ENDPOINT " + getID());
+		RemoteOSGiServiceImpl.unregisterChannel(this);
+		Bundle[] bundles = (Bundle[]) proxies
+				.toArray(new Bundle[proxies.size()]);
+		for (int i = 0; i < bundles.length; i++) {
+			try {
+				if (bundles[i].getState() == Bundle.ACTIVE) {
+					bundles[i].uninstall();
+				}
+			} catch (Throwable t) {
+				// don't care
+			}
+		}
 	}
 
 	/**
 	 * renew the lease.
 	 * 
-	 * @param services
+	 * @param updatedServices
 	 *            the (local) services.
-	 * @param topics
+	 * @param updatedTopics
 	 *            the (local) topics.
 	 * @throws RemoteOSGiException
 	 *             if the channel cannot be established.
 	 */
-	void renewLease(final String[] services, final String[] topics)
+	void renewLease(final String[] updatedServices, final String[] updatedTopics)
 			throws RemoteOSGiException {
 		final LeaseMessage lease = (LeaseMessage) sendMessage(new LeaseMessage(
-				services, topics));
+				updatedServices != null ? updatedServices : remoteServices,
+				updatedTopics != null ? updatedTopics : remoteTopics));
 		updateStatements(lease);
-	}
-
-	/**
-	 * update the statements of suppy and demand.
-	 * 
-	 * @param lease
-	 *            the original lease.
-	 */
-	private void updateStatements(final LeaseMessage lease) {
-		final String[] remoteServices = lease.getServices();
-		if (remoteServices != null) {
-			this.remoteServices = remoteServices;
-		}
-		final String[] theTopics = lease.getTopics();
-		if (theTopics != null) {
-			remoteTopics = theTopics;
-
-			if (handlerReg == null) {
-				if (theTopics.length == 0) {
-					// no change
-				} else {
-					// register handler
-					final Dictionary properties = new Hashtable();
-					properties.put(EventConstants.EVENT_TOPIC, theTopics);
-					properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
-					properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
-							Boolean.TRUE);
-					handlerReg = RemoteOSGiServiceImpl.context.registerService(
-							EventHandler.class.getName(), new EventForwarder(),
-							properties);
-				}
-			} else {
-				if (theTopics.length == 0) {
-					// unregister handler
-					handlerReg.unregister();
-					handlerReg = null;
-				} else {
-					// update topics
-					final Dictionary properties = new Hashtable();
-					properties.put(EventConstants.EVENT_TOPIC, theTopics);
-					properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
-					properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
-							Boolean.TRUE);
-					handlerReg.setProperties(properties);
-				}
-			}
-		}
-
-		System.out.println();
-		System.out.println("NEW REMOTE TOPIC SPACE "
-				+ java.util.Arrays.asList(theTopics));
 	}
 
 	/**
@@ -287,37 +340,38 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
-	 * invoke a method on the remote host. This function is used by all proxy
-	 * bundles.
+	 * get the attributes of a service. This function is used to simplify proxy
+	 * bundle generation.
 	 * 
-	 * @param service
-	 *            the service URL.
-	 * @param methodSignature
-	 *            the method signature.
-	 * @param args
-	 *            the method parameter.
-	 * @return the result of the remote method invokation.
-	 * @see ch.ethz.iks.r_osgi.Remoting#invokeMethod(java.lang.String,
-	 *      java.lang.String, java.lang.String, java.lang.Object[])
-	 * @since 0.2
-	 * @category Remoting
+	 * @param serviceURL
+	 *            the serviceURL of the remote service.
+	 * @return the service attributes.
 	 */
-	public Object invokeMethod(final String service,
-			final String methodSignature, final Object[] args) throws Throwable {
-		final InvokeMethodMessage invokeMsg = new InvokeMethodMessage(service
-				.toString(), methodSignature, args);
+	Dictionary getAttributes(final String serviceURL) {
+		return (Dictionary) attributes.get(serviceURL);
+	}
 
+	/**
+	 * get the attributes for the presentation of the service. This function is
+	 * used by proxies that support ServiceUI presentations.
+	 * 
+	 * @param serviceURL
+	 *            the serviceURL of the remote service.
+	 * @return the presentation attributes.
+	 */
+	Dictionary getPresentationAttributes(final String serviceURL) {
+		final Dictionary attribs = new Hashtable();
 		try {
-			// send the message and get a MethodResultMessage in return
-			final MethodResultMessage result = (MethodResultMessage) sendMessage(invokeMsg);
-			if (result.causedException()) {
-				throw result.getException();
-			}
-			return result.getResult();
-		} catch (RemoteOSGiException e) {
-			throw new RemoteOSGiException("Method invocation of "
-					+ methodSignature + " failed.", e);
+			attribs.put(RemoteOSGiServiceImpl.REMOTE_HOST, new ServiceURL(
+					serviceURL, 0).getHost());
+			attribs.put(RemoteOSGiService.PRESENTATION,
+					((Dictionary) attributes.get(serviceURL))
+							.get(RemoteOSGiService.PRESENTATION));
+		} catch (ServiceLocationException sle) {
+			throw new IllegalArgumentException("ServiceURL " + serviceURL
+					+ " is invalid.");
 		}
+		return attribs;
 	}
 
 	/**
@@ -381,7 +435,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			Bundle bundle = RemoteOSGiServiceImpl.context.installBundle(
 					"r-osgi://" + service.toString(), new ByteArrayInputStream(
 							delivB.getBundle()));
-
 			bundle.start();
 		}
 	}
@@ -418,7 +471,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		while (retryCounter > 0) {
 			try {
 				// send the message
-				dispatchMessage(msg);
+				networkChannel.sendMessage(msg);
 				if (msg instanceof RemoteEventMessage) {
 					return null;
 				}
@@ -446,9 +499,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					}
 				}
 			} catch (Throwable t) {
-				// TODO: remove
-				t.printStackTrace();
-
 				lastException = t;
 				recoverConnection();
 
@@ -498,6 +548,57 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			timeOffset.update(timeMsg.getTimeSeries());
 		}
 		return timeOffset;
+	}
+
+	/**
+	 * update the statements of suppy and demand.
+	 * 
+	 * @param lease
+	 *            the original lease.
+	 */
+	private void updateStatements(final LeaseMessage lease) {
+		final String[] remoteServices = lease.getServices();
+		if (remoteServices != null) {
+			this.remoteServices = remoteServices;
+		}
+		final String[] theTopics = lease.getTopics();
+		if (theTopics != null) {
+			remoteTopics = theTopics;
+
+			if (handlerReg == null) {
+				if (theTopics.length == 0) {
+					// no change
+				} else {
+					// register handler
+					final Dictionary properties = new Hashtable();
+					properties.put(EventConstants.EVENT_TOPIC, theTopics);
+					properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
+					properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
+							Boolean.TRUE);
+					handlerReg = RemoteOSGiServiceImpl.context.registerService(
+							EventHandler.class.getName(), new EventForwarder(),
+							properties);
+				}
+			} else {
+				if (theTopics.length == 0) {
+					// unregister handler
+					handlerReg.unregister();
+					handlerReg = null;
+				} else {
+					// update topics
+					final Dictionary properties = new Hashtable();
+					properties.put(EventConstants.EVENT_TOPIC, theTopics);
+					properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
+					properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
+							Boolean.TRUE);
+					handlerReg.setProperties(properties);
+				}
+			}
+		}
+
+		// TODO: make a debug output from it.
+		System.out.println("NEW REMOTE TOPIC SPACE "
+				+ java.util.Arrays.asList(theTopics));
 	}
 
 	/**
@@ -563,8 +664,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				final ProxiedServiceRegistration serv = (ProxiedServiceRegistration) services
 						.get(invMsg.getServiceURL());
 				if (serv == null) {
-					System.err.println("REQUESTED " + invMsg.getServiceURL());
-					System.err.println("IN CACHE: " + services);
 					throw new IllegalStateException("Could not get "
 							+ invMsg.getServiceURL());
 				}
@@ -591,8 +690,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 			final Event event = eventMsg.getEvent(this);
 
-			System.out.println("RECEIVED REMOTE EVENT " + event);
-
 			// and deliver the event to the local framework
 			if (RemoteOSGiServiceImpl.eventAdmin != null) {
 				RemoteOSGiServiceImpl.eventAdmin.postEvent(event);
@@ -613,41 +710,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
-	 * send a message over the channel.
-	 * 
-	 * @param msg
-	 *            the message.
-	 * @throws IOException
-	 */
-	void dispatchMessage(final RemoteOSGiMessage msg) throws IOException {
-		networkChannel.sendMessage(msg);
-	}
-
-	/**
-	 * dispose the channel.
-	 */
-	public void dispose() {
-		System.out.println("DISPOSING ENDPOINT " + getID());
-		RemoteOSGiServiceImpl.unregisterChannel(this);
-		Bundle[] bundles = (Bundle[]) proxies
-				.toArray(new Bundle[proxies.size()]);
-		for (int i = 0; i < bundles.length; i++) {
-			try {
-				if (bundles[i].getState() == Bundle.ACTIVE) {
-					bundles[i].uninstall();
-				}
-			} catch (BundleException e) {
-				// don't care
-			}
-		}
-	}
-
-	/**
 	 * Try to recover a broken-down connection.
 	 * 
 	 * @return true, if the connection could be recovered.
 	 */
-	boolean recoverConnection() {
+	private boolean recoverConnection() {
 		lostConnection = true;
 
 		try {
@@ -664,80 +731,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * process a recieved message. Called by the channel.
-	 * 
-	 * @param msg
-	 *            the received message.
-	 */
-	public void receivedMessage(final RemoteOSGiMessage msg) {
-		if (msg == null) {
-			System.out.println("RECEIVED POISONED INPUT MESSAGE");
-			System.out.println("STARTING RECOVERY ...");
-			recoverConnection();
-			return;
-		}
-		final Integer xid = new Integer(msg.getXID());
-		synchronized (receiveQueue) {
-			final Object state = receiveQueue.get(xid);
-			if (state == WAITING) {
-				receiveQueue.put(xid, msg);
-				receiveQueue.notifyAll();
-				return;
-			} else {
-				RemoteOSGiMessage reply = handleMessage(msg);
-				if (reply != null) {
-					try {
-						dispatchMessage(reply);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * get the attributes of a service. This function is used to simplify proxy
-	 * bundle generation.
-	 * 
-	 * @param serviceURL
-	 *            the serviceURL of the remote service.
-	 * @return the service attributes.
-	 * @see ch.ethz.iks.r_osgi.Remoting#getAttributes(java.lang.String)
-	 * @since 0.2
-	 * @category Remoting
-	 */
-	public Dictionary getAttributes(final String serviceURL) {
-		return (Dictionary) attributes.get(serviceURL);
-	}
-
-	/**
-	 * get the attributes for the presentation of the service. This function is
-	 * used by proxies that support ServiceUI presentations.
-	 * 
-	 * @param serviceURL
-	 *            the serviceURL of the remote service.
-	 * @return the presentation attributes.
-	 * @see ch.ethz.iks.r_osgi.Remoting#getPresentationAttributes(java.lang.String)
-	 * @since 0.4
-	 * @category Remoting
-	 */
-	public Dictionary getPresentationAttributes(final String serviceURL) {
-		final Dictionary attribs = new Hashtable();
-		try {
-			attribs.put(RemoteOSGiServiceImpl.REMOTE_HOST, new ServiceURL(
-					serviceURL, 0).getHost());
-			attribs.put(RemoteOSGiService.PRESENTATION,
-					((Dictionary) attributes.get(serviceURL))
-							.get(RemoteOSGiService.PRESENTATION));
-		} catch (ServiceLocationException sle) {
-			throw new IllegalArgumentException("ServiceURL " + serviceURL
-					+ " is invalid.");
-		}
-		return attribs;
 	}
 
 	/**

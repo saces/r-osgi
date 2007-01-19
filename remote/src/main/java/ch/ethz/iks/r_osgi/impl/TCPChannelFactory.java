@@ -180,8 +180,14 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			new ReceiverThread().start();
 		}
 
+		/**
+		 * get the String representation of the channel.
+		 * 
+		 * @return the ID. *
+		 * @see java.lang.Object#toString()
+		 */
 		public String toString() {
-			return "TCPChannel (" + host + ":" + port + ")";
+			return "TCPChannel (" + getID() + ")";
 		}
 
 		/**
@@ -225,6 +231,16 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		public String getProtocol() {
 			return "r-osgi";
+		}
+
+		/**
+		 * get the (unique) ID of the channel.
+		 * 
+		 * @return the ID.
+		 * @see ch.ethz.iks.r_osgi.NetworkChannel#getID()
+		 */
+		public String getID() {
+			return "r-osgi" + "://" + host.getHostAddress() + ":" + port;
 		}
 
 		/**

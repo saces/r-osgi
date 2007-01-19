@@ -69,6 +69,13 @@ public interface NetworkChannel {
 	int getPort();
 
 	/**
+	 * get the (unique) ID of the channel.
+	 * 
+	 * @return the ID.
+	 */
+	String getID();
+
+	/**
 	 * reconnect the channel to the endpoint.
 	 * 
 	 * @throws IOException

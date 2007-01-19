@@ -76,13 +76,13 @@ final class DeliverBundleMessage extends RemoteOSGiMessageImpl {
 	 * Create a new DeliverBundleMessage from network packet.
 	 * 
 	 * <pre>
-	 *               0                   1                   2                   3
-	 *               0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *              +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *              |       R-OSGi header (function = DeliverBundle = 8)            |
-	 *              +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *              |   length of &lt;Bundle&gt;      |     &lt;Bundle&gt; Bytes        \
-	 *              +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *                 0                   1                   2                   3
+	 *                 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *                +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *                |       R-OSGi header (function = DeliverBundle = 8)            |
+	 *                +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *                |   length of &lt;Bundle&gt;      |     &lt;Bundle&gt; Bytes        \
+	 *                +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
 	 * @param input

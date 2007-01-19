@@ -59,7 +59,6 @@ import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.Timestamp;
-import ch.ethz.iks.r_osgi.NetworkChannel;
 import ch.ethz.iks.r_osgi.NetworkChannelFactory;
 import ch.ethz.iks.slp.Advertiser;
 import ch.ethz.iks.slp.Locator;
@@ -73,12 +72,12 @@ import ch.ethz.iks.util.Scheduler;
 
 /**
  * <p>
- * The R-OSGi core class. Handles incoming messages and subscriptions from the
+ * The R-OSGi core class. Handles remote channels and subscriptions from the
  * local framework. Local services can be released for remoting and then
  * discovered by remote peers.
  * </p>
  * 
- * @author Jan S. Rellermeyer, ETH Zürich
+ * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.1
  */
 final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
@@ -87,7 +86,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	/**
 	 * the R-OSGi standard port.
 	 */
-	static final int R_OSGI_PORT = 9278;
+	static int R_OSGI_PORT = 9278;
 
 	/**
 	 * the SLP abstract service type we are interested in.
@@ -110,10 +109,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	static final String MSG_DEBUG_PROPERTY = "ch.ethz.iks.r_osgi.remote.debug.messages";
 
 	/**
-	 * constant that holds the property string for method invocation debug
-	 * option.
+	 * constant that holds the property string for internal debug option.
 	 */
-	static final String INVOCATIONS_DEBUG_PROPERTY = "ch.ethz.iks.r_osgi.remote.debug.invocations";
+	static final String INTERNAL_DEBUG_PROPERTY = "ch.ethz.iks.r_osgi.remote.debug.internal";
 
 	/**
 	 * constant that holds the property string for SLP discovery interval time
@@ -151,7 +149,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	/**
 	 * log method invocation debug output.
 	 */
-	static boolean INVOCATIONS_DEBUG;
+	static boolean DEBUG;
 
 	/**
 	 * discovery interval for SLP.
@@ -268,9 +266,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				: false;
 		prop = context.getProperty(MSG_DEBUG_PROPERTY);
 		MSG_DEBUG = prop != null ? Boolean.valueOf(prop).booleanValue() : false;
-		prop = context.getProperty(INVOCATIONS_DEBUG_PROPERTY);
-		INVOCATIONS_DEBUG = prop != null ? Boolean.valueOf(prop).booleanValue()
-				: false;
+		prop = context.getProperty(INTERNAL_DEBUG_PROPERTY);
+		DEBUG = prop != null ? Boolean.valueOf(prop).booleanValue() : false;
 
 		if (log != null) {
 			if (PROXY_DEBUG) {
@@ -279,24 +276,22 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			if (MSG_DEBUG) {
 				log.log(LogService.LOG_INFO, "MESSAGE DEBUG OUTPUTS ENABLED");
 			}
-			if (INVOCATIONS_DEBUG) {
-				log
-						.log(LogService.LOG_INFO,
-								"INVOCATION DEBUG OUTPUTS ENABLED");
+			if (DEBUG) {
+				log.log(LogService.LOG_INFO, "INTERNAL DEBUG OUTPUTS ENABLED");
 			}
 		} else {
-			if (PROXY_DEBUG || MSG_DEBUG || INVOCATIONS_DEBUG) {
+			if (PROXY_DEBUG || MSG_DEBUG || DEBUG) {
 				System.err
 						.println("NO LOG SERVICE PRESENT, DEBUG PROPERTIES HAVE NO EFFECT ...");
 				PROXY_DEBUG = false;
 				MSG_DEBUG = false;
-				INVOCATIONS_DEBUG = false;
+				DEBUG = false;
 			}
 		}
 
 		// set port
-		// prop = context.getProperty(REMOTE_OSGi_PORT);
-		// R_OSGI_PORT = prop != null ? Integer.parseInt(prop) : 9278;
+		prop = context.getProperty(REMOTE_OSGi_PORT);
+		R_OSGI_PORT = prop != null ? Integer.parseInt(prop) : 9278;
 
 		// set the discovery interval, default is 20 seconds
 		prop = context.getProperty(DISCOVERY_INTERVAL_PROPERTY);
@@ -378,7 +373,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		if (ref != null) {
 			eventAdmin = (EventAdmin) context.getService(ref);
 		} else {
-			System.err.println("NO EVENT ADMIN FOUND");
+			System.err
+					.println("NO EVENT ADMIN FOUND. REMOTE EVENT DELIVERY TEMPORARILY DISABLED.");
 		}
 
 		try {
@@ -415,8 +411,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				}
 			}
 
-			System.out.println("INITIAL TOPIC SPACE " + topics);
-
+			if (DEBUG) {
+				log.log(LogService.LOG_DEBUG, "Local topic space " + topics);
+			}
 		} catch (InvalidSyntaxException doesNotHappen) {
 			doesNotHappen.printStackTrace();
 		}
@@ -648,7 +645,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			}
 			return result;
 		} catch (IOException ioe) {
-			ioe.printStackTrace();
+			// ioe.printStackTrace();
 			throw new RemoteOSGiException("Connection to " + protocol + "://"
 					+ host + ":" + port + " failed", ioe);
 		}
@@ -932,14 +929,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		} catch (UnknownHostException uhe) {
 			throw new RemoteOSGiException(uhe.getMessage());
 		}
-		System.out.println("REQUESTING CHANNEL FOR " + id);
 		final ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
 				.get(id);
 		if (channel != null) {
 			return channel;
 		}
-		System.out.println("NO CHANNEL PRESENT. HAVING " + channels);
-		throw new RemoteOSGiException("No TransportChannel to " + id
+		throw new RemoteOSGiException("No NetworkChannel to " + id
 				+ " established");
 	}
 
@@ -952,6 +947,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 */
 	private void notifyDiscovery(final ServiceURL service)
 			throws RemoteOSGiException {
+		// TODO: make a debug message of it
 		System.out.println("discovered " + service);
 
 		final String interfaceName = service.getServiceType()
@@ -1240,7 +1236,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				} catch (NullPointerException npe) {
 					// sometimes happens when the framework is shutting down
 				} catch (InvalidSyntaxException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1266,7 +1261,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			final int type = event.getType();
 			final ServiceReference ref = event.getServiceReference();
 
-			System.out.println("REGISTERING " + ref);
+			if (DEBUG) {
+				log.log(LogService.LOG_DEBUG, "REGISTERING " + ref);
+			}
 
 			if (type == ServiceEvent.REGISTERED) {
 				final String protocol = (String) ref
@@ -1353,5 +1350,4 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			}
 		}
 	}
-
 }
