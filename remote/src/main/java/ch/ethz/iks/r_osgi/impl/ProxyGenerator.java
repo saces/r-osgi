@@ -692,8 +692,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 	/**
 	 * 
-	 * @author rjan
-	 * 
+	 * @author Jan S. Rellermeyer, ETH Zurich
 	 */
 	private final class MethodRewriter implements MethodVisitor {
 		/**

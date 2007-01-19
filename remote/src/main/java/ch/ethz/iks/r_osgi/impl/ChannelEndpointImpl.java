@@ -46,6 +46,8 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
+import org.osgi.service.log.LogService;
+
 import ch.ethz.iks.r_osgi.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
@@ -287,8 +289,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @category ChannelEndpoint
 	 */
 	public void dispose() {
-		// TODO: make a debug message of it.
-		System.out.println("DISPOSING ENDPOINT " + getID());
+		if (RemoteOSGiServiceImpl.DEBUG) {
+			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
+					"DISPOSING ENDPOINT " + getID());
+		}
 		RemoteOSGiServiceImpl.unregisterChannel(this);
 		Bundle[] bundles = (Bundle[]) proxies
 				.toArray(new Bundle[proxies.size()]);
@@ -596,9 +600,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 		}
 
-		// TODO: make a debug output from it.
-		System.out.println("NEW REMOTE TOPIC SPACE "
-				+ java.util.Arrays.asList(theTopics));
+		if (RemoteOSGiServiceImpl.MSG_DEBUG) {
+			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
+					"NEW REMOTE TOPIC SPACE for " + getID() + " is "
+							+ java.util.Arrays.asList(theTopics));
+		}
 	}
 
 	/**
@@ -720,7 +726,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		try {
 			networkChannel.reconnect();
 			lostConnection = false;
-			System.out.println("Channel " + getID() + " recovery successful");
+			if (RemoteOSGiServiceImpl.DEBUG) {
+				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG, "Channel "
+						+ getID() + " recovery successful");
+			}
 		} catch (IOException ioe) {
 			System.err.println("Recovery failed: " + ioe.getMessage());
 			dispose();

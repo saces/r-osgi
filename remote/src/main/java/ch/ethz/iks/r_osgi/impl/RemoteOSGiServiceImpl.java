@@ -947,8 +947,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 */
 	private void notifyDiscovery(final ServiceURL service)
 			throws RemoteOSGiException {
-		// TODO: make a debug message of it
-		System.out.println("discovered " + service);
+		if (DEBUG) {
+			log.log(LogService.LOG_DEBUG, "discovered " + service);
+		}
 
 		final String interfaceName = service.getServiceType()
 				.getConcreteTypeName().replace('/', '.');

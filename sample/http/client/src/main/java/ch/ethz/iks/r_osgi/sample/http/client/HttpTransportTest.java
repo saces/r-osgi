@@ -74,21 +74,21 @@ public class HttpTransportTest implements BundleActivator {
 
 		System.out.println("FETCHING " + services[0]);
 		remote.fetchService(services[0]);
-		System.out.println("FETCHED ...");
 		final ServiceInterface test = (ServiceInterface) remote
 				.getFetchedService(services[0]);
-		System.out.println("STARTING THREAD ...");
 		new Thread() {
 			public void run() {
 				try {
 					int i = 0;
 					while (remote != null) {
-						System.out.println();
-						System.out.println();
-						System.out.println("Invoking the remote service ...");
+						System.out
+								.println("-----------------------------------");
+						System.out.println("INVOKING THE REMOTE SERVICE...");
 						System.out.println(test.echoService(
 								"THIS IS TRANSMITTED BY HTTP !!!", new Integer(
 										1 + (i++ % 5))));
+						System.out
+								.println("-----------------------------------");
 						Thread.sleep(4000);
 					}
 				} catch (InterruptedException e) {

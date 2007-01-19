@@ -35,6 +35,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+
+import org.osgi.service.log.LogService;
+
 import ch.ethz.iks.r_osgi.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.NetworkChannel;
@@ -254,7 +257,10 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		public void sendMessage(final RemoteOSGiMessage message)
 				throws IOException {
-			System.out.println("{TCP Channel} sending " + message);
+			if (RemoteOSGiServiceImpl.MSG_DEBUG) {
+				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
+						"{TCP Channel} sending " + message);
+			}
 			message.send(output);
 		}
 
@@ -271,7 +277,10 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 					try {
 						final RemoteOSGiMessage msg = RemoteOSGiMessage
 								.parse(input);
-						System.out.println("{TCP Channel} received " + msg);
+						if (RemoteOSGiServiceImpl.MSG_DEBUG) {
+							RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
+									"{TCP Channel} received " + msg);
+						}
 						endpoint.receivedMessage(msg);
 					} catch (Exception e) {
 						connected = false;
