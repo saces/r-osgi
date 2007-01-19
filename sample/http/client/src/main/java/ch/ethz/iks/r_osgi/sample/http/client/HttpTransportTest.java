@@ -19,10 +19,11 @@ import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 
 public class HttpTransportTest implements BundleActivator {
 
+	static final boolean home = false;
+	
 	private RemoteOSGiService remote;
 
 	public void start(BundleContext context) throws Exception {
-		final boolean home = true;
 
 		// register event handler
 		final Dictionary properties = new Hashtable();
