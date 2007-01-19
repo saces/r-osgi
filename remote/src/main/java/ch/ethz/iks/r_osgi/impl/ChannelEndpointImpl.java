@@ -522,7 +522,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				return null;
 			}
 
-			// TODO: somehow the protocol has to be included ...
 			return lease.replyWith(RemoteOSGiServiceImpl.getServices(),
 					RemoteOSGiServiceImpl.getTopics());
 		}
