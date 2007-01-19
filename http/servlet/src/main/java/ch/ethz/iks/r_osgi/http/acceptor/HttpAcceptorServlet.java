@@ -107,7 +107,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 						new ChunkedEncoderOutputStream(resp.getOutputStream()));
 				resp.setHeader("Transfer-Encoding", "chunked");
 				resp.setContentType("multipart/x-r_osgi");
-				
+
 				// intentionally, the request that carried the lease does not
 				// terminate (as long as the connection is open). It is used to
 				// ship remote events.
@@ -115,9 +115,16 @@ public class HttpAcceptorServlet extends HttpServlet {
 					while (!Thread.interrupted()) {
 						RemoteOSGiMessage response = RemoteOSGiMessage
 								.parse(localIn);
-						System.out.println("{Servlet Bridge} received " + response);
+						System.out.println("{Servlet Bridge} received "
+								+ response);
 						switch (response.getFuncID()) {
 						case RemoteOSGiMessage.LEASE:
+							try {
+								response.restamp("http", req.getServerName(),
+										req.getServerPort());
+							} catch (IllegalArgumentException e) {
+								e.printStackTrace();
+							}
 						case RemoteOSGiMessage.REMOTE_EVENT:
 							System.out.println("{LOCAL -> REMOTE (ASYNC)}: "
 									+ response);

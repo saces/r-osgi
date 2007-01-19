@@ -72,13 +72,13 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 * creates a new FetchServiceMessage from network packet.
 	 * 
 	 * <pre>
-	 *    0                   1                   2                   3
-	 *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *   |       R-OSGi header (function = Fetch = 1)                    |
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *   |   length of &lt;ServiceURL&gt;     |     &lt;ServiceURL&gt; String      \
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *     0                   1                   2                   3
+	 *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *    |       R-OSGi header (function = Fetch = 1)                    |
+	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *    |   length of &lt;ServiceURL&gt;     |     &lt;ServiceURL&gt; String      \
+	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
 	 * @param input
@@ -127,12 +127,18 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 *      java.lang.String, int)
 	 */
 	public void restamp(final String protocol, final String host, final int port)
-			throws ServiceLocationException {
-		final ServiceURL original = new ServiceURL(serviceURL, 0);
-		final ServiceURL restamped = new ServiceURL(original.getServiceType()
-				+ "://" + (protocol != null ? (protocol + "://") : "") + host
-				+ ":" + port + original.getURLPath(), 0);
-		serviceURL = restamped.toString();
+			throws IllegalArgumentException {
+		try {
+			final ServiceURL original = new ServiceURL(serviceURL, 0);
+			final ServiceURL restamped = new ServiceURL(original
+					.getServiceType()
+					+ "://"
+					+ (protocol != null ? (protocol + "://") : "")
+					+ host + ":" + port + original.getURLPath(), 0);
+			serviceURL = restamped.toString();
+		} catch (ServiceLocationException sle) {
+			throw new IllegalArgumentException(sle.getMessage());
+		}
 	}
 
 	/**

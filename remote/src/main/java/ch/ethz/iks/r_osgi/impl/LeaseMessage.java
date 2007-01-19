@@ -73,15 +73,15 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * creates a new LeaseMessage from network packet.
 	 * 
 	 * <pre>
-	 *         0                   1                   2                   3
-	 *         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *        |       R-OSGi header (function = Fetch = 1)                    |
-	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *        |  Array of service strings                                     \
-	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *        |  Array of topic strings                                       \
-	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *           0                   1                   2                   3
+	 *           0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *          |       R-OSGi header (function = Fetch = 1)                    |
+	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *          |  Array of service strings                                     \
+	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *          |  Array of topic strings                                       \
+	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
 	 * @param input
@@ -178,15 +178,19 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 *      java.lang.String, int)
 	 */
 	public void restamp(final String protocol, final String host, final int port)
-			throws ServiceLocationException {
-		for (int i = 0; i < services.length; i++) {
-			final ServiceURL original = new ServiceURL(services[i], 0);
-			final ServiceURL restamped = new ServiceURL(original
-					.getServiceType()
-					+ "://"
-					+ (protocol != null ? (protocol + "://") : "")
-					+ host + ":" + port + original.getURLPath(), 0);
-			services[i] = restamped.toString();
+			throws IllegalArgumentException {
+		try {
+			for (int i = 0; i < services.length; i++) {
+				final ServiceURL original = new ServiceURL(services[i], 0);
+				final ServiceURL restamped = new ServiceURL(original
+						.getServiceType()
+						+ "://"
+						+ (protocol != null ? (protocol + "://") : "")
+						+ host + ":" + port + original.getURLPath(), 0);
+				services[i] = restamped.toString();
+			}
+		} catch (ServiceLocationException sle) {
+			throw new IllegalArgumentException(sle.getMessage());
 		}
 	}
 

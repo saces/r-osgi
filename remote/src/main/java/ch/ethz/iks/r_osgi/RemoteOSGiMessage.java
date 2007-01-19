@@ -131,6 +131,6 @@ public abstract class RemoteOSGiMessage {
 		return RemoteOSGiMessageImpl.parse(input);
 	}
 
-	public abstract void restamp(String protocol, String host, int port) throws ServiceLocationException;
+	public abstract void restamp(String protocol, String host, int port) throws IllegalArgumentException;
 
 }
