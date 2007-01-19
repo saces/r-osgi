@@ -115,7 +115,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 					while (!Thread.interrupted()) {
 						RemoteOSGiMessage response = RemoteOSGiMessage
 								.parse(localIn);
-						System.out.println("received " + response);
+						System.out.println("{Servlet Bridge} received " + response);
 						switch (response.getFuncID()) {
 						case RemoteOSGiMessage.LEASE:
 						case RemoteOSGiMessage.REMOTE_EVENT:
