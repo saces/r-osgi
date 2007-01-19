@@ -100,6 +100,8 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			this.host = host;
 			this.port = port;
 			this.endpoint = endpoint;
+			System.out.println("OPENING NEW HTTP CHANNEL FOR " + host + ":"
+					+ port);
 			init();
 		}
 
@@ -219,7 +221,9 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 				try {
 					while (!Thread.interrupted()) {
 						RemoteOSGiMessage msg = RemoteOSGiMessage.parse(input);
-						System.out.println("{HTTP Channel} asynchronously received " + msg);
+						System.out
+								.println("{HTTP Channel} asynchronously received "
+										+ msg);
 						endpoint.receivedMessage(msg);
 					}
 				} catch (Exception e) {
