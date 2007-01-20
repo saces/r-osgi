@@ -1267,21 +1267,33 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			}
 
 			if (type == ServiceEvent.REGISTERED) {
-				final String protocol = (String) ref
+				final Object protocol = ref
 						.getProperty(NetworkChannelFactory.PROTOCOL_PROPERTY);
 				if (protocol == null) {
 					log.log(LogService.LOG_WARNING, "NetworkChannelFactory "
 							+ ref + " has no protocol property and is ignored");
-				} else {
+				} else if (protocol instanceof String) {
 					final NetworkChannelFactory transport = (NetworkChannelFactory) context
 							.getService(ref);
-					factories.put(protocol, transport);
+					factories.put((String) protocol, transport);
+				} else if (protocol instanceof String[]) {
+					final String[] p = (String[]) protocol;
+					final NetworkChannelFactory transport = (NetworkChannelFactory) context
+							.getService(ref);
+					for (int i = 0; i < p.length; i++) {
+						factories.put(p[i], transport);
+					}
 				}
 			} else if (type == ServiceEvent.UNREGISTERING) {
-				final String protocol = (String) ref
+				final Object protocol = ref
 						.getProperty(NetworkChannelFactory.PROTOCOL_PROPERTY);
-				if (protocol != null) {
+				if (protocol instanceof String) {
 					factories.remove(protocol);
+				} else if (protocol instanceof String[]) {
+					final String[] p = (String[]) protocol;
+					for (int i = 0; i < p.length; i++) {
+						factories.remove(p[i]);
+					}
 				}
 			}
 		}
