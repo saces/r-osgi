@@ -50,7 +50,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 	/**
 	 * 
 	 */
-	static final String PROTOCOL = "http";
+	static final String[] PROTOCOLS = { "http", "https" };
 
 	/**
 	 * get a new connection.
@@ -70,7 +70,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 	public NetworkChannel getConnection(final ChannelEndpoint endpoint,
 			final InetAddress host, final int port, final String protocol)
 			throws IOException {
-		return new HttpChannel(endpoint, host, port);
+		return new HttpChannel(endpoint, host, port, protocol);
 	}
 
 	/**
@@ -111,6 +111,12 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		private int port;
 
 		/**
+		 * the protocol which is used for this channel instance. Either http or
+		 * https
+		 */
+		private String protocol;
+
+		/**
 		 * the endpoint.
 		 */
 		private ChannelEndpoint endpoint;
@@ -126,9 +132,10 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 *             in case of IO errors.
 		 */
 		HttpChannel(final ChannelEndpoint endpoint, final InetAddress host,
-				final int port) throws IOException {
+				final int port, final String protocol) throws IOException {
 			this.host = host;
 			this.port = port;
+			this.protocol = protocol;
 			this.endpoint = endpoint;
 			init();
 		}
@@ -156,7 +163,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 *             if something goes wrong.
 		 */
 		private void init() throws IOException {
-			url = new URL("http", host.getHostName(), port, "/r-osgi");
+			url = new URL(protocol, host.getHostName(), port, "/r-osgi");
 		}
 
 		/**
@@ -197,7 +204,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 * @see ch.ethz.iks.r_osgi.NetworkChannel#getProtocol()
 		 */
 		public String getProtocol() {
-			return PROTOCOL;
+			return protocol;
 		}
 
 		/**
@@ -207,7 +214,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 * @see ch.ethz.iks.r_osgi.NetworkChannel#getID()
 		 */
 		public String getID() {
-			return PROTOCOL + "://" + host.getHostAddress() + ":" + port;
+			return protocol + "://" + host.getHostAddress() + ":" + port;
 		}
 
 		/**

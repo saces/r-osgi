@@ -53,7 +53,7 @@ public class HttpChannelActivator implements BundleActivator {
 	public void start(BundleContext context) throws Exception {
 		Hashtable properties = new Hashtable();
 		properties.put(NetworkChannelFactory.PROTOCOL_PROPERTY,
-				HttpChannelFactory.PROTOCOL);
+				HttpChannelFactory.PROTOCOLS);
 		reg = context.registerService(NetworkChannelFactory.class.getName(),
 				new HttpChannelFactory(), properties);
 	}
