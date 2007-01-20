@@ -934,6 +934,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		if (channel != null) {
 			return channel;
 		}
+		// TODO: make a log warning
+		System.err.println("WARNING: No Channel for " + id + " found.");
+		System.err.println("available channels: " + channels);
 		throw new RemoteOSGiException("No NetworkChannel to " + id
 				+ " established");
 	}

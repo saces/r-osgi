@@ -35,6 +35,11 @@ import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+
 import ch.ethz.iks.r_osgi.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.NetworkChannel;
@@ -51,6 +56,16 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 	 * 
 	 */
 	static final String[] PROTOCOLS = { "http", "https" };
+
+	static {
+		HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+
+			public boolean verify(String hostname, SSLSession session) {
+				return true;
+			}
+
+		});
+	}
 
 	/**
 	 * get a new connection.
