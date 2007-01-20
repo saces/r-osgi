@@ -226,7 +226,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	public void receivedMessage(final RemoteOSGiMessage msg) {
 		if (msg == null) {
-			// TODO: maybe add a debug message
+			if (RemoteOSGiServiceImpl.DEBUG) {
+				RemoteOSGiServiceImpl.log.log(LogService.LOG_WARNING,
+						"Connection to " + getID()
+								+ " broke down. Trying to reconnect ...");
+			}
 			recoverConnection();
 			return;
 		}

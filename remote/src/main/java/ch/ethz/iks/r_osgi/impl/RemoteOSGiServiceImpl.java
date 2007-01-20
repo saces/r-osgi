@@ -248,8 +248,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	private static Map channels = new HashMap(0);
 
 	/**
-	 * TODO: this should be calculated from the registered EventHandlers and
-	 * their topics.
+	 * the local topic space.
 	 */
 	private static List topics = new ArrayList(0);
 
@@ -602,9 +601,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * @category RemoteOSGiService
 	 */
 	public void unregisterService(final ServiceURL service) {
-		/**
-		 * FIXME: this might be broken with the new registration !!!
-		 */
 		reregistration.unschedule(service);
 
 		CollectionUtils.removeValue(serviceRegistrations,
@@ -934,9 +930,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		if (channel != null) {
 			return channel;
 		}
-		// TODO: make a log warning
-		System.err.println("WARNING: No Channel for " + id + " found.");
-		System.err.println("available channels: " + channels);
+		if (DEBUG) {
+			log.log(LogService.LOG_WARNING, "WARNING: No Channel for " + id
+					+ " found.");
+			log.log(LogService.LOG_WARNING, "available channels: " + channels);
+		}
 		throw new RemoteOSGiException("No NetworkChannel to " + id
 				+ " established");
 	}
