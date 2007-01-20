@@ -142,8 +142,10 @@ public class HttpAcceptorServlet extends HttpServlet {
 						switch (response.getFuncID()) {
 						case RemoteOSGiMessage.LEASE:
 							try {
-								response.restamp(req.getProtocol(), req
-										.getServerName(), req.getServerPort());
+
+								response.restamp(req.isSecure() ? "https"
+										: "http", req.getServerName(), req
+										.getServerPort());
 							} catch (IllegalArgumentException e) {
 								e.printStackTrace();
 							}
