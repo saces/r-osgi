@@ -59,7 +59,7 @@ public class HttpTransportTest implements BundleActivator {
 			System.out.println("CONFIGURED FOR TESTS IN THE HOME NETWORK ...");
 			System.out.println("============================================");
 			services = remote.connect(InetAddress.getByName("10.1.9.204"),
-					8080, "http");
+					8443, "http");
 			System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 					+ Arrays.asList(services));
 		} else {
