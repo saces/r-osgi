@@ -295,10 +295,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		// set the discovery interval, default is 20 seconds
 		prop = context.getProperty(DISCOVERY_INTERVAL_PROPERTY);
 		DISCOVERY_INTERVAL = prop != null ? Integer.parseInt(prop) * 1000
-				: 20000;
+				: 30000;
 
 		prop = context.getProperty(DEFAULT_SLP_LIFETIME_PROPERTY);
-		DEFAULT_SLP_LIFETIME = prop != null ? Integer.parseInt(prop) : 60;
+		DEFAULT_SLP_LIFETIME = prop != null ? Integer.parseInt(prop) : 90;
 
 		// initialize the transactionID with a random value
 		nextXid = (short) Math.round(Math.random() * Short.MAX_VALUE);
@@ -570,7 +570,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 				// schedule for registration on SLP layer
 				reregistration.schedule(urls[i], System.currentTimeMillis()
-						+ urls[i].getLifetime() * 1000);
+						+ (urls[i].getLifetime() - 1) * 1000);
 
 				advertiser.register(urls[i], attribs);
 
@@ -778,14 +778,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		final RemoteServiceRegistration rs = (RemoteServiceRegistration) serviceRegistrations
 				.get(service.toString());
 		final Dictionary atts = rs != null ? rs.getAttributes() : null;
-		
-		
+
 		try {
-			final long next = System.currentTimeMillis()
-					+ (service.getLifetime() * 1000);
-			System.out.println("REREGISTRATION WITH SLP");
 			advertiser.register(service, atts);
-			System.out.println("CALLING RESCHEDULE ...");
+			final long next = System.currentTimeMillis()
+					+ ((service.getLifetime() - 1) * 1000);
 			scheduler.reschedule(service, next);
 		} catch (ServiceLocationException sle) {
 			sle.printStackTrace();
