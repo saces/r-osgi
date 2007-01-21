@@ -129,9 +129,7 @@ public final class Scheduler {
 	 */
 	public void schedule(final Object object, final long timestamp)
 			throws IllegalStateException {
-		System.out.println("schedule called for " + timestamp);
 		synchronized (expirationQueue) {
-			System.out.println("in critical section");
 			if (isScheduled(object)) {
 				throw new IllegalStateException("Object " + object
 						+ " is already scheduled.");
@@ -152,9 +150,7 @@ public final class Scheduler {
 	 *            the new timestamp.
 	 */
 	public void reschedule(final Object object, final long newTimestamp) {
-		System.out.println("reschedule called for " + newTimestamp);
 		synchronized (expirationQueue) {
-			System.out.println("in critical section");
 			unschedule(object);
 			schedule(object, newTimestamp);
 		}
@@ -196,9 +192,7 @@ public final class Scheduler {
 					synchronized (expirationQueue) {
 						if (expirationQueue.isEmpty()) {
 							// nothing to do, sleep until something arrives
-							System.out.println("scheduler sleeps...");
 							expirationQueue.wait();
-							System.out.println("scheduler woke up...");
 						} else {
 							// we have work, do everything that is due
 							Long nextActivity;
@@ -221,9 +215,7 @@ public final class Scheduler {
 								 * sleep until the first activity becomes due
 								 */								
 								if (next > 0) {
-									System.out.println("sleeping for " + next + " msecs.");
 									expirationQueue.wait(next);
-									System.out.println("woke up...");
 								}
 							}
 						}
