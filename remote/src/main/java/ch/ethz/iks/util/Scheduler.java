@@ -129,7 +129,9 @@ public final class Scheduler {
 	 */
 	public void schedule(final Object object, final long timestamp)
 			throws IllegalStateException {
+		System.out.println("schedule called for " + timestamp);
 		synchronized (expirationQueue) {
+			System.out.println("in critical section");
 			if (isScheduled(object)) {
 				throw new IllegalStateException("Object " + object
 						+ " is already scheduled.");
