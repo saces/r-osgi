@@ -570,7 +570,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 				// schedule for registration on SLP layer
 				reregistration.schedule(urls[i], System.currentTimeMillis()
-						+ (urls[i].getLifetime() - 1) * 1000);
+						+ urls[i].getLifetime() * 1000);
 
 				advertiser.register(urls[i], attribs);
 
@@ -780,9 +780,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		final Dictionary atts = rs != null ? rs.getAttributes() : null;
 
 		try {
-			advertiser.register(service, atts);
 			final long next = System.currentTimeMillis()
-					+ ((service.getLifetime() - 1) * 1000);
+					+ (service.getLifetime() * 1000);
+			advertiser.register(service, atts);
 			scheduler.reschedule(service, next);
 		} catch (ServiceLocationException sle) {
 			sle.printStackTrace();
