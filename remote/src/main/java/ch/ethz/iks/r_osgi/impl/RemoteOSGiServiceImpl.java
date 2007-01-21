@@ -96,7 +96,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	/**
 	 * TODO: make the R-OSGi port configurable ...
 	 */
-	static final String REMOTE_OSGi_PORT = "osgi.service.proposition.remote.port";
+	static final String REMOTE_OSGi_PORT = "ch.ethz.iks.r_osgi.port";
 
 	/**
 	 * constant that holds the property string for proxy debug option.
@@ -1070,21 +1070,26 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 						final List lostServices = new ArrayList(knownServices);
 
 						// find all services of type osgi
-						final ServiceLocationEnumeration services = locator
-								.findServices(OSGI, null, null);
+						try {
+							final ServiceLocationEnumeration services = locator
+									.findServices(OSGI, null, null);
 
-						while (services.hasMoreElements()) {
-							final ServiceURL service = (ServiceURL) services
-									.next();
-							if (service.getHost().equals(MY_ADDRESS)) {
-								continue;
+							while (services.hasMoreElements()) {
+								final ServiceURL service = (ServiceURL) services
+										.next();
+								if (service.getHost().equals(MY_ADDRESS)) {
+									continue;
+								}
+								if (!knownServices.contains(service)) {
+									notifyDiscovery(service);
+									knownServices.add(service);
+								}
+								// seen, so remove from lost list
+								lostServices.remove(service);
+
 							}
-							if (!knownServices.contains(service)) {
-								notifyDiscovery(service);
-								knownServices.add(service);
-							}
-							// seen, so remove from lost list
-							lostServices.remove(service);
+						} catch (InvalidSyntaxException ise) {
+							// does not happen
 						}
 
 						// notify the listeners for all lost services

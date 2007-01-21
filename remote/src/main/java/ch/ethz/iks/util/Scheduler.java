@@ -192,7 +192,9 @@ public final class Scheduler {
 					synchronized (expirationQueue) {
 						if (expirationQueue.isEmpty()) {
 							// nothing to do, sleep until something arrives
+							System.out.println("scheduler sleeps...");
 							expirationQueue.wait();
+							System.out.println("scheduler woke up...");
 						} else {
 							// we have work, do everything that is due
 							Long nextActivity;
@@ -213,9 +215,11 @@ public final class Scheduler {
 								/*
 								 * there are some activities in the future,
 								 * sleep until the first activity becomes due
-								 */
+								 */								
 								if (next > 0) {
+									System.out.println("sleeping for " + next + " msecs.");
 									expirationQueue.wait(next);
+									System.out.println("woke up...");
 								}
 							}
 						}
