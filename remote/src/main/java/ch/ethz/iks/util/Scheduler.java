@@ -152,7 +152,9 @@ public final class Scheduler {
 	 *            the new timestamp.
 	 */
 	public void reschedule(final Object object, final long newTimestamp) {
+		System.out.println("reschedule called for " + newTimestamp);
 		synchronized (expirationQueue) {
+			System.out.println("in critical section");
 			unschedule(object);
 			schedule(object, newTimestamp);
 		}
