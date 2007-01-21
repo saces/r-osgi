@@ -205,7 +205,7 @@ public final class Scheduler {
 							while (!expirationQueue.isEmpty()
 									&& (nextActivity = ((Long) expirationQueue
 											.firstKey())).longValue() <= System
-											.currentTimeMillis()) {
+											.currentTimeMillis() + 10) {
 								final Object object = expirationQueue
 										.remove(nextActivity);
 								listener.due(Scheduler.this, nextActivity
@@ -215,7 +215,7 @@ public final class Scheduler {
 								nextActivity = ((Long) expirationQueue
 										.firstKey());
 								final long next = nextActivity.longValue()
-										- System.currentTimeMillis();
+										- System.currentTimeMillis() - 10;
 								/*
 								 * there are some activities in the future,
 								 * sleep until the first activity becomes due

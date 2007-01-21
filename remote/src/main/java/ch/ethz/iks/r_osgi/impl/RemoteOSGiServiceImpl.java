@@ -778,11 +778,14 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		final RemoteServiceRegistration rs = (RemoteServiceRegistration) serviceRegistrations
 				.get(service.toString());
 		final Dictionary atts = rs != null ? rs.getAttributes() : null;
-
+		
+		
 		try {
 			final long next = System.currentTimeMillis()
 					+ (service.getLifetime() * 1000);
+			System.out.println("REREGISTRATION WITH SLP");
 			advertiser.register(service, atts);
+			System.out.println("CALLING RESCHEDULE ...");
 			scheduler.reschedule(service, next);
 		} catch (ServiceLocationException sle) {
 			sle.printStackTrace();
