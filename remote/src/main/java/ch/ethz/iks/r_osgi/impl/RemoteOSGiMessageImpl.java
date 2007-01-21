@@ -131,8 +131,6 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 		} catch (SocketException se) {
 			throw se;
 		} catch (IOException ioe) {
-			// TODO: remove debug output
-			ioe.printStackTrace();
 			throw new RemoteOSGiException("Parse error");
 		}
 	}
