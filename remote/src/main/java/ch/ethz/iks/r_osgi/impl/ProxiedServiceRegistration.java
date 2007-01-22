@@ -131,8 +131,6 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 	DeliverServiceMessage getMessage(final FetchServiceMessage fetchReq)
 			throws ServiceLocationException {
 		final String serviceURL = fetchReq.getServiceURL();
-		System.out.println("requesting " + serviceURL);
-		System.out.println("registered " + deliverServiceMessages);
 		final DeliverServiceMessage msg = (DeliverServiceMessage) deliverServiceMessages
 				.get(new ServiceURL(serviceURL, 0).getServiceType()
 						.getConcreteTypeName());

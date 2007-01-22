@@ -99,6 +99,11 @@ final class BundledServiceRegistration extends RemoteServiceRegistration {
 				ignore.printStackTrace();
 			}
 		}
+
+		// TODO: check by code analysis if the bundle registers a configuration.
+		// If this is the case, the configuration should be migrated with the
+		// bundle.
+
 		throw new RemoteOSGiException("Cannot retrieve bundle "
 				+ bundle.getBundleId() + ". Registration failed");
 	}

@@ -959,9 +959,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				.getConcreteTypeName().replace('/', '.');
 		try {
 			final ServiceReference[] refs = context.getServiceReferences(
-					DiscoveryListener.class.getName(), "("
+					DiscoveryListener.class.getName(), "(("
 							+ DiscoveryListener.SERVICE_INTERFACES + "="
-							+ interfaceName + ")");
+							+ interfaceName + ")|(!("
+							+ DiscoveryListener.SERVICE_INTERFACES + "=*)))");
 			if (refs != null) {
 				for (int i = 0; i < refs.length; i++) {
 					((DiscoveryListener) context.getService(refs[i]))
@@ -972,6 +973,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 					}
 				}
 			}
+
 		} catch (InvalidSyntaxException i) {
 			i.printStackTrace();
 		}
@@ -1206,10 +1208,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 			switch (event.getType()) {
 			case ServiceEvent.REGISTERED: {
-				final HashSet interfaces = new HashSet(
-						Arrays
-								.asList((String[]) ref
-										.getProperty(DiscoveryListener.SERVICE_INTERFACES)));
+
+				final String[] ifaces = (String[]) ref
+						.getProperty(DiscoveryListener.SERVICE_INTERFACES);
+				final HashSet interfaces = ifaces == null ? null : new HashSet(Arrays.asList(ifaces));
 				final DiscoveryListener listener = (DiscoveryListener) context
 						.getService(ref);
 
@@ -1226,7 +1228,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				for (int i = 0; i < services.length; i++) {
 					final String interfaceName = services[i].getServiceType()
 							.getConcreteTypeName().replace('/', '.');
-					if (interfaces.contains(interfaceName)) {
+					if (interfaces == null || interfaces.contains(interfaceName)) {
 						listener.notifyDiscovery(services[i]);
 					}
 				}
