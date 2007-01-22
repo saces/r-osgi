@@ -534,6 +534,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 			final RemoteServiceRegistration reg;
 
+			// TODO: get rid of the registrations. Use the service registry
+			// instead. MIGRATE and TRANSFER BUNDLE have to cache the bytes on
+			// the private storage.
 			if (policy.equals(RemoteOSGiService.MIGRATE_BUNDLE_POLICY)) {
 
 				// for the moment, don't accept registrations from bundles that

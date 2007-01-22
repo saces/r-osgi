@@ -637,6 +637,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					RemoteOSGiServiceImpl.getTopics());
 		}
 		case RemoteOSGiMessageImpl.FETCH_SERVICE: {
+			// TODO: register a service listener for this service and update the
+			// remote attributes if the service changes. Furthermore, prevent
+			// access to the service if it disappears.
 			try {
 				final FetchServiceMessage fetchReq = (FetchServiceMessage) msg;
 				final ServiceURL url = new ServiceURL(fetchReq.getServiceURL(),
