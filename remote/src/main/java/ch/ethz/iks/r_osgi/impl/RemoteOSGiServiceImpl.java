@@ -959,9 +959,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				.getConcreteTypeName().replace('/', '.');
 		try {
 			final ServiceReference[] refs = context.getServiceReferences(
-					DiscoveryListener.class.getName(), "(("
+					DiscoveryListener.class.getName(), "(|("
 							+ DiscoveryListener.SERVICE_INTERFACES + "="
-							+ interfaceName + ")|(!("
+							+ interfaceName + ")(!("
 							+ DiscoveryListener.SERVICE_INTERFACES + "=*)))");
 			if (refs != null) {
 				for (int i = 0; i < refs.length; i++) {
