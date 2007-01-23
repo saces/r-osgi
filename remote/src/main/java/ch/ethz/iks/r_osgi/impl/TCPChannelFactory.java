@@ -171,7 +171,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @throws IOException
 		 *             if something goes wrong.
 		 */
-		private void open(final Socket socket) throws IOException {			
+		private void open(final Socket socket) throws IOException {
 			this.socket = socket;
 			this.socket.setKeepAlive(true);
 			this.output = new ObjectOutputStream(new BufferedOutputStream(
@@ -199,7 +199,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 *             if the connection attempt fails.
 		 * @see ch.ethz.iks.r_osgi.NetworkChannel#reconnect()
 		 */
-		public void reconnect() throws IOException {			
+		public void reconnect() throws IOException {
 			try {
 				if (socket != null) {
 					socket.close();
@@ -289,8 +289,6 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 						}
 						endpoint.receivedMessage(msg);
 					} catch (Exception e) {
-						// TODO: REMOVE DEBUG OUTPUT
-						e.printStackTrace();
 						connected = false;
 						try {
 							socket.close();

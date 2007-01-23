@@ -519,9 +519,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				}
 			} catch (Throwable t) {
 				lastException = t;
-				// TODO: remove debug output
-				t.printStackTrace();
-
 				recoverConnection();
 
 				// TimeOffsetMessages have to be handled differently
@@ -698,7 +695,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 		}
 		case RemoteOSGiMessageImpl.STATE_UPDATE: {
-			System.out.println("RECEIVED STATE UPDATE");
+			StateUpdateMessage suMsg = (StateUpdateMessage) msg;
+			
+			System.out.println("RECEIVED STATE UPDATE " + suMsg);
+						
 			return null;
 		}
 		case RemoteOSGiMessageImpl.INVOKE_METHOD: {
