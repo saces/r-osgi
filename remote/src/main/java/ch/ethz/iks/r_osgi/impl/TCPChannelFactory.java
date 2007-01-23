@@ -172,6 +172,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 *             if something goes wrong.
 		 */
 		private void open(final Socket socket) throws IOException {
+			System.out.println("OPENING NEW SOCKET ...");
 			this.socket = socket;
 			this.socket.setKeepAlive(true);
 			this.output = new ObjectOutputStream(new BufferedOutputStream(
@@ -179,7 +180,6 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			output.flush();
 			input = new ObjectInputStream(new BufferedInputStream(socket
 					.getInputStream()));
-			System.out.println("starting new receiver thread ...");
 			new ReceiverThread().start();
 		}
 
@@ -201,6 +201,13 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @see ch.ethz.iks.r_osgi.NetworkChannel#reconnect()
 		 */
 		public void reconnect() throws IOException {
+			try {
+				if (socket != null) {
+					socket.close();
+				}
+			} catch (Exception e) {
+				socket = null;
+			}
 			open(new Socket(host, port));
 			this.connected = true;
 			new ReceiverThread().start();

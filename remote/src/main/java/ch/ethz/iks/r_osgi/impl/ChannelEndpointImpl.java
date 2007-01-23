@@ -490,7 +490,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			try {
 				// send the message
 				networkChannel.sendMessage(msg);
-				if (msg instanceof RemoteEventMessage || msg instanceof StateUpdateMessage) {
+				if (msg instanceof RemoteEventMessage
+						|| msg instanceof StateUpdateMessage) {
 					return null;
 				}
 
