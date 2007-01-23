@@ -521,7 +521,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				lastException = t;
 				// TODO: remove debug output
 				t.printStackTrace();
-				
+
 				recoverConnection();
 
 				// TimeOffsetMessages have to be handled differently
