@@ -106,12 +106,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	/**
 	 * constant that holds the property string for message debug option.
 	 */
-	static final String MSG_DEBUG_PROPERTY = "ch.ethz.iks.r_osgi.remote.debug.messages";
+	static final String MSG_DEBUG_PROPERTY = "ch.ethz.iks.r_osgi.debug.messages";
 
 	/**
 	 * constant that holds the property string for internal debug option.
 	 */
-	static final String INTERNAL_DEBUG_PROPERTY = "ch.ethz.iks.r_osgi.remote.debug.internal";
+	static final String DEBUG_PROPERTY = "ch.ethz.iks.r_osgi.debug";
 
 	/**
 	 * constant that holds the property string for SLP discovery interval time
@@ -265,7 +265,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				: false;
 		prop = context.getProperty(MSG_DEBUG_PROPERTY);
 		MSG_DEBUG = prop != null ? Boolean.valueOf(prop).booleanValue() : false;
-		prop = context.getProperty(INTERNAL_DEBUG_PROPERTY);
+		prop = context.getProperty(DEBUG_PROPERTY);
 		DEBUG = prop != null ? Boolean.valueOf(prop).booleanValue() : false;
 
 		if (log != null) {
