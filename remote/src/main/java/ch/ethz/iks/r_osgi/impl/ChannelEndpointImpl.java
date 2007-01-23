@@ -696,9 +696,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 		case RemoteOSGiMessageImpl.STATE_UPDATE: {
 			StateUpdateMessage suMsg = (StateUpdateMessage) msg;
-			
+
 			System.out.println("RECEIVED STATE UPDATE " + suMsg);
-						
+
 			return null;
 		}
 		case RemoteOSGiMessageImpl.INVOKE_METHOD: {
@@ -804,19 +804,37 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			System.out.println("CAUSED EVENT " + event);
 
 			switch (event.getType()) {
-			case ServiceEvent.UNREGISTERING:
+			case ServiceEvent.UNREGISTERING: {
 				// prevent that the service can be accessed any longer. Stop the
 				// remote proxy so that the proxied service is also
 				// unregistered.
-				sendMessage(new StateUpdateMessage((String) services
-						.get(serviceURLs.get(ref)), (short) 0, null));
+				final String serviceURL = (String) serviceURLs.get(ref);
+				services.remove(serviceURL);
+				sendMessage(new StateUpdateMessage(serviceURL, (short) 0, null));
 				return;
-			case ServiceEvent.REGISTERED:
+			}
+			case ServiceEvent.REGISTERED: {
 				// this means that the service is back again and it can be
 				// accessed. Start the remote proxy.
-				sendMessage(new StateUpdateMessage((String) services
-						.get(serviceURLs.get(ref)), (short) 1, null));
+
+				final String serviceURL = (String) serviceURLs.get(ref);
+				try {
+					final ServiceURL url = new ServiceURL(serviceURL, 0);
+					final RemoteServiceRegistration reg;
+					if (!"".equals(url.getURLPath())) {
+						reg = RemoteOSGiServiceImpl.getService(url);
+					} else {
+						reg = RemoteOSGiServiceImpl.getAnyService(url);
+					}
+					services.put(serviceURL, reg);
+					sendMessage(new StateUpdateMessage((String) serviceURLs
+							.get(ref), (short) 1, null));
+				} catch (ServiceLocationException sle) {
+					sle.printStackTrace();
+				}
+
 				return;
+			}
 			case ServiceEvent.MODIFIED:
 				// send the updated properties to the remote peer.
 				// TODO: improvement: make this a "diff" instead of the full set
