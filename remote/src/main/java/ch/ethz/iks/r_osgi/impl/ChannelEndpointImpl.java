@@ -480,7 +480,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 
 		final Integer xid = new Integer(msg.xid);
-		if (!(msg instanceof RemoteEventMessage)) {
+		if (!(msg instanceof RemoteEventMessage || msg instanceof StateUpdateMessage)) {
 			synchronized (receiveQueue) {
 				receiveQueue.put(xid, WAITING);
 			}
@@ -490,7 +490,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			try {
 				// send the message
 				networkChannel.sendMessage(msg);
-				if (msg instanceof RemoteEventMessage) {
+				if (msg instanceof RemoteEventMessage || msg instanceof StateUpdateMessage) {
 					return null;
 				}
 
@@ -794,8 +794,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final ServiceReference ref = event.getServiceReference();
 
 			System.out.println("CAUSED EVENT " + event);
-			
-			switch (event.getType()) {		
+
+			switch (event.getType()) {
 			case ServiceEvent.UNREGISTERING:
 				// prevent that the service can be accessed any longer. Stop the
 				// remote proxy so that the proxied service is also
@@ -818,7 +818,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				for (int i = 0; i < keys.length; i++) {
 					newAttributes.put(keys[i], ref.getProperty(keys[i]));
 				}
-				sendMessage(new StateUpdateMessage((String) (serviceURLs.get(ref)), (short) -1, newAttributes));
+				sendMessage(new StateUpdateMessage((String) (serviceURLs
+						.get(ref)), (short) -1, newAttributes));
 				return;
 			}
 		}
