@@ -42,6 +42,9 @@ import java.util.List;
 import java.util.Map;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
@@ -128,6 +131,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * map of service url -> service object.
 	 */
 	private final HashMap services = new HashMap(2);
+
+	/**
+	 * reverse map: service reference -> service url.
+	 */
+	private final HashMap serviceURLs = new HashMap(2);
 
 	/**
 	 * a list of all registered proxy bundle. If the endpoint is closed, the
@@ -642,8 +650,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			// access to the service if it disappears.
 			try {
 				final FetchServiceMessage fetchReq = (FetchServiceMessage) msg;
-				final ServiceURL url = new ServiceURL(fetchReq.getServiceURL(),
-						0);
+				final String urlString = fetchReq.getServiceURL();
+				final ServiceURL url = new ServiceURL(urlString, 0);
 
 				final RemoteServiceRegistration reg;
 				if (!"".equals(url.getURLPath())) {
@@ -658,7 +666,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				}
 
 				if (reg instanceof ProxiedServiceRegistration) {
-					services.put(url.toString(), reg);
+
+					services.put(urlString, reg);
+					serviceURLs.put(reg.getReference(), urlString);
 					return ((ProxiedServiceRegistration) reg)
 							.getMessage(fetchReq);
 				} else if (reg instanceof BundledServiceRegistration) {
@@ -757,11 +767,46 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	private final class EventForwarder implements EventHandler {
 
-		public void handleEvent(Event event) {
+		public void handleEvent(final Event event) {
 			try {
 				sendMessage(new RemoteEventMessage(event, getID()));
 			} catch (Exception e) {
 				e.printStackTrace();
+			}
+		}
+	}
+
+	private final class ServiceObserver implements ServiceListener {
+
+		public void serviceChanged(final ServiceEvent event) {
+			final ServiceReference ref = event.getServiceReference();
+
+			switch (event.getType()) {
+			case ServiceEvent.UNREGISTERING:
+				// prevent that the service can be accessed any longer. Stop the
+				// remote proxy so that the proxied service is also
+				// unregistered.
+				sendMessage(new StateUpdateMessage((String) services
+						.get(serviceURLs.get(ref)), (short) 0, null));
+				return;
+			case ServiceEvent.REGISTERED:
+				// this means that the service is back again and it can be
+				// accessed. Start the remote proxy.
+				sendMessage(new StateUpdateMessage((String) services
+						.get(serviceURLs.get(ref)), (short) 1, null));
+				return;
+			case ServiceEvent.MODIFIED:
+				// send the updated properties to the remote peer.
+				// TODO: improvement: make this a "diff" instead of the full set
+				// of attributes
+				final String[] keys = ref.getPropertyKeys();
+				final Dictionary newAttributes = new Hashtable(keys.length);
+				for (int i = 0; i < keys.length; i++) {
+					newAttributes.put(keys[i], ref.getProperty(keys[i]));
+				}
+				sendMessage(new StateUpdateMessage((String) services
+						.get(serviceURLs.get(ref)), (short) -1, newAttributes));
+				return;
 			}
 		}
 	}

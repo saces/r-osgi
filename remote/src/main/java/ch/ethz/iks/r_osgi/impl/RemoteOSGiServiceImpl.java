@@ -94,7 +94,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	static final ServiceType OSGI = new ServiceType("service:osgi");
 
 	/**
-	 * TODO: make the R-OSGi port configurable ...
+	 * the R-OSGi port property.
 	 */
 	static final String REMOTE_OSGi_PORT = "ch.ethz.iks.r_osgi.port";
 
@@ -535,9 +535,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			final RemoteServiceRegistration reg;
 
 			// TODO: get rid of the registrations. Use the service registry
-			// instead. MIGRATE and TRANSFER BUNDLE have to cache the bytes on
+			// instead. TRANSFER BUNDLE have to cache the bytes on
 			// the private storage.
-			if (policy.equals(RemoteOSGiService.MIGRATE_BUNDLE_POLICY)) {
+			if (policy.equals(RemoteOSGiService.TRANSFER_BUNDLE_POLICY)) {
 
 				// for the moment, don't accept registrations from bundles that
 				// have already been fetched from a remote peer.
@@ -566,7 +566,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 			}
 
-			final Dictionary attribs = reg.getAttributes();
+			final Dictionary attribs = reg.getProperties();
 			for (int i = 0; i < interfaceCount; i++) {
 				CollectionUtils.addValue(serviceRegistrations, urls[i]
 						.getServiceType(), reg);
@@ -780,10 +780,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		final ServiceURL service = (ServiceURL) object;
 		final RemoteServiceRegistration rs = (RemoteServiceRegistration) serviceRegistrations
 				.get(service.toString());
-		final Dictionary atts = rs != null ? rs.getAttributes() : null;
 
 		try {
-			advertiser.register(service, atts);
+			advertiser.register(service, rs.getProperties());
 			final long next = System.currentTimeMillis()
 					+ ((service.getLifetime() - 1) * 1000);
 			scheduler.reschedule(service, next);
@@ -969,7 +968,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 							.notifyDiscovery(service);
 					if (refs[i].getProperty(DiscoveryListener.AUTO_FETCH) != null) {
 						fetchService(service);
-						// TODO: track fetched to keep the attributes fresh.
 					}
 				}
 			}
@@ -1157,7 +1155,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 						.getProperty(R_OSGi_REGISTRATION);
 				try {
 					registerService(reference, policy != null ? policy
-							: USE_PROXY_POLICY, (String) reference
+							: SERVICE_PROXY_POLICY, (String) reference
 							.getProperty(SMART_PROXY), (String[]) reference
 							.getProperty(RemoteOSGiService.INJECTIONS));
 				} catch (RemoteOSGiException e) {
@@ -1175,18 +1173,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				}
 				return;
 			}
-			case ServiceEvent.MODIFIED:
-				final RemoteServiceRegistration[] services = (RemoteServiceRegistration[]) serviceRegistrations
-						.values()
-						.toArray(
-								new RemoteServiceRegistration[serviceRegistrations
-										.size()]);
-				for (int i = 0; i < services.length; i++) {
-					if (services[i].equals(reference)) {
-						services[i].setAttributes(reference);
-					}
-				}
-				return;
 			}
 		}
 	}
@@ -1211,7 +1197,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 				final String[] ifaces = (String[]) ref
 						.getProperty(DiscoveryListener.SERVICE_INTERFACES);
-				final HashSet interfaces = ifaces == null ? null : new HashSet(Arrays.asList(ifaces));
+				final HashSet interfaces = ifaces == null ? null : new HashSet(
+						Arrays.asList(ifaces));
 				final DiscoveryListener listener = (DiscoveryListener) context
 						.getService(ref);
 
@@ -1228,7 +1215,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				for (int i = 0; i < services.length; i++) {
 					final String interfaceName = services[i].getServiceType()
 							.getConcreteTypeName().replace('/', '.');
-					if (interfaces == null || interfaces.contains(interfaceName)) {
+					if (interfaces == null
+							|| interfaces.contains(interfaceName)) {
 						listener.notifyDiscovery(services[i]);
 					}
 				}

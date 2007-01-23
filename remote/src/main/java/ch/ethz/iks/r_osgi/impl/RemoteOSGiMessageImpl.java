@@ -72,13 +72,13 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	 * RemoteOSGiMessage from it. The header is:
 	 * 
 	 * <pre>
-	 *         0                   1                   2                   3
-	 *         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *        |    Version    |         Function-ID           |     XID       |
-	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *        |    XID cntd.  | 
-	 *        +-+-+-+-+-+-+-+-+
+	 *           0                   1                   2                   3
+	 *           0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *          |    Version    |         Function-ID           |     XID       |
+	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *          |    XID cntd.  | 
+	 *          +-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
 	 * the body is processed by the subtype class.
@@ -120,6 +120,9 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 				break;
 			case TIME_OFFSET:
 				msg = new TimeOffsetMessage(input);
+				break;
+			case STATE_UPDATE:
+				msg = new StateUpdateMessage(input);
 				break;
 			default:
 				throw new RemoteOSGiException("funcID " + funcID

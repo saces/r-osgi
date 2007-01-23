@@ -84,21 +84,21 @@ public interface RemoteOSGiService {
 	String R_OSGi_REGISTRATION = "service.remote.registration";
 
 	/**
-	 * policy "use_proxy" means: dynamically build a proxy at client side.
+	 * policy "service_proxy" means: dynamically build a proxy at client side.
 	 * (default)
 	 * 
 	 * @since 0.5
 	 */
-	String USE_PROXY_POLICY = "use_proxy";
+	String SERVICE_PROXY_POLICY = "service_proxy";
 
 	/**
-	 * policy "migrate_bundle" transfers the whole bundle to the remote peer. In
+	 * policy "transfer_bundle" transfers the whole bundle to the remote peer. In
 	 * other words, it creates a copy of the bundle containing the service and
 	 * installs this bundle on the other side.
 	 * 
 	 * @since 0.5
 	 */
-	String MIGRATE_BUNDLE_POLICY = "transfer_bundle";
+	String TRANSFER_BUNDLE_POLICY = "transfer_bundle";
 
 	/**
 	 * the auxiliary header entry for bundles running on strange frameworks that
@@ -248,7 +248,7 @@ public interface RemoteOSGiService {
 	 * @return
 	 */
 	ServiceReference getFetchedServiceReference(final ServiceURL url);
-	
+
 	/**
 	 * transform a timestamp into the peer's local time.
 	 * 

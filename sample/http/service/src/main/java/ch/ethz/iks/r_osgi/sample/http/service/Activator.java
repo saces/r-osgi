@@ -16,7 +16,7 @@ public class Activator implements BundleActivator {
 	public void start(BundleContext context) throws Exception {
 		Hashtable properties = new Hashtable();
 		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
-				RemoteOSGiService.USE_PROXY_POLICY);
+				RemoteOSGiService.SERVICE_PROXY_POLICY);
 		context.registerService(ServiceInterface.class.getName(),
 				new TestServiceImpl(), properties);
 		ServiceReference ref = context.getServiceReference(EventAdmin.class

@@ -82,6 +82,11 @@ public abstract class RemoteOSGiMessage {
 	public static final short TIME_OFFSET = 8;
 
 	/**
+	 * type code for service attribute updates.
+	 */
+	public static final short STATE_UPDATE = 9;
+
+	/**
 	 * the type code or functionID in SLP notation.
 	 */
 	protected short funcID;

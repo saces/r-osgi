@@ -46,11 +46,6 @@ class RemoteServiceRegistration {
 	private final ServiceReference reference;
 
 	/**
-	 * the service attributes.
-	 */
-	protected final Hashtable attributes = new Hashtable(0);;
-
-	/**
 	 * the service id.
 	 */
 	private final long serviceID;
@@ -65,16 +60,6 @@ class RemoteServiceRegistration {
 		this.reference = reference;
 		this.serviceID = ((Long) reference.getProperty(Constants.SERVICE_ID))
 				.longValue();
-		setAttributes(reference);
-	}
-
-	/**
-	 * get the attributes.
-	 * 
-	 * @return the attributes.
-	 */
-	final Dictionary getAttributes() {
-		return attributes;
 	}
 
 	/**
@@ -87,18 +72,23 @@ class RemoteServiceRegistration {
 		return serviceID;
 	}
 
+	final ServiceReference getReference() {
+		return reference;
+	}
+
 	/**
 	 * set new attributes.
 	 * 
 	 * @param ref
 	 *            the reference.
 	 */
-	final void setAttributes(final ServiceReference ref) {
-		attributes.clear();
-		final String[] keys = ref.getPropertyKeys();
+	Dictionary getProperties() {
+		final String[] keys = reference.getPropertyKeys();
+		final Dictionary props = new Hashtable(keys.length);
 		for (int i = 0; i < keys.length; i++) {
-			attributes.put(keys[i], ref.getProperty(keys[i]));
+			props.put(keys[i], reference.getProperty(keys[i]));
 		}
+		return props;
 	}
 
 	/**

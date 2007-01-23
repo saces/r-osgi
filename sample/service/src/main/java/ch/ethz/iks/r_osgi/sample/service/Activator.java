@@ -17,7 +17,7 @@ public class Activator implements BundleActivator {
 		// building a proxy on the client side
 		Hashtable properties = new Hashtable();
 		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
-				RemoteOSGiService.USE_PROXY_POLICY);
+				RemoteOSGiService.SERVICE_PROXY_POLICY);
 		properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class
 				.getName());
 

@@ -92,8 +92,8 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 			serviceInterfaces[i] = bundleLoader.loadClass(interfaceNames[i]);
 			final Method[] methods = serviceInterfaces[i].getMethods();
 			for (int j = 0; j < methods.length; j++) {
-				methodTable.put(methods[j].getName() + Type.getMethodDescriptor(methods[j]),
-						methods[j]);
+				methodTable.put(methods[j].getName()
+						+ Type.getMethodDescriptor(methods[j]), methods[j]);
 			}
 		}
 
@@ -107,8 +107,8 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 		try {
 			for (int i = 0; i < interfaceNames.length; i++) {
 				deliverServiceMessages.put(interfaceNames[i].replace('.', '/'),
-						inspector.analyze(interfaceNames[i], smartProxy, injectionClasses,
-								presentation));
+						inspector.analyze(interfaceNames[i], smartProxy,
+								injectionClasses, presentation));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -134,7 +134,7 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 		final DeliverServiceMessage msg = (DeliverServiceMessage) deliverServiceMessages
 				.get(new ServiceURL(serviceURL, 0).getServiceType()
 						.getConcreteTypeName());
-		msg.init(fetchReq, attributes);
+		msg.init(fetchReq, getProperties());
 		return msg;
 	}
 }
