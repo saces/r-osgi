@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
@@ -669,6 +671,16 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 					services.put(urlString, reg);
 					serviceURLs.put(reg.getReference(), urlString);
+
+					try {
+						RemoteOSGiServiceImpl.context.addServiceListener(
+								new ServiceObserver(), "("
+										+ Constants.SERVICE_ID + "="
+										+ reg.getServiceID() + ")");
+					} catch (InvalidSyntaxException e) {
+						e.printStackTrace();
+					}
+
 					return ((ProxiedServiceRegistration) reg)
 							.getMessage(fetchReq);
 				} else if (reg instanceof BundledServiceRegistration) {
@@ -781,7 +793,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		public void serviceChanged(final ServiceEvent event) {
 			final ServiceReference ref = event.getServiceReference();
 
-			switch (event.getType()) {
+			System.out.println("CAUSED EVENT " + event);
+			
+			switch (event.getType()) {		
 			case ServiceEvent.UNREGISTERING:
 				// prevent that the service can be accessed any longer. Stop the
 				// remote proxy so that the proxied service is also
