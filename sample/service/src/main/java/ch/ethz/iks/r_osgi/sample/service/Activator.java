@@ -58,7 +58,7 @@ public class Activator implements BundleActivator {
 				}
 			}.start();
 
-			properties.clear();
+			//properties.clear();
 
 			context.registerService(ShellCommandGroup.class.getName(),
 					new ShellCommandGroup() {
@@ -75,7 +75,7 @@ public class Activator implements BundleActivator {
 							if ("set".equals("set")) {
 								if (args.length == 1) {
 									properties.put("variable", args[0]);
-									reg.setProperties(properties);
+									//reg.setProperties(properties);
 									return;
 								}
 							}
