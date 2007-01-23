@@ -202,6 +202,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		public void reconnect() throws IOException {
 			System.out.println("RECONNECTING ...");
+			if (true) throw new RuntimeException();
 			try {
 				if (socket != null) {
 					socket.close();
