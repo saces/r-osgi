@@ -1,9 +1,14 @@
 package ch.ethz.iks.r_osgi.sample.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Dictionary;
 import java.util.Hashtable;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
@@ -15,7 +20,7 @@ public class Activator implements BundleActivator {
 
 		// register the sample service and enable R-OSGi remote access by
 		// building a proxy on the client side
-		Hashtable properties = new Hashtable();
+		final Hashtable properties = new Hashtable();
 		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
 				RemoteOSGiService.SERVICE_PROXY_POLICY);
 		properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class
@@ -24,8 +29,9 @@ public class Activator implements BundleActivator {
 		// properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
 		// RemoteOSGiService.TRANSFER_BUNDLE_POLICY);
 
-		context.registerService(ServiceInterface.class.getName(),
-				new ServiceImpl(), properties);
+		final ServiceRegistration reg = context
+				.registerService(ServiceInterface.class.getName(),
+						new ServiceImpl(), properties);
 
 		System.out.println("Registered service "
 				+ ServiceInterface.class.getName());
@@ -46,6 +52,23 @@ public class Activator implements BundleActivator {
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
+					}
+				}
+			}.start();
+
+			final BufferedReader stdin = new BufferedReader(
+					new InputStreamReader(System.in));
+			properties.clear();
+			new Thread() {
+				public void run() {
+					try {
+						System.out
+								.println("ENTER VALUE FOR VARIABLE SERVICE PROPERTY:");
+						final String arg = stdin.readLine();
+						properties.put("variable", arg);
+						reg.setProperties(properties);
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
 				}
 			}.start();
