@@ -11,6 +11,8 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+
+import ch.ethz.iks.concierge.shell.commands.ShellCommandGroup;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 
@@ -56,22 +58,30 @@ public class Activator implements BundleActivator {
 				}
 			}.start();
 
-			final BufferedReader stdin = new BufferedReader(
-					new InputStreamReader(System.in));
 			properties.clear();
-			new Thread() {
-				public void run() {
-					try {
-						System.out
-								.println("ENTER VALUE FOR VARIABLE SERVICE PROPERTY:");
-						final String arg = stdin.readLine();
-						properties.put("variable", arg);
-						reg.setProperties(properties);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}.start();
+
+			context.registerService(ShellCommandGroup.class.getName(),
+					new ShellCommandGroup() {
+						public String getGroup() {
+							return "testservice";
+						}
+
+						public String getHelp() {
+							return "testservice has only one command: \"set\" to set a variable service property";
+						}
+
+						public void handleCommand(String command, String[] args)
+								throws Exception {
+							if ("set".equals("command")) {
+								if (args.length == 1) {
+									properties.put("variable", args[0]);
+									reg.setProperties(properties);
+									return;
+								}
+							}
+							System.err.println("Unknown command");
+						}
+					}, null);
 		} else {
 			System.err.println();
 			System.err
