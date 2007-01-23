@@ -72,7 +72,7 @@ public class Activator implements BundleActivator {
 
 						public void handleCommand(String command, String[] args)
 								throws Exception {
-							if ("set".equals("command")) {
+							if ("set".equals("set")) {
 								if (args.length == 1) {
 									properties.put("variable", args[0]);
 									reg.setProperties(properties);
