@@ -818,8 +818,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				for (int i = 0; i < keys.length; i++) {
 					newAttributes.put(keys[i], ref.getProperty(keys[i]));
 				}
-				sendMessage(new StateUpdateMessage((String) services
-						.get(serviceURLs.get(ref)), (short) -1, newAttributes));
+				sendMessage(new StateUpdateMessage((String) (serviceURLs.get(ref)), (short) -1, newAttributes));
 				return;
 			}
 		}
