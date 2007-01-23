@@ -697,6 +697,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				ioe.printStackTrace();
 			}
 		}
+		case RemoteOSGiMessageImpl.STATE_UPDATE: {
+			System.out.println("RECEIVED STATE UPDATE");
+			return null;
+		}
 		case RemoteOSGiMessageImpl.INVOKE_METHOD: {
 			final InvokeMethodMessage invMsg = (InvokeMethodMessage) msg;
 			try {
