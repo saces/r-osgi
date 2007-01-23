@@ -81,7 +81,7 @@ public class Activator implements BundleActivator {
 							}
 							System.err.println("Unknown command");
 						}
-					}, null);
+					}, new Hashtable());
 		} else {
 			System.err.println();
 			System.err
