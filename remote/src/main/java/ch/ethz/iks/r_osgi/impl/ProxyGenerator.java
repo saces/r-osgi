@@ -319,7 +319,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 		if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
-					"created proxy class " + implName);
+					"creating proxy class " + implName);
 		}
 
 		if ((access & ACC_INTERFACE) == 0) {
@@ -384,6 +384,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					"(Ljava/lang/String;)L" + ENDPOINT_I + ";");
 			method.visitFieldInsn(PUTFIELD, implName, "endpoint", "L"
 					+ ENDPOINT_I + ";");
+			method.visitVarInsn(ALOAD, 0);
 			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
 					+ ENDPOINT_I + ";");
 			method.visitLdcInsn(url);
