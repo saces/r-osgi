@@ -52,28 +52,6 @@ public interface Remoting {
 	ChannelEndpoint getEndpoint(final String serviceURL);
 
 	/**
-	 * get the attributes of a service. This function is used to simplify proxy
-	 * bundle generation.
-	 * 
-	 * @param serviceURL
-	 *            the serviceURL of the remote service.
-	 * @return the service attributes.
-	 * @since 0.1
-	 */
-	Dictionary getAttributes(final String serviceURL);
-
-	/**
-	 * get the attributes for the presentation of the service. This function is
-	 * used by proxies that support ServiceUI presentations.
-	 * 
-	 * @param serviceURL
-	 *            the serviceURL of the remote service.
-	 * @return the attributes for the presentation.
-	 * @since 0.1
-	 */
-	Dictionary getPresentationAttributes(final String serviceURL);
-
-	/**
 	 * transform a timestamp into the peer's local time.
 	 * 
 	 * @param sender

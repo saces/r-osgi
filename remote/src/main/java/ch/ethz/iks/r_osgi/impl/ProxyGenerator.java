@@ -384,12 +384,17 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					"(Ljava/lang/String;)L" + ENDPOINT_I + ";");
 			method.visitFieldInsn(PUTFIELD, implName, "endpoint", "L"
 					+ ENDPOINT_I + ";");
+			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
+					+ ENDPOINT_I + ";");
+			method.visitLdcInsn(url);
 			method.visitVarInsn(ALOAD, 1);
 			method.visitLdcInsn(interfaceClassName);
 			method.visitVarInsn(ALOAD, 0);
-			method.visitVarInsn(ALOAD, 2);
+			method.visitVarInsn(ALOAD, 0);
+			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
+					+ ENDPOINT_I + ";");
 			method.visitLdcInsn(url);
-			method.visitMethodInsn(INVOKEINTERFACE, REMOTING_I,
+			method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
 					"getAttributes",
 					"(Ljava/lang/String;)Ljava/util/Dictionary;");
 			method
@@ -398,10 +403,15 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 							"org/osgi/framework/BundleContext",
 							"registerService",
 							"(Ljava/lang/String;Ljava/lang/Object;Ljava/util/Dictionary;)Lorg/osgi/framework/ServiceRegistration;");
-			method.visitInsn(POP);
-			method.visitVarInsn(ALOAD, 2);
+			method
+					.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
+							"proxiedService",
+							"(Ljava/lang/String;Lorg/osgi/framework/ServiceRegistration;)V");
+			method.visitVarInsn(ALOAD, 0);
+			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
+					+ ENDPOINT_I + ";");
 			method.visitLdcInsn(url);
-			method.visitMethodInsn(INVOKEINTERFACE, REMOTING_I,
+			method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
 					"getAttributes",
 					"(Ljava/lang/String;)Ljava/util/Dictionary;");
 			method.visitLdcInsn(RemoteOSGiService.PRESENTATION);
@@ -441,7 +451,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			method.visitInsn(POP);
 			method.visitLabel(l0);
 			method.visitInsn(RETURN);
-			method.visitMaxs(5, 5);
+			method.visitMaxs(7, 5);
 			method.visitEnd();
 		}
 		{

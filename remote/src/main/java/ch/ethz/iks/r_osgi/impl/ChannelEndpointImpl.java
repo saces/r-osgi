@@ -140,10 +140,15 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private final HashMap serviceURLs = new HashMap(2);
 
 	/**
-	 * a list of all registered proxy bundle. If the endpoint is closed, the
-	 * proxies are unregistered.
+	 * map service url -> service registration.
 	 */
-	private final List proxies = new ArrayList(0);
+	private final HashMap proxiedServices = new HashMap(0);
+
+	/**
+	 * map service url -> proxy bundle. If the endpoint is closed, the proxies
+	 * are unregistered.
+	 */
+	private final HashMap proxies = new HashMap(0);
 
 	/**
 	 * the handler registration, if the remote topic space is not empty.
@@ -308,8 +313,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					"DISPOSING ENDPOINT " + getID());
 		}
 		RemoteOSGiServiceImpl.unregisterChannel(this);
-		Bundle[] bundles = (Bundle[]) proxies
-				.toArray(new Bundle[proxies.size()]);
+		Bundle[] bundles = (Bundle[]) proxies.values().toArray(
+				new Bundle[proxies.size()]);
 		for (int i = 0; i < bundles.length; i++) {
 			try {
 				if (bundles[i].getState() == Bundle.ACTIVE) {
@@ -319,6 +324,55 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				// don't care
 			}
 		}
+	}
+
+	/**
+	 * get the attributes of a service. This function is used to simplify proxy
+	 * bundle generation.
+	 * 
+	 * @param serviceURL
+	 *            the serviceURL of the remote service.
+	 * @return the service attributes.
+	 * @category ChannelEndpoint
+	 */
+	public Dictionary getAttributes(final String serviceURL) {
+		return (Dictionary) attributes.get(serviceURL);
+	}
+
+	/**
+	 * get the attributes for the presentation of the service. This function is
+	 * used by proxies that support ServiceUI presentations.
+	 * 
+	 * @param serviceURL
+	 *            the serviceURL of the remote service.
+	 * @return the presentation attributes.
+	 * @category ChannelEndpoint
+	 */
+	public Dictionary getPresentationAttributes(final String serviceURL) {
+		final Dictionary attribs = new Hashtable();
+		try {
+			attribs.put(RemoteOSGiServiceImpl.REMOTE_HOST, new ServiceURL(
+					serviceURL, 0).getHost());
+			attribs.put(RemoteOSGiService.PRESENTATION,
+					((Dictionary) attributes.get(serviceURL))
+							.get(RemoteOSGiService.PRESENTATION));
+		} catch (ServiceLocationException sle) {
+			throw new IllegalArgumentException("ServiceURL " + serviceURL
+					+ " is invalid.");
+		}
+		return attribs;
+	}
+
+	/**
+	 * 
+	 * @param serviceURL
+	 * @param reg
+	 * @category ChannelEndpoint
+	 */
+	public void proxiedService(final String serviceURL,
+			final ServiceRegistration reg) {
+		System.out.println(serviceURL + " REGISTERED " + reg);
+		proxiedServices.put(serviceURL, reg);
 	}
 
 	/**
@@ -358,41 +412,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
-	 * get the attributes of a service. This function is used to simplify proxy
-	 * bundle generation.
-	 * 
-	 * @param serviceURL
-	 *            the serviceURL of the remote service.
-	 * @return the service attributes.
-	 */
-	Dictionary getAttributes(final String serviceURL) {
-		return (Dictionary) attributes.get(serviceURL);
-	}
-
-	/**
-	 * get the attributes for the presentation of the service. This function is
-	 * used by proxies that support ServiceUI presentations.
-	 * 
-	 * @param serviceURL
-	 *            the serviceURL of the remote service.
-	 * @return the presentation attributes.
-	 */
-	Dictionary getPresentationAttributes(final String serviceURL) {
-		final Dictionary attribs = new Hashtable();
-		try {
-			attribs.put(RemoteOSGiServiceImpl.REMOTE_HOST, new ServiceURL(
-					serviceURL, 0).getHost());
-			attribs.put(RemoteOSGiService.PRESENTATION,
-					((Dictionary) attributes.get(serviceURL))
-							.get(RemoteOSGiService.PRESENTATION));
-		} catch (ServiceLocationException sle) {
-			throw new IllegalArgumentException("ServiceURL " + serviceURL
-					+ " is invalid.");
-		}
-		return attribs;
-	}
-
-	/**
 	 * fetch the service from the remote peer.
 	 * 
 	 * @param service
@@ -414,7 +433,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (msg instanceof DeliverServiceMessage) {
 			final DeliverServiceMessage deliv = (DeliverServiceMessage) msg;
 			try {
-				final ServiceURL url = new ServiceURL(deliv.getServiceURL(), 0);
+				final String urlString = deliv.getServiceURL();
+				final ServiceURL url = new ServiceURL(urlString, 0);
 
 				// set the REMOTE_HOST_PROPERTY
 				final Dictionary attribs = deliv.getAttributes();
@@ -438,8 +458,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				final Bundle bundle = RemoteOSGiServiceImpl.context
 						.installBundle("file:" + bundleLocation);
 
-				// store the bundle for cleanup
-				proxies.add(bundle);
+				// store the bundle for state updates and cleanup
+				proxies.put(urlString, bundle);
 
 				// start the bundle
 				bundle.start();

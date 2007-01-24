@@ -28,6 +28,10 @@
  */
 package ch.ethz.iks.r_osgi;
 
+import java.util.Dictionary;
+
+import org.osgi.framework.ServiceRegistration;
+
 /**
  * The endpoint of a channel to a connected remote peer.
  * 
@@ -58,11 +62,39 @@ public interface ChannelEndpoint {
 	 * @return the result of the remote method invokation.
 	 * @throws RemoteOSGiException
 	 *             if the invocation fails.
-	 * @throws Throwable 
+	 * @throws Throwable
 	 * @since 0.6
 	 */
 	Object invokeMethod(final String serviceURL, final String methodSignature,
 			final Object[] args) throws Throwable;
+
+	/**
+	 * get the attributes of a service. This function is used to simplify proxy
+	 * bundle generation.
+	 * 
+	 * @param serviceURL
+	 *            the serviceURL of the remote service.
+	 * @return the service attributes.
+	 * @since 0.6
+	 */
+	Dictionary getAttributes(final String serviceURL);
+
+	/**
+	 * get the attributes for the presentation of the service. This function is
+	 * used by proxies that support ServiceUI presentations.
+	 * 
+	 * @param serviceURL
+	 *            the serviceURL of the remote service.
+	 * @return the attributes for the presentation.
+	 * @since 0.6
+	 */
+	Dictionary getPresentationAttributes(final String serviceURL);
+
+	/**
+	 * 
+	 * @param reg
+	 */
+	void proxiedService(final String serviceURL, final ServiceRegistration reg);
 
 	/**
 	 * get the ID of the channel endpoint. This is some kind of URL consisting
@@ -74,7 +106,7 @@ public interface ChannelEndpoint {
 	String getID();
 
 	/**
-	 * dispose the channel endpoint.
+	 * dispose of the channel endpoint.
 	 */
 	void dispose();
 
