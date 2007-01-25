@@ -731,44 +731,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	}
 
 	/**
-	 * get the service attributes.
-	 * 
-	 * @param serviceURL
-	 *            the service url.
-	 * @return the attributes.
-	 * @see ch.ethz.iks.r_osgi.Remoting#getAttributes(java.lang.String)
-	 * @category Remoting
-	 */
-	public Dictionary getAttributes(final String serviceURL) {
-		try {
-			return getChannel(new ServiceURL(serviceURL, 0)).getAttributes(
-					serviceURL);
-		} catch (ServiceLocationException e) {
-			e.printStackTrace();
-			throw new RemoteOSGiException(e.getMessage(), e);
-		}
-	}
-
-	/**
-	 * get the presentation attributes.
-	 * 
-	 * @param serviceURL
-	 *            the service url.
-	 * @return the attributes.
-	 * @see ch.ethz.iks.r_osgi.Remoting#getPresentationAttributes(java.lang.String)
-	 * @category Remoting
-	 */
-	public Dictionary getPresentationAttributes(final String serviceURL) {
-		try {
-			return getChannel(new ServiceURL(serviceURL, 0))
-					.getPresentationAttributes(serviceURL);
-		} catch (ServiceLocationException e) {
-			e.printStackTrace();
-			throw new RemoteOSGiException(e.getMessage(), e);
-		}
-	}
-
-	/**
 	 * called, when a scheduled object is due. In this case, it means that a
 	 * reregistration to the SLP layer is necessary.
 	 * 
@@ -784,6 +746,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		try {
 			System.out.println("RS: " + rs);
 			System.out.println("PROPS: " + rs.getProperties());
+			System.out.println("REQUESTED " + service);
+			System.out.println("REG: " + serviceRegistrations);
 			advertiser.register(service, rs.getProperties());
 			final long next = System.currentTimeMillis()
 					+ ((service.getLifetime() - 1) * 1000);
