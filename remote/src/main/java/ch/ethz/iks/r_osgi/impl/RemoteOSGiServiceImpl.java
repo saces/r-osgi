@@ -752,7 +752,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		final String serviceID = url.getURLPath();
 
 		final String filter = "".equals(serviceID) ? null : '('
-				+ Constants.SERVICE_ID + "=" + serviceID + ")";
+				+ Constants.SERVICE_ID + "=" + serviceID.substring(1) + ")";
 		
 		System.out.println("looking for " + filter);
 		
