@@ -34,11 +34,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
@@ -200,6 +198,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			throws RemoteOSGiException, IOException {
 		this.networkChannel = (factory == null ? TCP_FACTORY : factory)
 				.getConnection(this, address, port, protocol);
+		if (RemoteOSGiServiceImpl.DEBUG) {
+			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
+					"opening new channel " + getID());
+		}
 		renewLease(RemoteOSGiServiceImpl.getServices(), RemoteOSGiServiceImpl
 				.getTopics());
 		RemoteOSGiServiceImpl.registerChannel(this);
