@@ -42,6 +42,8 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
+import ch.ethz.iks.slp.ServiceLocationException;
+import ch.ethz.iks.slp.ServiceURL;
 
 /**
  * a registration for a service that has been registered with TRANSFER_BUNDLE
@@ -77,9 +79,10 @@ final class BundledServiceRegistration extends RemoteServiceRegistration {
 	 *            the storage location for keeping the copies of the bundles.
 	 * @throws RemoteOSGiException
 	 *             if something goes wrong, e.g., the bundle cannot be found.
+	 * @throws ServiceLocationException 
 	 */
 	BundledServiceRegistration(final ServiceReference ref, final String storage)
-			throws RemoteOSGiException {
+			throws RemoteOSGiException, ServiceLocationException {
 		super(ref);
 
 		final Bundle bundle = ref.getBundle();

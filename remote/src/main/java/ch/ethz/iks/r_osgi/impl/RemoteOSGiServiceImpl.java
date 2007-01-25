@@ -159,7 +159,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	/**
 	 * default lifetime for SLP registration.
 	 */
-	private final int DEFAULT_SLP_LIFETIME;
+	static int DEFAULT_SLP_LIFETIME;
 
 	/**
 	 * the address of this peer, according to what jSLP reports.
@@ -175,11 +175,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * jSLP locator instance.
 	 */
 	private Locator locator;
-
-	/**
-	 * the registered services.
-	 */
-	private static Set registeredServices = new HashSet(0);
 
 	/**
 	 * registered services, ServiceType -> List of RemoteService.
@@ -382,15 +377,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 					null, "(" + R_OSGi_REGISTRATION + "=*)");
 			if (references != null) {
 				for (int i = 0; i < references.length; i++) {
-					final String policy = (String) references[i]
-							.getProperty(R_OSGi_REGISTRATION);
 					try {
-						registerService(
-								references[i],
-								policy,
-								(String) references[i].getProperty(SMART_PROXY),
-								(String[]) references[i]
-										.getProperty(RemoteOSGiService.INJECTIONS));
+						registerService(references[i]);
 					} catch (RemoteOSGiException e) {
 						e.printStackTrace();
 					}
@@ -506,83 +494,62 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#registerService(org.osgi.framework.ServiceReference,
 	 *      java.lang.String, java.lang.String, java.lang.String,
 	 *      java.lang.String[])
-	 * @since 0.5
+	 * @since 0.6
 	 * @category RemoteOSGiService
 	 */
-	public ServiceURL[] registerService(final ServiceReference ref,
-			final String policy, final String smartProxy,
-			final String[] injections) throws RemoteOSGiException {
+	void registerService(final ServiceReference ref) throws RemoteOSGiException {
 		// sanity check
 		if (ref == null) {
 			throw new RemoteOSGiException("Cannot register a null service");
 		}
 
 		try {
-			final String[] interfaceNames = (String[]) ref
-					.getProperty(Constants.OBJECTCLASS);
-			final int interfaceCount = interfaceNames.length;
-			final Long serviceID = (Long) ref.getProperty(Constants.SERVICE_ID);
-
-			// build the service URLs
-			final ServiceURL[] urls = new ServiceURL[interfaceCount];
-			for (int i = 0; i < interfaceCount; i++) {
-				urls[i] = new ServiceURL("service:osgi:"
-						+ interfaceNames[i].replace('.', '/') + "://"
-						+ MY_ADDRESS + ":" + R_OSGI_PORT + "/" + serviceID,
-						DEFAULT_SLP_LIFETIME);
-			}
 
 			final RemoteServiceRegistration reg;
 
-			// TODO: get rid of the registrations. Use the service registry
-			// instead. TRANSFER BUNDLE have to cache the bytes on
-			// the private storage.
+			final String policy = (String) ref
+					.getProperty(RemoteOSGiService.R_OSGi_REGISTRATION);
+
 			if (policy.equals(RemoteOSGiService.TRANSFER_BUNDLE_POLICY)) {
 
 				// for the moment, don't accept registrations from bundles that
 				// have already been fetched from a remote peer.
 				if (ref.getBundle().getLocation().startsWith("r-osgi://")) {
-					return null;
+					return;
 				}
 
 				reg = new BundledServiceRegistration(ref, storage);
 
 				if (log != null) {
 					log.log(LogService.LOG_INFO, "REGISTERING "
-							+ Arrays.asList(interfaceNames)
+							+ Arrays.asList(reg.getURLs())
 							+ " WITH TRANSFER BUNDLE POLICY");
 				}
 
 			} else {
 				// default: proxied service
-				reg = new ProxiedServiceRegistration(ref, interfaceNames,
-						smartProxy, injections);
+				reg = new ProxiedServiceRegistration(ref);
 
 				if (log != null) {
 					log.log(LogService.LOG_INFO, "REGISTERING "
-							+ Arrays.asList(interfaceNames)
+							+ Arrays.asList(reg.getURLs())
 							+ " AS PROXIED SERVICES");
 				}
 
 			}
 
 			final Dictionary attribs = reg.getProperties();
-			for (int i = 0; i < interfaceCount; i++) {
-				CollectionUtils.addValue(serviceRegistrations, urls[i]
-						.getServiceType(), reg);
+			final ServiceURL[] urls = reg.getURLs();
 
-				// schedule for registration on SLP layer
-				reregistration.schedule(urls[i], System.currentTimeMillis()
-						+ (urls[i].getLifetime() - 1) * 1000);
+			// schedule for registration on SLP layer
+			reregistration.schedule(reg, System.currentTimeMillis()
+					+ (DEFAULT_SLP_LIFETIME - 1) * 1000);
 
+			for (int i = 0; i < urls.length; i++) {
 				advertiser.register(urls[i], attribs);
-
-				registeredServices.add(urls[i].toString());
 			}
 
-			updateLeases();
-
-			return urls;
+			return;
 		} catch (ServiceLocationException e) {
 			e.printStackTrace();
 			throw new RemoteOSGiException(
@@ -591,25 +558,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			e.printStackTrace();
 			throw new RemoteOSGiException("Cannot find class " + ref, e);
 		}
-	}
-
-	/**
-	 * unregister a service.
-	 * 
-	 * @param service
-	 *            the <code>ServiceURL</code> that was returned as result of
-	 *            the registration.
-	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#unregisterService(ch.ethz.iks.slp.ServiceURL)
-	 * @since 0.1
-	 * @category RemoteOSGiService
-	 */
-	public void unregisterService(final ServiceURL service) {
-		reregistration.unschedule(service);
-
-		CollectionUtils.removeValue(serviceRegistrations,
-				new Object[] { service.getServiceType() }, getService(service));
-
-		updateLeases();
 	}
 
 	/**
@@ -770,13 +718,49 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	}
 
 	/**
-	 * get all provided (remote-enabled) services of this peer.
+	 * get all provided (remote-enabled) services of this peer. TODO: this can
+	 * be optimized to work in an incremental manner
 	 * 
 	 * @return return the services.
 	 */
 	static String[] getServices() {
-		return (String[]) registeredServices
-				.toArray(new String[registeredServices.size()]);
+		try {
+			final ArrayList result = new ArrayList();
+			final ServiceReference[] references = context.getServiceReferences(
+					null, "(" + R_OSGi_REGISTRATION + "=*)");
+			for (int i = 0; i < references.length; i++) {
+				ServiceURL[] urls = ((RemoteServiceRegistration) serviceRegistrations
+						.get(references[i])).getURLs();
+				for (int j = 0; j < urls.length; j++) {
+					result.add(urls[i].toString());
+				}
+			}
+			return (String[]) result.toArray(new String[result.size()]);
+		} catch (InvalidSyntaxException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	static RemoteServiceRegistration getService(final ServiceURL url) {
+		final String interfaceName = url.getServiceType().getAbstractTypeName()
+				.replace('/', '.');
+		final String serviceID = url.getURLPath();
+
+		final String filter = "".equals(serviceID) ? null : '('
+				+ Constants.SERVICE_ID + "=" + serviceID + ")";
+		try {
+			final ServiceReference[] refs = context.getServiceReferences(
+					interfaceName, filter);
+			if (refs == null) {
+				return null;
+			}
+			return (RemoteServiceRegistration) serviceRegistrations
+					.get(refs[0]);
+		} catch (InvalidSyntaxException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	/**
@@ -795,51 +779,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 */
 	static synchronized short nextXid() {
 		return (++nextXid);
-	}
-
-	/**
-	 * get a particular service.
-	 * 
-	 * @param url
-	 *            the service url.
-	 * @return the remote service registration.
-	 */
-	static RemoteServiceRegistration getService(final ServiceURL url) {
-		// find a specific service
-		final List list = (List) serviceRegistrations.get(url.getServiceType());
-
-		if (list != null) {
-			final RemoteServiceRegistration[] regs = (RemoteServiceRegistration[]) list
-					.toArray(new RemoteServiceRegistration[list.size()]);
-			for (int i = 0; i < regs.length; i++) {
-				final RemoteServiceRegistration candidate = regs[i];
-				if (candidate.getServiceID() == Long.parseLong(url.getURLPath()
-						.substring(1))) {
-					return candidate;
-				}
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * get any service that matches the service type of the URL.
-	 * 
-	 * @param url
-	 *            the service url.
-	 * @return the remote service registration.
-	 */
-	static RemoteServiceRegistration getAnyService(final ServiceURL url) {
-		if (!"".equals(url.getURLPath())) {
-			return getService(url);
-		}
-
-		// return the first
-		final List list = (List) serviceRegistrations.get(url.getServiceType());
-
-		return (list != null && list.size() > 0) ? (RemoteServiceRegistration) list
-				.get(0)
-				: null;
 	}
 
 	/**
@@ -1117,26 +1056,17 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 			switch (event.getType()) {
 			case ServiceEvent.REGISTERED: {
-				final String policy = (String) reference
-						.getProperty(R_OSGi_REGISTRATION);
 				try {
-					registerService(reference, policy != null ? policy
-							: SERVICE_PROXY_POLICY, (String) reference
-							.getProperty(SMART_PROXY), (String[]) reference
-							.getProperty(RemoteOSGiService.INJECTIONS));
+					registerService(reference);
 				} catch (RemoteOSGiException e) {
 					e.printStackTrace();
 				}
+				updateLeases();
 				return;
 			}
 			case ServiceEvent.UNREGISTERING: {
-				Object[] keys = serviceRegistrations.keySet().toArray();
-				for (int i = 0; i < keys.length; i++) {
-					final Object key = keys[i];
-					if (serviceRegistrations.get(key).equals(reference)) {
-						serviceRegistrations.remove(key);
-					}
-				}
+				serviceRegistrations.remove(reference);
+				updateLeases();
 				return;
 			}
 			}

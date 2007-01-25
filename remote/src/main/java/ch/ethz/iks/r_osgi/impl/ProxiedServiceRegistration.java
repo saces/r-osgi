@@ -35,6 +35,7 @@ import org.objectweb.asm.Type;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 
+import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.slp.ServiceLocationException;
 import ch.ethz.iks.slp.ServiceURL;
 
@@ -68,10 +69,10 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 	 *            optional class injections.
 	 * @throws ClassNotFoundException
 	 *             if one of the interface classes cannot be found.
+	 * @throws ServiceLocationException
 	 */
-	ProxiedServiceRegistration(final ServiceReference ref,
-			final String[] interfaceNames, final String smartProxy,
-			final String[] injectionClasses) throws ClassNotFoundException {
+	ProxiedServiceRegistration(final ServiceReference ref)
+			throws ClassNotFoundException, ServiceLocationException {
 
 		super(ref);
 
@@ -84,6 +85,8 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 		// get the interface classes
 		final ClassLoader bundleLoader = serviceObject.getClass()
 				.getClassLoader();
+		final String[] interfaceNames = (String[]) ref
+				.getProperty(Constants.OBJECTCLASS);
 		final int interfaceCount = interfaceNames.length;
 		final Class[] serviceInterfaces = new Class[interfaceCount];
 
@@ -97,8 +100,6 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 			}
 		}
 
-		final String presentation = (String) ref
-				.getProperty(RemoteOSGiServiceImpl.PRESENTATION);
 		final Dictionary headers = ref.getBundle().getHeaders();
 		final CodeAnalyzer inspector = new CodeAnalyzer(bundleLoader,
 				(String) headers.get(Constants.IMPORT_PACKAGE),
@@ -106,9 +107,18 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 		deliverServiceMessages = new HashMap(interfaceNames.length);
 		try {
 			for (int i = 0; i < interfaceNames.length; i++) {
-				deliverServiceMessages.put(interfaceNames[i].replace('.', '/'),
-						inspector.analyze(interfaceNames[i], smartProxy,
-								injectionClasses, presentation));
+				deliverServiceMessages
+						.put(
+								interfaceNames[i].replace('.', '/'),
+								inspector
+										.analyze(
+												interfaceNames[i],
+												(String) ref
+														.getProperty(RemoteOSGiService.SMART_PROXY),
+												(String[]) ref
+														.getProperty(RemoteOSGiService.INJECTIONS),
+												(String) ref
+														.getProperty(RemoteOSGiServiceImpl.PRESENTATION)));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -676,12 +676,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				final String urlString = fetchReq.getServiceURL();
 				final ServiceURL url = new ServiceURL(urlString, 0);
 
-				final RemoteServiceRegistration reg;
-				if (!"".equals(url.getURLPath())) {
-					reg = RemoteOSGiServiceImpl.getService(url);
-				} else {
-					reg = RemoteOSGiServiceImpl.getAnyService(url);
-				}
+				final RemoteServiceRegistration reg = RemoteOSGiServiceImpl
+						.getService(url);
 
 				if (reg == null) {
 					throw new IllegalStateException("Could not get "
@@ -840,12 +836,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				final String serviceURL = (String) serviceURLs.get(ref);
 				try {
 					final ServiceURL url = new ServiceURL(serviceURL, 0);
-					final RemoteServiceRegistration reg;
-					if (!"".equals(url.getURLPath())) {
-						reg = RemoteOSGiServiceImpl.getService(url);
-					} else {
-						reg = RemoteOSGiServiceImpl.getAnyService(url);
-					}
+					final RemoteServiceRegistration reg = RemoteOSGiServiceImpl
+							.getService(url);
 					services.put(serviceURL, reg);
 					sendMessage(new StateUpdateMessage((String) serviceURLs
 							.get(ref), (short) 1, null));

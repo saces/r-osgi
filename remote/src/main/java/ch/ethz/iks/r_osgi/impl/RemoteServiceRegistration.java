@@ -33,6 +33,9 @@ import java.util.Hashtable;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 
+import ch.ethz.iks.slp.ServiceLocationException;
+import ch.ethz.iks.slp.ServiceURL;
+
 /**
  * abstract class of remote service registrations.
  * 
@@ -50,16 +53,37 @@ class RemoteServiceRegistration {
 	 */
 	private final long serviceID;
 
+	private final ServiceURL[] urls;
+
+	private final String[] interfaceNames;
+
 	/**
 	 * constructor.
 	 * 
 	 * @param reference
 	 *            the service reference.
+	 * @throws ServiceLocationException
 	 */
-	RemoteServiceRegistration(final ServiceReference reference) {
+	RemoteServiceRegistration(final ServiceReference reference)
+			throws ServiceLocationException {
 		this.reference = reference;
 		this.serviceID = ((Long) reference.getProperty(Constants.SERVICE_ID))
 				.longValue();
+		this.interfaceNames = (String[]) reference
+				.getProperty(Constants.OBJECTCLASS);
+		final int interfaceCount = interfaceNames.length;
+		final Long serviceID = (Long) reference
+				.getProperty(Constants.SERVICE_ID);
+
+		// build the service URLs
+		this.urls = new ServiceURL[interfaceCount];
+		for (int i = 0; i < interfaceCount; i++) {
+			urls[i] = new ServiceURL("service:osgi:"
+					+ interfaceNames[i].replace('.', '/') + "://"
+					+ RemoteOSGiServiceImpl.MY_ADDRESS + ":"
+					+ RemoteOSGiServiceImpl.R_OSGI_PORT + "/" + serviceID,
+					RemoteOSGiServiceImpl.DEFAULT_SLP_LIFETIME);
+		}
 	}
 
 	/**
@@ -77,10 +101,8 @@ class RemoteServiceRegistration {
 	}
 
 	/**
-	 * set new attributes.
+	 * get the attributes.
 	 * 
-	 * @param ref
-	 *            the reference.
 	 */
 	Dictionary getProperties() {
 		final String[] keys = reference.getPropertyKeys();
@@ -89,6 +111,14 @@ class RemoteServiceRegistration {
 			props.put(keys[i], reference.getProperty(keys[i]));
 		}
 		return props;
+	}
+
+	ServiceURL[] getURLs() {
+		return urls;
+	}
+
+	String[] getInterfaceNames() {
+		return interfaceNames;
 	}
 
 	/**

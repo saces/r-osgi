@@ -160,42 +160,6 @@ public interface RemoteOSGiService {
 	String REMOTE_HOST = "service.remote.host";
 
 	/**
-	 * register a legacy service for remoting. For remote-aware services, simply
-	 * set the <code>service.remote.registration</code> to a valid policy and
-	 * the service is registered for remote access according to the policy. If
-	 * the policy is invalid, the default policy (USE_PROXY) is taken.
-	 * 
-	 * @param service
-	 *            the service reference
-	 * @param policy
-	 *            a policy name.
-	 * @param smartProxy
-	 *            optionally, the name of a smart proxy class.
-	 * @param injections
-	 *            optionally, the names of injection classes.
-	 * @return an array of service urls. One for each interface of the service.
-	 * @throws RemoteOSGiException
-	 *             if the registration fails.
-	 * @since 0.5
-	 */
-	ServiceURL[] registerService(final ServiceReference service,
-			final String policy, final String smartProxy,
-			final String[] injections) throws RemoteOSGiException;;
-
-	/**
-	 * unregister a service for remoting. This method is only for one special
-	 * purpose: In case you want to unregister a service from remote access but
-	 * not from the local framework, use this method. Otherwise, simply shut
-	 * down the service and the remote registration will also disappear.
-	 * 
-	 * @param service
-	 *            the <code>ServiceURL</code> that was returned as result of
-	 *            the registration.
-	 * @since 0.5
-	 */
-	void unregisterService(final ServiceURL service);
-
-	/**
 	 * connect to a remote OSGi framework. Has to be called prior to any service
 	 * access. Causes the frameworks to exchange leases and start the transport
 	 * of remote events.
