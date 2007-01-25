@@ -242,6 +242,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @category ChannelEndpoint
 	 */
 	public void receivedMessage(final RemoteOSGiMessage msg) {
+		System.out.println("ENDPOINT CALLED WITH " + msg);
 		if (msg == null) {
 			if (RemoteOSGiServiceImpl.DEBUG) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_WARNING,
