@@ -60,9 +60,9 @@ public interface ChannelEndpoint {
 	 * @param args
 	 *            the method parameter.
 	 * @return the result of the remote method invokation.
-	 * @throws RemoteOSGiException
-	 *             if the invocation fails.
 	 * @throws Throwable
+	 *             can be either a local exception or an exception that occured
+	 *             on the original service method.
 	 * @since 0.6
 	 */
 	Object invokeMethod(final String serviceURL, final String methodSignature,
@@ -91,8 +91,12 @@ public interface ChannelEndpoint {
 	Dictionary getPresentationAttributes(final String serviceURL);
 
 	/**
+	 * register a proxied service to allow updates of the properties.
 	 * 
+	 * @param serviceURL
+	 *            the service url.
 	 * @param reg
+	 *            the service registration object.
 	 */
 	void proxiedService(final String serviceURL, final ServiceRegistration reg);
 

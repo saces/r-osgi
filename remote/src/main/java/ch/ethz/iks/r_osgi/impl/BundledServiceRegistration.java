@@ -36,14 +36,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Dictionary;
-
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
-
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.slp.ServiceLocationException;
-import ch.ethz.iks.slp.ServiceURL;
 
 /**
  * a registration for a service that has been registered with TRANSFER_BUNDLE
@@ -79,7 +76,8 @@ final class BundledServiceRegistration extends RemoteServiceRegistration {
 	 *            the storage location for keeping the copies of the bundles.
 	 * @throws RemoteOSGiException
 	 *             if something goes wrong, e.g., the bundle cannot be found.
-	 * @throws ServiceLocationException 
+	 * @throws ServiceLocationException
+	 *             if the generated SLP service url is invalid.
 	 */
 	BundledServiceRegistration(final ServiceReference ref, final String storage)
 			throws RemoteOSGiException, ServiceLocationException {

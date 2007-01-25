@@ -189,7 +189,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @param protocol
 	 *            the protocol of the channel.
 	 * @throws RemoteOSGiException
-	 *             if something goes wrong.
+	 *             if something goes wrong in R-OSGi.
 	 * @throws IOException
 	 *             if something goes wrong on the network layer.
 	 */
@@ -215,7 +215,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @param socket
 	 *            the socket on which the incoming connection was accepted.
 	 * @throws IOException
-	 *             if something goes wrong.
+	 *             if something goes wrong on the network layer.
 	 */
 	ChannelEndpointImpl(final Socket socket) throws IOException {
 		this.networkChannel = TCP_FACTORY.bind(this, socket);

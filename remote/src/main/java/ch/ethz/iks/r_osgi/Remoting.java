@@ -28,7 +28,6 @@
  */
 package ch.ethz.iks.r_osgi;
 
-import java.util.Dictionary;
 import ch.ethz.iks.slp.ServiceURL;
 
 /**

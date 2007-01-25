@@ -92,9 +92,9 @@ public interface RemoteOSGiService {
 	String SERVICE_PROXY_POLICY = "service_proxy";
 
 	/**
-	 * policy "transfer_bundle" transfers the whole bundle to the remote peer. In
-	 * other words, it creates a copy of the bundle containing the service and
-	 * installs this bundle on the other side.
+	 * policy "transfer_bundle" transfers the whole bundle to the remote peer.
+	 * In other words, it creates a copy of the bundle containing the service
+	 * and installs this bundle on the other side.
 	 * 
 	 * @since 0.5
 	 */
@@ -207,9 +207,12 @@ public interface RemoteOSGiService {
 	Object getFetchedService(final ServiceURL url);
 
 	/**
+	 * get the service reference of the service that has just been fetched.
 	 * 
 	 * @param url
-	 * @return
+	 *            the service url.
+	 * @return the service reference belonging to the service or null, if no
+	 *         such service is present.
 	 */
 	ServiceReference getFetchedServiceReference(final ServiceURL url);
 
