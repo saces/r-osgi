@@ -747,7 +747,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	}
 
 	static RemoteServiceRegistration getService(final ServiceURL url) {		
-		final String interfaceName = url.getServiceType().getAbstractTypeName()
+		final String interfaceName = url.getServiceType().getConcreteTypeName()
 				.replace('/', '.');
 		final String serviceID = url.getURLPath();
 
