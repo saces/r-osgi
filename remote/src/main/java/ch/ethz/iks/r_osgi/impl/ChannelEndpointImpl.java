@@ -699,7 +699,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					} catch (InvalidSyntaxException e) {
 						e.printStackTrace();
 					}
-
+					
+					System.out.println("SO FAR, SO GOOD...");
+					
 					return ((ProxiedServiceRegistration) reg)
 							.getMessage(fetchReq);
 				} else if (reg instanceof BundledServiceRegistration) {
