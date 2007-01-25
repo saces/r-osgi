@@ -754,8 +754,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		final String filter = "".equals(serviceID) ? null : '('
 				+ Constants.SERVICE_ID + "=" + serviceID.substring(1) + ")";
 		
-		System.out.println("looking for " + filter);
-		
 		try {
 			final ServiceReference[] refs = context.getServiceReferences(
 					interfaceName, filter);

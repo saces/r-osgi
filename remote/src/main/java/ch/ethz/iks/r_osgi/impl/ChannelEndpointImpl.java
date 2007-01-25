@@ -701,7 +701,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					} catch (InvalidSyntaxException e) {
 						e.printStackTrace();
 					}
-					
+
 					return ((ProxiedServiceRegistration) reg)
 							.getMessage(fetchReq);
 				} else if (reg instanceof BundledServiceRegistration) {
@@ -718,6 +718,35 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			StateUpdateMessage suMsg = (StateUpdateMessage) msg;
 
 			System.out.println("RECEIVED STATE UPDATE " + suMsg);
+
+			final String serviceURL = suMsg.getServiceURL();
+			final short stateUpdate = suMsg.getStateUpdate();
+
+			if (stateUpdate == 0) {
+				// stop the proxy bundle to disable the service
+				final Bundle bundle = (Bundle) proxies.get(serviceURL);
+				try {
+					bundle.stop();
+				} catch (BundleException be) {
+					be.printStackTrace();
+				}
+			} else if (stateUpdate == 1) {
+				// start the proxy bundle to enable the service
+				final Bundle bundle = (Bundle) proxies.get(serviceURL);
+				try {
+					bundle.start();
+				} catch (BundleException be) {
+					be.printStackTrace();
+				}
+			}
+
+			final Dictionary propertyUpdate = suMsg.getPropertyUpdate();
+			if (propertyUpdate != null) {
+				// get registration and update the properties
+				final ServiceRegistration reg = (ServiceRegistration) proxiedServices
+						.get(serviceURL);
+				reg.setProperties(propertyUpdate);
+			}
 
 			return null;
 		}

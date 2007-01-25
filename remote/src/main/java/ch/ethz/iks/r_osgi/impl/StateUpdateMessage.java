@@ -25,7 +25,7 @@ public class StateUpdateMessage extends RemoteOSGiMessageImpl {
 	/**
 	 * the signature of the method that is requested to be invoked.
 	 */
-	private Dictionary attributes;
+	private Dictionary properties;
 
 	/**
 	 * creates a new InvokeMethodMessage.
@@ -38,28 +38,28 @@ public class StateUpdateMessage extends RemoteOSGiMessageImpl {
 	 *            the parameter that are passed to the method.
 	 */
 	StateUpdateMessage(final String service, final short newState,
-			final Dictionary newAttributes) {
+			final Dictionary newProperties) {
 		funcID = STATE_UPDATE;
 		this.serviceURL = service;
 		this.state = newState;
-		this.attributes = newAttributes;
+		this.properties = newProperties;
 	}
 
 	/**
 	 * creates a new InvokeMethodMessage from network packet:
 	 * 
 	 * <pre>
-	 *    0                   1                   2                   3
-	 *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *   |       R-OSGi header (function = InvokeMsg = 3)                |
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *   |   length of &lt;ServiceURL&gt;     |    &lt;ServiceURL&gt; String       \
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *   |    length of &lt;MethodSignature&gt;     |     &lt;MethodSignature&gt; String       \
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *   |   number of param blocks      |     Param blocks (if any)     \
-	 *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *     0                   1                   2                   3
+	 *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *    |       R-OSGi header (function = InvokeMsg = 3)                |
+	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *    |   length of &lt;ServiceURL&gt;     |    &lt;ServiceURL&gt; String       \
+	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *    |    length of &lt;MethodSignature&gt;     |     &lt;MethodSignature&gt; String       \
+	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *    |   number of param blocks      |     Param blocks (if any)     \
+	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>.
 	 * 
 	 * @param input
@@ -72,7 +72,7 @@ public class StateUpdateMessage extends RemoteOSGiMessageImpl {
 		funcID = STATE_UPDATE;
 		serviceURL = input.readUTF();
 		state = input.readShort();
-		attributes = (Dictionary) SmartSerializer.deserialize(input);
+		properties = (Dictionary) SmartSerializer.deserialize(input);
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class StateUpdateMessage extends RemoteOSGiMessageImpl {
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		out.writeUTF(serviceURL);
 		out.writeShort(state);
-		SmartSerializer.serialize(attributes, out);
+		SmartSerializer.serialize(properties, out);
 	}
 
 	/**
@@ -97,6 +97,14 @@ public class StateUpdateMessage extends RemoteOSGiMessageImpl {
 	 */
 	String getServiceURL() {
 		return serviceURL;
+	}
+
+	short getStateUpdate() {
+		return state;
+	}
+
+	Dictionary getPropertyUpdate() {
+		return properties;
 	}
 
 	/**
@@ -142,7 +150,7 @@ public class StateUpdateMessage extends RemoteOSGiMessageImpl {
 		buffer.append(", state ");
 		buffer.append(state);
 		buffer.append(", attributes ");
-		buffer.append(attributes);
+		buffer.append(properties);
 		return buffer.toString();
 	}
 
