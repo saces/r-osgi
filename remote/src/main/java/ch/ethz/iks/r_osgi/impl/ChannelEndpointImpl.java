@@ -700,8 +700,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						e.printStackTrace();
 					}
 					
-					System.out.println("SO FAR, SO GOOD...");
-					
 					return ((ProxiedServiceRegistration) reg)
 							.getMessage(fetchReq);
 				} else if (reg instanceof BundledServiceRegistration) {
