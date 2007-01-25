@@ -177,7 +177,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	private Locator locator;
 
 	/**
-	 * registered services, ServiceType -> List of RemoteService.
+	 * service reference -> remote service registration
 	 */
 	private static Map serviceRegistrations = new HashMap(1);
 
@@ -537,6 +537,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				}
 
 			}
+			
+			serviceRegistrations.put(ref, reg);
 
 			final Dictionary attribs = reg.getProperties();
 			final ServiceURL[] urls = reg.getURLs();
