@@ -745,9 +745,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 		try {
 			System.out.println("RS: " + rs);
-			System.out.println("PROPS: " + rs.getProperties());
 			System.out.println("REQUESTED " + service);
 			System.out.println("REG: " + serviceRegistrations);
+			System.out.println("PROPS: " + rs.getProperties());
 			advertiser.register(service, rs.getProperties());
 			final long next = System.currentTimeMillis()
 					+ ((service.getLifetime() - 1) * 1000);
