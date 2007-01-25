@@ -728,6 +728,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			final ArrayList result = new ArrayList();
 			final ServiceReference[] references = context.getServiceReferences(
 					null, "(" + R_OSGi_REGISTRATION + "=*)");
+			if (references == null) {
+				return new String[0];
+			}
 			for (int i = 0; i < references.length; i++) {
 				ServiceURL[] urls = ((RemoteServiceRegistration) serviceRegistrations
 						.get(references[i])).getURLs();
