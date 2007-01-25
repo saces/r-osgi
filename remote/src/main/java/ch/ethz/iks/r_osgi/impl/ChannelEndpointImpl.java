@@ -260,6 +260,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				receiveQueue.notifyAll();
 				return;
 			} else {
+				System.out.println("CALLING HANDLEMESSAGE WITH " + msg);
 				RemoteOSGiMessage reply = handleMessage(msg);
 				if (reply != null) {
 					try {
