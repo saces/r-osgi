@@ -537,7 +537,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				}
 
 			}
-			
+
 			serviceRegistrations.put(ref, reg);
 
 			final Dictionary attribs = reg.getProperties();
@@ -689,19 +689,18 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 */
 	public void due(final Scheduler scheduler, final long timestamp,
 			final Object object) {
-		final ServiceURL service = (ServiceURL) object;
-		final RemoteServiceRegistration rs = (RemoteServiceRegistration) serviceRegistrations
-				.get(service.toString());
+		final RemoteServiceRegistration reg = (RemoteServiceRegistration) object;
 
 		try {
-			System.out.println("RS: " + rs);
-			System.out.println("REQUESTED " + service);
-			System.out.println("REG: " + serviceRegistrations);
-			System.out.println("PROPS: " + rs.getProperties());
-			advertiser.register(service, rs.getProperties());
+			final ServiceURL[] urls = reg.getURLs();
+			final Dictionary properties = reg.getProperties();
+
+			for (int i = 0; i < urls.length; i++) {
+				advertiser.register(urls[i], properties);
+			}
 			final long next = System.currentTimeMillis()
-					+ ((service.getLifetime() - 1) * 1000);
-			scheduler.reschedule(service, next);
+					+ ((DEFAULT_SLP_LIFETIME - 1) * 1000);
+			scheduler.reschedule(reg, next);
 		} catch (ServiceLocationException sle) {
 			sle.printStackTrace();
 		}
