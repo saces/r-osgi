@@ -56,4 +56,15 @@
 			<scope>provided</scope>
 		</dependency>		
 	</dependencies>
+	
+	  <reporting>
+    <plugins>
+      <plugin>
+        <artifactId>maven-site-plugin</artifactId>
+        <configuration>
+          <templateFile>${basedir}/../../../maven-site-r-osgi.vm</templateFile>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
 </project>

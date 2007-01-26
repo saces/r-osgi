@@ -12,47 +12,47 @@
 	<body>
 		<section name="Overview">
 			<p>
-			<b>Current release: 0.5.1</b><br/>
-			The new release mainly improves the interoperability with the Equinox framework and their EventAdmin implementation. The major changes of the 0.5.x releases are summarized in <a href="whatsnew.html">What's new</a><br/>
-			<b>Current ServiceUI release: 0.3.5</b><br/>
+			<b>Current release: 0.6.0</b><br/>
+			The new release contains some major improvements in terms of transparency, performance, and integration into the OSGi framework. Furthermore, the network transport has been modularized and now allows to plugin alternative implementations of <i>NetworkChannels</i> to make use of other protocols or network links. As part of R-OSGi, we now provide an implementation for http(s).  
 			</p>
 			<p>
         	R-OSGi runs as an OSGi bundle and enables distribution for arbitrary OSGi framework implementations. 
-        	It uses SLP as underlying service discovery protocol and maps OSGi services to SLP service URLs of the service type <code>service:osgi</code>.
+        	It uses SLP as underlying service discovery protocol and maps OSGi services to SLP service URLs of the service type <code>service:osgi</code>. Alternatively, clients can explicitly connect to known service providers.
         </p>
-			<p>
-        	All that a service provider framework has to do is registering a service for remoting. Subsequently, other peers can discover 
-        	the remote service if they have subscribed for this service type.
+		<p>
+        	All that a service provider framework has to do is registering a service for remote access. Subsequently, other peers can discover 
+        	the remote service if they have subscribed for this service.
         	They are notified when a service has been discovered and can initiate the fetching of this remote service. 
         	This will cause the service providing framework to transfer the service properties and the service interface
         	to the client machine. The default policy involves the client framework to build a proxy bundle on the fly and register it with the local framework. 
         	Local services can then access the remote service transparently, service method calls are  
 			send to the service provider and lead to remote method calls. <br/>
 			Since release 0.5.0, the service provider can also decide to register a service with a <i>transfer bundle</i> policy. In this case, the whole bundle 
-			is transferred to the client peer. This feature is still experimental and limited. For the moment, it does not resolve import dependencies. 
-			So if the client peer does not provide all the necessary imports, the transferring fails. There will be some development on this issue for future releases. 
+			is transferred to the client peer.  
 		</p>
-			<p>		
-			R-OSGi uses SLP style messages for remote invocations and does not rely on heavyweight frameworks like Jini and/or RMI. 
-			This makes it ideal for small and embedded devices with limited memory and network bandwidth. 
+		<p>		
+			R-OSGi uses SLP-style messages for remote invocations and does not rely on heavyweight frameworks like Jini and RMI.  
+			This makes it ideal for small and embedded devices with limited memory and network bandwidth. The service runs on every OSGi-minimal compliant environment.
 			<br/>R-OSGi has been tested with
 			<a href="http://www.knopflerfish.org">Knopflerfish</a> and <a href="http://oscar.objectweb.org">Oscar</a> as well 
 			as with our own lightweight OSGi implementation <a href="http://concierge.sourceforge.net">Concierge</a>. 
 			Our test platforms include a variety of different devices, hardware architectures and Java VMs. 
 		</p>
 			<p>
-			Additionally, R-OSGi can interact with the EventAdmin service. All events that have a certain receiver address property set are delivered to this address. Events can also be sent by multicast 
-			to a group of peers. For R3 frameworks (which do not feature an EventAdmin service), we have implemented an event admin backport as part of <a href="http://concierge.sourceforge.net">Concierge</a>. 
+			Additionally, R-OSGi can interact with the EventAdmin service. Frameworks receive all events from connected peers that match one of their EventHandler subscriptions. For R3 frameworks (which do not feature an EventAdmin service), we have implemented an event admin backport as part of <a href="http://concierge.sourceforge.net">Concierge</a>. 
 		</p>
 			<p>
-			In performance measurements, the UPnP implementation of the standard <a href="http://www.upnp.org/standardizeddcps/documents/BinaryLight1.0cc.pdf">BinaryLightService</a> has been additionally 
-			registered as R-OSGi service (proxy policy). The method invocations based on R-OSGi were 25 times faster than calling the same methods using UPnP. The amount of exchanged information for service binding was ten times smaller for R-OSGi, the message size for invoking the getTarget method was three times smaller.
+			In performance measurements, R-OSGi did not only outperform UPnP by an average factor of 280, but also performed even slightly better than RMI for many cases.
 		</p>
 			<p>
 			To see R-OSGi in action, have a look at our <a href="mindstorm.html">Lego Mindstorm Robots</a> being remote-controlled by R-OSGi.		
 		</p>
 			<p>
 			R-OSGi is part of the <a href="http://www.flowsgi.inf.ethz.ch">flowSGi</a> project, which is an ongoing research project at <a href="http://www.pc.inf.ethz.ch">Institute for Pervasive Computing</a>, <a href="http://www.ethz.ch">ETH Zurich</a>.		
+		</p>
+		<p>
+			If you want to hear more about R-OSGi and see interesting use cases, you should consider to attend our long talk at EclipseCon 2007: <b>Services Everywhere: OSGi in Distributed Environments</b>, Wednesday, March 7th, 15:30, Room 1. <br/>
+			<a href="http://www.eclipsecon.org/2007/"><img border="0" heigth="64" width="400" src="http://www.eclipsecon.org/2007/image600x96.gif"/></a>
 		</p>
 		</section>
 	</body>
