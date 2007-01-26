@@ -28,6 +28,8 @@ public class Activator implements BundleActivator {
 	private ServiceInterface service;
 
 	private Thread usingThread;
+	
+	private boolean running = true;
 
 	public void start(final BundleContext context) throws Exception {
 		System.out.println("starting sample client");
@@ -54,7 +56,7 @@ public class Activator implements BundleActivator {
 						public void run() {
 							try {
 								int i = 1;
-								while (true) {
+								while (running) {
 									synchronized (this) {
 										System.out
 												.println("Invoking remote service:");
@@ -115,6 +117,8 @@ public class Activator implements BundleActivator {
 	}
 
 	public void stop(final BundleContext context) throws Exception {
+		running = false;
+		
 		// if the thread exists, interrupt it
 		if (usingThread != null) {
 			usingThread.interrupt();
