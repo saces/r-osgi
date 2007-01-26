@@ -746,14 +746,14 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		}
 	}
 
-	static RemoteServiceRegistration getService(final ServiceURL url) {		
+	static RemoteServiceRegistration getService(final ServiceURL url) {
 		final String interfaceName = url.getServiceType().getConcreteTypeName()
 				.replace('/', '.');
 		final String serviceID = url.getURLPath();
 
 		final String filter = "".equals(serviceID) ? null : '('
 				+ Constants.SERVICE_ID + "=" + serviceID.substring(1) + ")";
-		
+
 		try {
 			final ServiceReference[] refs = context.getServiceReferences(
 					interfaceName, filter);
@@ -783,6 +783,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * @return the next xid.
 	 */
 	static synchronized short nextXid() {
+		if (nextXid == -1) {
+			nextXid = 0;
+		}
 		return (++nextXid);
 	}
 

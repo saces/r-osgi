@@ -481,68 +481,20 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 	}
 
-	/**
-	 * send a RemoteOSGiMessage.
-	 * 
-	 * @param msg
-	 *            the message.
-	 * @return the reply message.
-	 * @throws RemoteOSGiException
-	 *             in case of network errors.
-	 */
-	RemoteOSGiMessageImpl sendMessage(final RemoteOSGiMessageImpl msg)
-			throws RemoteOSGiException {
+	private void send(final RemoteOSGiMessageImpl msg) {
 		Throwable lastException = null;
 		// TODO think of setting retry count by property ?
 		int retryCounter = 3;
 
-		// if this is a reply message, the xid is
-		// the same as the incoming message. Otherwise
-		// we assign the next xid.
 		if (msg.xid == 0) {
 			msg.xid = RemoteOSGiServiceImpl.nextXid();
 		}
 
-		final Integer xid = new Integer(msg.xid);
-		if (!(msg instanceof RemoteEventMessage || msg instanceof StateUpdateMessage)) {
-			synchronized (receiveQueue) {
-				receiveQueue.put(xid, WAITING);
-			}
-		}
-
 		while (retryCounter > 0) {
 			try {
-				// send the message
 				networkChannel.sendMessage(msg);
-				if (msg instanceof RemoteEventMessage
-						|| msg instanceof StateUpdateMessage) {
-					return null;
-				}
-
-				Object reply;
-				synchronized (receiveQueue) {
-					reply = receiveQueue.get(xid);
-					final long timeout = System.currentTimeMillis() + TIMEOUT;
-					while (!lostConnection && reply == WAITING
-							&& System.currentTimeMillis() < timeout) {
-						receiveQueue.wait(TIMEOUT);
-						reply = receiveQueue.get(xid);
-					}
-					receiveQueue.remove(xid);
-
-					if (lostConnection) {
-						throw new RemoteOSGiException(
-								"Method Incovation failed, lost connection");
-					}
-					if (reply == WAITING) {
-						throw new RemoteOSGiException(
-								"Method Invocation failed.");
-					} else {
-						return (RemoteOSGiMessageImpl) reply;
-					}
-				}
-			} catch (Throwable t) {
-				lastException = t;
+			} catch (IOException ioe) {
+				lastException = ioe;
 				recoverConnection();
 
 				// TimeOffsetMessages have to be handled differently
@@ -561,7 +513,45 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (lastException != null) {
 			throw new RemoteOSGiException("Network error", lastException);
 		}
-		return null;
+	}
+
+	private RemoteOSGiMessageImpl sendMessage(final RemoteOSGiMessageImpl msg) {
+		if (msg.xid == 0) {
+			msg.xid = RemoteOSGiServiceImpl.nextXid();
+		}
+		final Integer xid = new Integer(msg.xid);
+		synchronized (receiveQueue) {
+			receiveQueue.put(xid, WAITING);
+		}
+
+		send(msg);
+
+		// wait for the reply
+		Object reply;
+		synchronized (receiveQueue) {
+			reply = receiveQueue.get(xid);
+			final long timeout = System.currentTimeMillis() + TIMEOUT;
+			try {
+				while (!lostConnection && reply == WAITING
+						&& System.currentTimeMillis() < timeout) {
+					receiveQueue.wait(TIMEOUT);
+					reply = receiveQueue.get(xid);
+				}
+				receiveQueue.remove(xid);
+
+				if (lostConnection) {
+					throw new RemoteOSGiException("Lost connection");
+				} else if (reply == WAITING) {
+					throw new RemoteOSGiException(
+							"Method Invocation failed, timeout exceeded.");
+				} else {
+					return (RemoteOSGiMessageImpl) reply;
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
 	}
 
 	/**
@@ -838,7 +828,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		public void handleEvent(final Event event) {
 			try {
-				sendMessage(new RemoteEventMessage(event, getID()));
+				send(new RemoteEventMessage(event, getID()));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -850,48 +840,54 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		public void serviceChanged(final ServiceEvent event) {
 			final ServiceReference ref = event.getServiceReference();
 
-			System.out.println("CAUSED EVENT " + event);
-
-			switch (event.getType()) {
-			case ServiceEvent.UNREGISTERING: {
-				// prevent that the service can be accessed any longer. Stop the
-				// remote proxy so that the proxied service is also
-				// unregistered.
-				final String serviceURL = (String) serviceURLs.get(ref);
-				services.remove(serviceURL);
-				sendMessage(new StateUpdateMessage(serviceURL, (short) 0, null));
-				return;
-			}
-			case ServiceEvent.REGISTERED: {
-				// this means that the service is back again and it can be
-				// accessed. Start the remote proxy.
-
-				final String serviceURL = (String) serviceURLs.get(ref);
-				try {
-					final ServiceURL url = new ServiceURL(serviceURL, 0);
-					final RemoteServiceRegistration reg = RemoteOSGiServiceImpl
-							.getService(url);
-					services.put(serviceURL, reg);
-					sendMessage(new StateUpdateMessage((String) serviceURLs
-							.get(ref), (short) 1, null));
-				} catch (ServiceLocationException sle) {
-					sle.printStackTrace();
+			try {
+				switch (event.getType()) {
+				case ServiceEvent.UNREGISTERING: {
+					// prevent that the service can be accessed any longer. Stop
+					// the
+					// remote proxy so that the proxied service is also
+					// unregistered.
+					final String serviceURL = (String) serviceURLs.get(ref);
+					services.remove(serviceURL);
+					send(new StateUpdateMessage(serviceURL, (short) 0, null));
+					return;
 				}
+				case ServiceEvent.REGISTERED: {
+					// this means that the service is back again and it can be
+					// accessed. Start the remote proxy.
 
-				return;
-			}
-			case ServiceEvent.MODIFIED:
-				// send the updated properties to the remote peer.
-				// TODO: improvement: make this a "diff" instead of the full set
-				// of attributes
-				final String[] keys = ref.getPropertyKeys();
-				final Dictionary newAttributes = new Hashtable(keys.length);
-				for (int i = 0; i < keys.length; i++) {
-					newAttributes.put(keys[i], ref.getProperty(keys[i]));
+					final String serviceURL = (String) serviceURLs.get(ref);
+					try {
+						final ServiceURL url = new ServiceURL(serviceURL, 0);
+						final RemoteServiceRegistration reg = RemoteOSGiServiceImpl
+								.getService(url);
+						services.put(serviceURL, reg);
+						send(new StateUpdateMessage((String) serviceURLs
+								.get(ref), (short) 1, null));
+					} catch (ServiceLocationException sle) {
+						sle.printStackTrace();
+					}
+
+					return;
 				}
-				sendMessage(new StateUpdateMessage((String) (serviceURLs
-						.get(ref)), (short) -1, newAttributes));
-				return;
+				case ServiceEvent.MODIFIED:
+					// send the updated properties to the remote peer.
+					// TODO: improvement: make this a "diff" instead of the full
+					// set
+					// of attributes
+					final String[] keys = ref.getPropertyKeys();
+					final Dictionary newAttributes = new Hashtable(keys.length);
+					for (int i = 0; i < keys.length; i++) {
+						newAttributes.put(keys[i], ref.getProperty(keys[i]));
+					}
+					send(new StateUpdateMessage(
+							(String) (serviceURLs.get(ref)), (short) -1,
+							newAttributes));
+					return;
+				}
+			} catch (RemoteOSGiException r) {
+				// TODO: remove proxy since the connection appears to be dead.
+				r.printStackTrace();
 			}
 		}
 	}
