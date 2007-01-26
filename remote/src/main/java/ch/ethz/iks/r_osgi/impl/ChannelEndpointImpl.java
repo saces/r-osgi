@@ -319,6 +319,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"DISPOSING ENDPOINT " + getID());
 		}
+		if (handlerReg != null) {
+			handlerReg.unregister();
+		}
 		RemoteOSGiServiceImpl.unregisterChannel(this);
 		Bundle[] bundles = (Bundle[]) proxies.values().toArray(
 				new Bundle[proxies.size()]);
@@ -662,9 +665,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					RemoteOSGiServiceImpl.getTopics());
 		}
 		case RemoteOSGiMessageImpl.FETCH_SERVICE: {
-			// TODO: register a service listener for this service and update the
-			// remote attributes if the service changes. Furthermore, prevent
-			// access to the service if it disappears.
 			try {
 				final FetchServiceMessage fetchReq = (FetchServiceMessage) msg;
 				final String urlString = fetchReq.getServiceURL();
@@ -706,8 +706,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 		case RemoteOSGiMessageImpl.STATE_UPDATE: {
 			StateUpdateMessage suMsg = (StateUpdateMessage) msg;
-
-			System.out.println("RECEIVED STATE UPDATE " + suMsg);
 
 			final String serviceURL = suMsg.getServiceURL();
 			final short stateUpdate = suMsg.getStateUpdate();
