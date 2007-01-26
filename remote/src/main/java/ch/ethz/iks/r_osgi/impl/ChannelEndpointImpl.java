@@ -493,6 +493,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		while (retryCounter > 0) {
 			try {
 				networkChannel.sendMessage(msg);
+				return;
 			} catch (IOException ioe) {
 				lastException = ioe;
 				recoverConnection();
