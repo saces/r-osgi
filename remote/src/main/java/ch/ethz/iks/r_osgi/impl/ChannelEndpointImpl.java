@@ -249,8 +249,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						"Connection to " + getID()
 								+ " broke down. Trying to reconnect ...");
 			}
-			recoverConnection();
-			return;
+			try {
+				networkChannel.reconnect();
+			} catch (IOException ioe) {
+				dispose();
+			}
 		}
 		final Integer xid = new Integer(msg.getXID());
 		synchronized (receiveQueue) {
@@ -482,37 +485,33 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	private void send(final RemoteOSGiMessageImpl msg) {
-		Throwable lastException = null;
-		// TODO think of setting retry count by property ?
-		int retryCounter = 3;
-
 		if (msg.xid == 0) {
 			msg.xid = RemoteOSGiServiceImpl.nextXid();
 		}
 
-		while (retryCounter > 0) {
+		try {
 			try {
 				networkChannel.sendMessage(msg);
 				return;
 			} catch (IOException ioe) {
-				lastException = ioe;
-				recoverConnection();
+				networkChannel.reconnect();
 
 				// TimeOffsetMessages have to be handled differently
-				// must send a new message with a new timestamp and XID instead
+				// must send a new message with a new timestamp and XID
+				// instead
 				// of sending the same message again
 				if (msg instanceof TimeOffsetMessage) {
 					((TimeOffsetMessage) msg).restamp(RemoteOSGiServiceImpl
 							.nextXid());
+					networkChannel.sendMessage(msg);
 				} else {
-					// send / receive reply failed
-					retryCounter--;
-					// reset connection
+					networkChannel.sendMessage(msg);
 				}
 			}
-		}
-		if (lastException != null) {
-			throw new RemoteOSGiException("Network error", lastException);
+		} catch (IOException ioe) {
+			// failed to reconnect...
+			dispose();
+			throw new RemoteOSGiException("Network error", ioe);
 		}
 	}
 
@@ -714,21 +713,16 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final short stateUpdate = suMsg.getStateUpdate();
 
 			if (stateUpdate == 0) {
-				// stop the proxy bundle to disable the service
+				// remove the proxy
 				final Bundle bundle = (Bundle) proxies.get(serviceURL);
 				try {
-					bundle.stop();
+					bundle.uninstall();
 				} catch (BundleException be) {
 					be.printStackTrace();
 				}
-			} else if (stateUpdate == 1) {
-				// start the proxy bundle to enable the service
-				final Bundle bundle = (Bundle) proxies.get(serviceURL);
-				try {
-					bundle.start();
-				} catch (BundleException be) {
-					be.printStackTrace();
-				}
+				proxies.remove(serviceURL);
+				proxiedServices.remove(serviceURL);
+				return null;
 			}
 
 			final Dictionary propertyUpdate = suMsg.getPropertyUpdate();
@@ -793,33 +787,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
-	 * Try to recover a broken-down connection.
-	 * 
-	 * @return true, if the connection could be recovered.
-	 */
-	private boolean recoverConnection() {
-		lostConnection = true;
-
-		try {
-			networkChannel.reconnect();
-			lostConnection = false;
-			if (RemoteOSGiServiceImpl.DEBUG) {
-				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG, "Channel "
-						+ getID() + " recovery successful");
-			}
-		} catch (IOException ioe) {
-			System.err.println("Recovery failed: " + ioe.getMessage());
-			dispose();
-			return true;
-		} finally {
-			synchronized (receiveQueue) {
-				receiveQueue.notifyAll();
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * forwards events over the channel to the remote peer.
 	 * 
 	 * @author Jan S. Rellermeyer, ETH Zurich
@@ -843,34 +810,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 			try {
 				switch (event.getType()) {
-				case ServiceEvent.UNREGISTERING: {
-					// prevent that the service can be accessed any longer. Stop
-					// the
-					// remote proxy so that the proxied service is also
-					// unregistered.
-					final String serviceURL = (String) serviceURLs.get(ref);
-					services.remove(serviceURL);
-					send(new StateUpdateMessage(serviceURL, (short) 0, null));
-					return;
-				}
-				case ServiceEvent.REGISTERED: {
-					// this means that the service is back again and it can be
-					// accessed. Start the remote proxy.
-
-					final String serviceURL = (String) serviceURLs.get(ref);
-					try {
-						final ServiceURL url = new ServiceURL(serviceURL, 0);
-						final RemoteServiceRegistration reg = RemoteOSGiServiceImpl
-								.getService(url);
-						services.put(serviceURL, reg);
-						send(new StateUpdateMessage((String) serviceURLs
-								.get(ref), (short) 1, null));
-					} catch (ServiceLocationException sle) {
-						sle.printStackTrace();
-					}
-
-					return;
-				}
 				case ServiceEvent.MODIFIED:
 					// send the updated properties to the remote peer.
 					// TODO: improvement: make this a "diff" instead of the full
@@ -884,6 +823,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					send(new StateUpdateMessage(
 							(String) (serviceURLs.get(ref)), (short) -1,
 							newAttributes));
+					return;
+				case ServiceEvent.UNREGISTERING:
+					// prevent that the service can be accessed any longer. Stop
+					// the remote proxy so that the proxied service is also
+					// unregistered.
+					final String serviceURL = (String) serviceURLs.remove(ref);
+					services.remove(serviceURL);
+					send(new StateUpdateMessage(serviceURL, (short) 0, null));
 					return;
 				}
 			} catch (RemoteOSGiException r) {
