@@ -713,8 +713,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	void cleanup() {
 		ChannelEndpoint[] c = (ChannelEndpoint[]) channels.values().toArray(
 				new ChannelEndpoint[channels.size()]);
+		channels.clear();
 		for (int i = 0; i < c.length; i++) {
-			c[i].dispose();
+			c[i].dispose();			
 		}
 	}
 
