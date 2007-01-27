@@ -157,7 +157,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * keeps track if the channel endpoint has lost its connection to the other
 	 * endpoint.
 	 */
-	private boolean lostConnection = false;
+	private boolean reconnecting = false;
 
 	/**
 	 * dummy object used for blocking method calls until the result message has
@@ -249,10 +249,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 								+ " broke down. Trying to reconnect ...");
 			}
 			try {
-				if (!lostConnection) {
-					lostConnection = true;
+				if (!reconnecting) {
+					reconnecting = true;
 					networkChannel.reconnect();
-					lostConnection = false;
+					reconnecting = false;
 				}
 			} catch (IOException ioe) {
 				dispose();
@@ -348,7 +348,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		proxiedServices.clear();
 		proxies.clear();
 		handlerReg = null;
-		lostConnection = true;
+		reconnecting = true;
 		synchronized (receiveQueue) {
 			receiveQueue.notifyAll();
 		}
@@ -527,10 +527,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				networkChannel.sendMessage(msg);
 				return;
 			} catch (IOException ioe) {
-				if (!lostConnection) {
-					lostConnection = true;
+				if (!reconnecting) {
+					reconnecting = true;
 					networkChannel.reconnect();
-					lostConnection = false;
+					reconnecting = false;
 				} else {
 					// TODO: enqueue messages and retransmit if recovery
 					// succeeds.
@@ -571,14 +571,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			reply = receiveQueue.get(xid);
 			final long timeout = System.currentTimeMillis() + TIMEOUT;
 			try {
-				while (!lostConnection && reply == WAITING
+				while (!reconnecting && reply == WAITING
 						&& System.currentTimeMillis() < timeout) {
 					receiveQueue.wait(TIMEOUT);
 					reply = receiveQueue.get(xid);
 				}
 				receiveQueue.remove(xid);
 
-				if (lostConnection) {
+				if (reconnecting) {
 					throw new RemoteOSGiException("Lost connection");
 				} else if (reply == WAITING) {
 					throw new RemoteOSGiException(

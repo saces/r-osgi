@@ -200,6 +200,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @see ch.ethz.iks.r_osgi.NetworkChannel#reconnect()
 		 */
 		public void reconnect() throws IOException {
+			connected = false;
 			try {
 				if (socket != null) {
 					socket.close();
