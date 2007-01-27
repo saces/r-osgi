@@ -252,6 +252,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				networkChannel.reconnect();
 			} catch (IOException ioe) {
 				dispose();
+				return;
 			}
 		}
 		final Integer xid = new Integer(msg.getXID());
