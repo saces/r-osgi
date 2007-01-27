@@ -154,12 +154,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private ServiceRegistration handlerReg = null;
 
 	/**
-	 * keeps track if the channel endpoint has lost its connection to the other
-	 * endpoint.
-	 */
-	private boolean lostConnection = false;
-
-	/**
 	 * dummy object used for blocking method calls until the result message has
 	 * arrived.
 	 */
@@ -314,7 +308,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * 
 	 * @category ChannelEndpoint
 	 */
-	public void dispose() {		
+	public void dispose() {
 		if (RemoteOSGiServiceImpl.DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"DISPOSING ENDPOINT " + getID());
@@ -333,7 +327,18 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			} catch (Throwable t) {
 				// don't care
 			}
-		}		
+		}
+		networkChannel = null;
+		remoteServices = null;
+		remoteTopics = null;
+		timeOffset = null;
+		receiveQueue.clear();
+		attributes.clear();
+		services.clear();
+		serviceURLs.clear();
+		proxiedServices.clear();
+		proxies.clear();
+		handlerReg = null;
 	}
 
 	/**
@@ -535,16 +540,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			reply = receiveQueue.get(xid);
 			final long timeout = System.currentTimeMillis() + TIMEOUT;
 			try {
-				while (!lostConnection && reply == WAITING
-						&& System.currentTimeMillis() < timeout) {
+				while (reply == WAITING && System.currentTimeMillis() < timeout) {
 					receiveQueue.wait(TIMEOUT);
 					reply = receiveQueue.get(xid);
 				}
 				receiveQueue.remove(xid);
 
-				if (lostConnection) {
-					throw new RemoteOSGiException("Lost connection");
-				} else if (reply == WAITING) {
+				if (reply == WAITING) {
 					throw new RemoteOSGiException(
 							"Method Invocation failed, timeout exceeded.");
 				} else {
