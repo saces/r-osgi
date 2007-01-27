@@ -346,7 +346,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		proxies.clear();
 		handlerReg = null;
 		lostConnection = true;
-		receiveQueue.notifyAll();
+		synchronized(receiveQueue) {
+			receiveQueue.notifyAll();
+		}
 	}
 
 	/**
