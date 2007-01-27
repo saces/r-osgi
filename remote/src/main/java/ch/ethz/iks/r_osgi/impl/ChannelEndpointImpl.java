@@ -249,7 +249,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 								+ " broke down. Trying to reconnect ...");
 			}
 			try {
-				networkChannel.reconnect();
+				if (!lostConnection) {
+					lostConnection = true;
+					networkChannel.reconnect();
+					lostConnection = false;
+				}
 			} catch (IOException ioe) {
 				dispose();
 				return;
@@ -523,8 +527,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				networkChannel.sendMessage(msg);
 				return;
 			} catch (IOException ioe) {
-				networkChannel.reconnect();
-
+				if (!lostConnection) {
+					lostConnection = true;
+					networkChannel.reconnect();
+					lostConnection = false;
+				} else {
+					// TODO: enqueue messages and retransmit if recovery
+					// succeeds.
+				}
 				// TimeOffsetMessages have to be handled differently
 				// must send a new message with a new timestamp and XID
 				// instead
