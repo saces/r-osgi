@@ -1246,6 +1246,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		 * @see org.osgi.framework.ServiceListener#serviceChanged(org.osgi.framework.ServiceEvent)
 		 */
 		public void serviceChanged(final ServiceEvent event) {
+			if (context == null) {
+				return;
+			}
 			final int type = event.getType();
 			final ServiceReference ref = event.getServiceReference();
 			if (ref.getProperty(R_OSGi_INTERNAL) == Boolean.TRUE) {
