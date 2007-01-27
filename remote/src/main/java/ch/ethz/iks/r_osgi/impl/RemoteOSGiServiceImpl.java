@@ -66,7 +66,6 @@ import ch.ethz.iks.slp.ServiceLocationEnumeration;
 import ch.ethz.iks.slp.ServiceLocationException;
 import ch.ethz.iks.slp.ServiceType;
 import ch.ethz.iks.slp.ServiceURL;
-import ch.ethz.iks.util.CollectionUtils;
 import ch.ethz.iks.util.ScheduleListener;
 import ch.ethz.iks.util.Scheduler;
 
@@ -1061,6 +1060,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		 * @category ServiceListener
 		 */
 		public void serviceChanged(final ServiceEvent event) {
+			if (context == null) {
+				return;
+			}
 			final ServiceReference reference = event.getServiceReference();
 
 			switch (event.getType()) {
@@ -1223,7 +1225,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			if (type == ServiceEvent.REGISTERED) {
 				eventAdmin = (EventAdmin) context.getService(event
 						.getServiceReference());
-				updateLeases();
 			} else if (type == ServiceEvent.UNREGISTERING) {
 				eventAdmin = null;
 			}
