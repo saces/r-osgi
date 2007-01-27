@@ -59,8 +59,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		System.out.println();
-		System.out.println("Servlet called");
+		//System.out.println();
+		//System.out.println("Servlet called");
 		super.service(req, resp);
 	}
 

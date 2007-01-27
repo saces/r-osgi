@@ -94,7 +94,6 @@ final class BundledServiceRegistration extends RemoteServiceRegistration {
 			try {
 				storeFile(file, new URL(attempts[i]).openStream());
 				location = file.getAbsolutePath();
-				System.out.println("STORED AT " + location);
 				return;
 			} catch (IOException ignore) {
 				ignore.printStackTrace();

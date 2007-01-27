@@ -262,7 +262,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				receiveQueue.notifyAll();
 				return;
 			} else {
-				System.out.println("CALLING HANDLEMESSAGE WITH " + msg);
 				RemoteOSGiMessage reply = handleMessage(msg);
 				if (reply != null) {
 					try {
@@ -395,7 +394,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	public void proxiedService(final String serviceURL,
 			final ServiceRegistration reg) {
-		System.out.println(serviceURL + " REGISTERED " + reg);
 		proxiedServices.put(serviceURL, reg);
 	}
 

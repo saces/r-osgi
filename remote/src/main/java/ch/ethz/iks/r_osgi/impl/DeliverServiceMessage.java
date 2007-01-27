@@ -247,7 +247,6 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * @return the class name of the interface.
 	 */
 	String getInterfaceName() {
-		System.out.println("returning interface name " + serviceInterfaceName);
 		return serviceInterfaceName;
 	}
 
@@ -257,13 +256,6 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * @return the interface class.
 	 */
 	byte[] getInterfaceClass() {
-		System.out.println();
-		System.out.println("requesting "
-				+ serviceInterfaceName.replace('.', '/'));
-		System.out.println("injections " + injections);
-		System.out.println(injections.get(serviceInterfaceName
-				.replace('.', '/')
-				+ ".class"));
 		return (byte[]) injections.get(serviceInterfaceName.replace('.', '/')
 				+ ".class");
 	}

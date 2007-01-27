@@ -113,7 +113,6 @@ class TimeOffsetMessage extends RemoteOSGiMessageImpl {
 	 */
 	void restamp(int newXID) {
 		this.xid = newXID;
-		System.out.println("timeSeries.length is " + timeSeries.length);
 		timeSeries[timeSeries.length - 1] = new Long(System.currentTimeMillis());
 	}
 

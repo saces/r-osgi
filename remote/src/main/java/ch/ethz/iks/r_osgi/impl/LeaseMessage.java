@@ -93,7 +93,6 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	LeaseMessage(final ObjectInputStream input) throws IOException {
 		funcID = LEASE;
 		final int slen = input.readShort();
-		System.out.println(slen);
 		final String[] services = new String[slen];
 		for (int i = 0; i < slen; i++) {
 			services[i] = input.readUTF();
