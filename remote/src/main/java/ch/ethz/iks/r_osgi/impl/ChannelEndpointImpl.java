@@ -314,11 +314,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * 
 	 * @category ChannelEndpoint
 	 */
-	public void dispose() {
+	public void dispose() {		
 		if (RemoteOSGiServiceImpl.DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"DISPOSING ENDPOINT " + getID());
 		}
+		RemoteOSGiServiceImpl.unregisterChannel(this);
 		if (handlerReg != null) {
 			handlerReg.unregister();
 		}
@@ -332,8 +333,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			} catch (Throwable t) {
 				// don't care
 			}
-		}
-		RemoteOSGiServiceImpl.unregisterChannel(this);
+		}		
 	}
 
 	/**
