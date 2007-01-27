@@ -395,7 +395,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					+ ENDPOINT_I + ";");
 			method.visitLdcInsn(url);
 			method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
-					"getAttributes",
+					"getProperties",
 					"(Ljava/lang/String;)Ljava/util/Dictionary;");
 			method
 					.visitMethodInsn(
@@ -412,7 +412,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					+ ENDPOINT_I + ";");
 			method.visitLdcInsn(url);
 			method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
-					"getAttributes",
+					"getProperties",
 					"(Ljava/lang/String;)Ljava/util/Dictionary;");
 			method.visitLdcInsn(RemoteOSGiService.PRESENTATION);
 			method.visitMethodInsn(INVOKEVIRTUAL, "java/util/Dictionary",
@@ -440,7 +440,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			method.visitVarInsn(ALOAD, 2);
 			method.visitLdcInsn(url);
 			method.visitMethodInsn(INVOKEINTERFACE, REMOTING_I,
-					"getPresentationAttributes",
+					"getPresentationProperties",
 					"(Ljava/lang/String;)Ljava/util/Dictionary;");
 			method
 					.visitMethodInsn(
