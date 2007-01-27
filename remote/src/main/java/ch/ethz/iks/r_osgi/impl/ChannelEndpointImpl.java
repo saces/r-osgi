@@ -503,6 +503,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	private void send(final RemoteOSGiMessageImpl msg) {
+		if (networkChannel == null) {
+			return;
+		}
+		
 		if (msg.xid == 0) {
 			msg.xid = RemoteOSGiServiceImpl.nextXid();
 		}
