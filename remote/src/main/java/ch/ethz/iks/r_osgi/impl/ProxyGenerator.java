@@ -405,7 +405,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 							"(Ljava/lang/String;Ljava/lang/Object;Ljava/util/Dictionary;)Lorg/osgi/framework/ServiceRegistration;");
 			method
 					.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
-							"proxiedService",
+							"trackRegistration",
 							"(Ljava/lang/String;Lorg/osgi/framework/ServiceRegistration;)V");
 			method.visitVarInsn(ALOAD, 0);
 			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
