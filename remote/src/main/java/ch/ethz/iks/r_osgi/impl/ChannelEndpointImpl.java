@@ -322,18 +322,18 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (handlerReg != null) {
 			handlerReg.unregister();
 		}
-		RemoteOSGiServiceImpl.unregisterChannel(this);
 		Bundle[] bundles = (Bundle[]) proxies.values().toArray(
 				new Bundle[proxies.size()]);
 		for (int i = 0; i < bundles.length; i++) {
 			try {
-				if (bundles[i].getState() == Bundle.ACTIVE) {
+				if (bundles[i].getState() != Bundle.UNINSTALLED) {
 					bundles[i].uninstall();
 				}
 			} catch (Throwable t) {
 				// don't care
 			}
 		}
+		RemoteOSGiServiceImpl.unregisterChannel(this);
 	}
 
 	/**
