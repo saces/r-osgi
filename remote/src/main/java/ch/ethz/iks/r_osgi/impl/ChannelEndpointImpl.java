@@ -154,6 +154,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private ServiceRegistration handlerReg = null;
 
 	/**
+	 * keeps track if the channel endpoint has lost its connection to the other
+	 * endpoint.
+	 */
+	private boolean lostConnection = false;
+
+	/**
 	 * dummy object used for blocking method calls until the result message has
 	 * arrived.
 	 */
@@ -339,6 +345,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		proxiedServices.clear();
 		proxies.clear();
 		handlerReg = null;
+		lostConnection = true;
+		receiveQueue.notifyAll();
 	}
 
 	/**
@@ -540,13 +548,16 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			reply = receiveQueue.get(xid);
 			final long timeout = System.currentTimeMillis() + TIMEOUT;
 			try {
-				while (reply == WAITING && System.currentTimeMillis() < timeout) {
+				while (!lostConnection && reply == WAITING
+						&& System.currentTimeMillis() < timeout) {
 					receiveQueue.wait(TIMEOUT);
 					reply = receiveQueue.get(xid);
 				}
 				receiveQueue.remove(xid);
 
-				if (reply == WAITING) {
+				if (lostConnection) {
+					throw new RemoteOSGiException("Lost connection");
+				} else if (reply == WAITING) {
 					throw new RemoteOSGiException(
 							"Method Invocation failed, timeout exceeded.");
 				} else {
