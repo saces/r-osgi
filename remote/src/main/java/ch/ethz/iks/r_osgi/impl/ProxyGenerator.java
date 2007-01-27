@@ -350,14 +350,13 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 		}
 
+		final String url = serviceURL.toString();
+
 		field = writer.visitField(ACC_PRIVATE, "endpoint",
 				"Lch/ethz/iks/r_osgi/ChannelEndpoint;", null, null);
 		field.visitEnd();
 
 		{
-			// TODO: factor this out, it is needed in some other methods as
-			// well.
-			final String url = serviceURL.toString();
 
 			method = writer.visitMethod(ACC_PUBLIC, "start",
 					"(Lorg/osgi/framework/BundleContext;)V", null,
@@ -460,8 +459,19 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					"(Lorg/osgi/framework/BundleContext;)V", null,
 					new String[] { "java/lang/Exception" });
 			method.visitCode();
+			method.visitVarInsn(ALOAD, 0);
+			method.visitFieldInsn(GETFIELD, implName, "endpoint",
+					"Lch/ethz/iks/r_osgi/ChannelEndpoint;");
+			method.visitLdcInsn(url);
+			method.visitMethodInsn(INVOKEINTERFACE,
+					"ch/ethz/iks/r_osgi/ChannelEndpoint",
+					"untrackRegistration", "(Ljava/lang/String;)V");
+			method.visitVarInsn(ALOAD, 0);
+			method.visitInsn(ACONST_NULL);
+			method.visitFieldInsn(PUTFIELD, implName, "endpoint",
+					"Lch/ethz/iks/r_osgi/ChannelEndpoint;");
 			method.visitInsn(RETURN);
-			method.visitMaxs(0, 2);
+			method.visitMaxs(2, 2);
 			method.visitEnd();
 		}
 	}
@@ -1043,5 +1053,4 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		}
 		return buffer.toString();
 	}
-
 }

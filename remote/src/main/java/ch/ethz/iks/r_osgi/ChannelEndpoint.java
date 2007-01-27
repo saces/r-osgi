@@ -77,7 +77,7 @@ public interface ChannelEndpoint {
 	 * @return the service attributes.
 	 * @since 0.6
 	 */
-	Dictionary getAttributes(final String serviceURL);
+	Dictionary getProperties(final String serviceURL);
 
 	/**
 	 * get the attributes for the presentation of the service. This function is
@@ -88,18 +88,27 @@ public interface ChannelEndpoint {
 	 * @return the attributes for the presentation.
 	 * @since 0.6
 	 */
-	Dictionary getPresentationAttributes(final String serviceURL);
+	Dictionary getPresentationProperties(final String serviceURL);
 
 	/**
-	 * register a proxied service to allow updates of the properties.
+	 * register a proxied service registration to allow updates of the properties.
 	 * 
 	 * @param serviceURL
 	 *            the service url.
 	 * @param reg
 	 *            the service registration object.
 	 */
-	void proxiedService(final String serviceURL, final ServiceRegistration reg);
+	void trackRegistration(final String serviceURL, final ServiceRegistration reg);
 
+	/**
+	 * unregister a proxied service registration.
+	 * 
+	 * @param serviceURL
+	 *            the service url.
+	 * @param reg
+	 *            the service registration object.
+	 */	
+	void untrackRegistration(final String serviceURL);
 	/**
 	 * get the ID of the channel endpoint. This is some kind of URL consisting
 	 * of the protocol, the host address to where the channel is connected, and

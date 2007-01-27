@@ -344,7 +344,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		proxies.clear();
 		handlerReg = null;
 		lostConnection = true;
-		synchronized(receiveQueue) {
+		synchronized (receiveQueue) {
 			receiveQueue.notifyAll();
 		}
 	}
@@ -358,7 +358,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @return the service attributes.
 	 * @category ChannelEndpoint
 	 */
-	public Dictionary getAttributes(final String serviceURL) {
+	public Dictionary getProperties(final String serviceURL) {
 		return (Dictionary) attributes.get(serviceURL);
 	}
 
@@ -371,7 +371,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @return the presentation attributes.
 	 * @category ChannelEndpoint
 	 */
-	public Dictionary getPresentationAttributes(final String serviceURL) {
+	public Dictionary getPresentationProperties(final String serviceURL) {
 		final Dictionary attribs = new Hashtable();
 		try {
 			attribs.put(RemoteOSGiServiceImpl.REMOTE_HOST, new ServiceURL(
@@ -392,9 +392,18 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @param reg
 	 * @category ChannelEndpoint
 	 */
-	public void proxiedService(final String serviceURL,
+	public void trackRegistration(final String serviceURL,
 			final ServiceRegistration reg) {
 		proxiedServices.put(serviceURL, reg);
+	}
+
+	/**
+	 * 
+	 * @param serviceURL
+	 * @category ChannelEndpoint
+	 */
+	public void untrackRegistration(final String serviceURL) {
+		proxiedServices.remove(serviceURL);
 	}
 
 	/**
@@ -503,7 +512,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (networkChannel == null) {
 			return;
 		}
-		
+
 		if (msg.xid == 0) {
 			msg.xid = RemoteOSGiServiceImpl.nextXid();
 		}
