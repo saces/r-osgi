@@ -278,6 +278,11 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @since 0.6
 		 */
 		private class ReceiverThread extends Thread {
+			private ReceiverThread() {
+				this.setName("TCPChannel:ReceiverThread:" + getID());
+				this.setDaemon(true);
+			}
+
 			public void run() {
 				while (connected) {
 					try {

@@ -54,6 +54,7 @@ public class Activator implements BundleActivator {
 					// and create a thread that makes use of the service
 					usingThread = new Thread() {
 						public void run() {
+							setName("SampleClientThread");
 							try {
 								int i = 1;
 								while (running) {

@@ -41,6 +41,7 @@ public class Activator implements BundleActivator {
 		private EventGenerator(EventAdmin ea) {
 			eadmin = ea;
 			event = new Event("test/topic", null);
+			setName("EventGenerator");
 		}
 
 		public void run() {

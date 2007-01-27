@@ -78,6 +78,7 @@ public class HttpTransportTest implements BundleActivator {
 				.getFetchedService(services[0]);
 		new Thread() {
 			public void run() {
+				setName("HttpTestClient");
 				try {
 					int i = 0;
 					while (remote != null) {

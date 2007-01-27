@@ -181,6 +181,7 @@ public final class Scheduler {
 		 */
 		ScheduleThread() {
 			setDaemon(true);
+			setName("Scheduler");
 		}
 
 		/**

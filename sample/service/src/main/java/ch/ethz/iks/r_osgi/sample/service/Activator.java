@@ -1,9 +1,5 @@
 package ch.ethz.iks.r_osgi.sample.service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Dictionary;
 import java.util.Hashtable;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -44,6 +40,7 @@ public class Activator implements BundleActivator {
 			final EventAdmin eventAdmin = (EventAdmin) context.getService(ref);
 			new Thread() {
 				public void run() {
+					setName("SampleServiceEventThread");
 					final Event event = new Event("test/topic", null);
 					while (true) {
 						System.out.println();
@@ -58,7 +55,7 @@ public class Activator implements BundleActivator {
 				}
 			}.start();
 
-			//properties.clear();
+			// properties.clear();
 
 			context.registerService(ShellCommandGroup.class.getName(),
 					new ShellCommandGroup() {

@@ -277,6 +277,8 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 
 			private CallbackThread(final ObjectInputStream in) {
 				this.input = in;
+				this.setDaemon(true);
+				this.setName("HTTPChannel:CallbackThread:" + getID());
 			}
 
 			public void run() {
