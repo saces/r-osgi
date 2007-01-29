@@ -10,6 +10,7 @@ import org.osgi.service.event.EventAdmin;
 
 import ch.ethz.iks.concierge.shell.commands.ShellCommandGroup;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
+import ch.ethz.iks.r_osgi.RemoteRegistration;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 
 public class Activator implements BundleActivator {
@@ -22,15 +23,19 @@ public class Activator implements BundleActivator {
 		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
 				RemoteOSGiService.SERVICE_PROXY_POLICY);
 		properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class
-				.getName());
+				.getName());		
 
 		// properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
 		// RemoteOSGiService.TRANSFER_BUNDLE_POLICY);
 
 		final ServiceRegistration reg = context
 				.registerService(ServiceInterface.class.getName(),
-						new ServiceImpl(), properties);
+						new ServiceImpl(), null);
 
+		properties.put(RemoteRegistration.SERVICE_REFERENCE, reg.getReference());
+		
+		context.registerService(RemoteRegistration.class.getName(), this, properties);
+		
 		System.out.println("Registered service "
 				+ ServiceInterface.class.getName());
 
