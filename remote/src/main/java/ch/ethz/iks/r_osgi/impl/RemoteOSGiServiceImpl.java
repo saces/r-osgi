@@ -545,7 +545,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 			}
 
-			serviceRegistrations.put(service, reg);
+			serviceRegistrations.put(ref, reg);
 
 			final Dictionary attribs = reg.getProperties();
 			final ServiceURL[] urls = reg.getURLs();

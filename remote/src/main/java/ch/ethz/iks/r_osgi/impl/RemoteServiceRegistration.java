@@ -64,12 +64,12 @@ class RemoteServiceRegistration {
 	 *            the service reference.
 	 * @throws ServiceLocationException
 	 */
-	RemoteServiceRegistration(final ServiceReference reference)
+	RemoteServiceRegistration(final ServiceReference reference, final ServiceReference service)
 			throws ServiceLocationException {
 		this.reference = reference;
 		this.serviceID = ((Long) reference.getProperty(Constants.SERVICE_ID))
 				.longValue();
-		this.interfaceNames = (String[]) reference
+		this.interfaceNames = (String[]) service
 				.getProperty(Constants.OBJECTCLASS);
 		final int interfaceCount = interfaceNames.length;
 		final Long serviceID = (Long) reference
