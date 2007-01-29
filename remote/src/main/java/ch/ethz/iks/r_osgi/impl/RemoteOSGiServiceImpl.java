@@ -57,6 +57,7 @@ import ch.ethz.iks.r_osgi.DiscoveryListener;
 import ch.ethz.iks.r_osgi.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
+import ch.ethz.iks.r_osgi.RemoteRegistration;
 import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.Timestamp;
 import ch.ethz.iks.r_osgi.NetworkChannelFactory;
@@ -110,7 +111,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	/**
 	 * constant that holds the property string for internal debug option.
 	 */
-	static final String DEBUG_PROPERTY = "ch.ethz.iks.r_osgi.debug";
+	static final String DEBUG_PROPERTY = "ch.ethz.iks.r_osgi.debug.internal";
 
 	/**
 	 * constant that holds the property string for SLP discovery interval time
@@ -496,11 +497,18 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * @since 0.6
 	 * @category RemoteOSGiService
 	 */
-	void registerService(final ServiceReference ref) throws RemoteOSGiException {
+	void registerService(final ServiceReference reference)
+			throws RemoteOSGiException {
 		// sanity check
-		if (ref == null) {
+		if (reference == null) {
 			throw new RemoteOSGiException("Cannot register a null service");
 		}
+
+		final ServiceReference ref = Arrays.asList(
+				(String[]) reference.getProperty(Constants.OBJECTCLASS))
+				.contains(RemoteRegistration.class.getName()) ? (ServiceReference) reference
+				.getProperty(RemoteRegistration.SERVICE_REFERENCE)
+				: reference;
 
 		try {
 
@@ -714,7 +722,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				new ChannelEndpoint[channels.size()]);
 		channels.clear();
 		for (int i = 0; i < c.length; i++) {
-			c[i].dispose();			
+			c[i].dispose();
 		}
 	}
 

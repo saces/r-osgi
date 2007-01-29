@@ -13,28 +13,14 @@
 		<section name="Getting started with R-OSGi">
 			<subsection name="Installation">
 				<p>
-					First of all, install an OSGi framework implementation of your choice. It should be at least OSGi R3 compliant. <br/>
+					First of all, install an OSGi framework implementation of your choice. It should be at least OSGi R3 compliant. You can use, for instance, our own R3 implementation <a href="http://concierge.sourceforge.net">Concierge</a>.<br/>
 					Next, download the current version of R-OSGi from a <a href="http://sourceforge.net/project/showfiles.php?group_id=158382">sourceforge mirror</a>. <br/>
 					And download the current version of jSLP-OSGi from a <a href="http://sourceforge.net/project/showfiles.php?group_id=151721">sourceforge mirror</a>. <br/>
 					If you plan to use remote events, then you also need an EventAdmin implementation. Either your framework has one for you, or in case you are using an R3 framework (EventAdmin came out with R4), you can take the backport from Concierge.
 				</p>
 				<p>
-					R-OSGi has a dependency to jSLP-OSGi, so it has to be installed and started before R-OSGi is started. <br/>
-					For Concierge and Knopflerfish, the following <code>init.xargs</code> do the job:
-<source>
--Dorg.knopflerfish.gosg.jars=<i>your bundle location</i>	
--init
-
--istart  jslp-osgi-0.5.9.jar
--istart  remote-0.5.0.jar
--istart  event-admin-0.6.0.jar
-
--launch	
-</source>
-					<br/>
-				If you want to see debug output, you also need an OSGi <code>LogService</code> bundle and you have to set the 
-				<a href="properties.html">Properties</a>. Concierge has a built-in LogService that can be activated by setting <code>-Dch.ethz.iks.concierge.log.enabled=true</code>.
-			</p>
+					For a quick start, you can download the sample client and service distributions. They contain a full configuration with Concierge, jSLP and R-OSGi for easy evaluation of our technology. 
+				</p>
 			</subsection>
 			<subsection name="The big picture of R-OSGi">
 				<p>

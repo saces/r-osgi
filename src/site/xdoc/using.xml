@@ -24,15 +24,19 @@
 				<td><a href="http://flowsgi.inf.ethz.ch">flowSGi website</a></td>
 			</tr>
 			<tr>
-				<td><i>title pending</i></td>
-				<td>Dynamic adaptive caching strategies for distributed data-intensive applications. (ongoing master's thesis supervised by Angela Nicoara, ETH Zurich)</td>
+				<td><i>DC-Prose</i></td>
+				<td>Dynamic adaptive caching strategies for distributed data-intensive applications. (Master's thesis by Markus Egli, ETH Zurich)</td>
 				<td></td>
 			</tr>
+			<tr>
+				<td><i>SwissQM</i></td>
+				<td>SwissQM is a stack-based Virtual Machine for wireless sensor networks. We use R-OSGi in an experimental branch to provide an integration into the Eclipse IDE.</td>
+				<td>http://www.swissqm.inf.ethz.ch/</td>
+			</tr>
 		</table>
-		</p>
-		
+		</p>		
 		<p>
-			If you use R-OSGi in your project, please let us know and send an <a href="mailto:rjan@users.sourceforge.net">email</a>.
+			If you use R-OSGi in your project, please let us know and send an <a href="mailto:rjan_at_users.sourceforge.net">email</a>.
 		</p>
 	</section>
 </body>
