@@ -79,11 +79,11 @@ final class BundledServiceRegistration extends RemoteServiceRegistration {
 	 * @throws ServiceLocationException
 	 *             if the generated SLP service url is invalid.
 	 */
-	BundledServiceRegistration(final ServiceReference ref, final String storage)
+	BundledServiceRegistration(final ServiceReference ref, final ServiceReference service, final String storage)
 			throws RemoteOSGiException, ServiceLocationException {
 		super(ref);
 
-		final Bundle bundle = ref.getBundle();
+		final Bundle bundle = service.getBundle();
 		final Dictionary headers = bundle.getHeaders();
 		final String[] attempts = new String[] { bundle.getLocation(),
 				(String) headers.get(Constants.BUNDLE_UPDATELOCATION),

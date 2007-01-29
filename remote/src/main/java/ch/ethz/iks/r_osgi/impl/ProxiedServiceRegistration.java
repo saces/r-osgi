@@ -71,13 +71,13 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 	 *             if one of the interface classes cannot be found.
 	 * @throws ServiceLocationException
 	 */
-	ProxiedServiceRegistration(final ServiceReference ref)
+	ProxiedServiceRegistration(final ServiceReference ref, final ServiceReference service)
 			throws ClassNotFoundException, ServiceLocationException {
 
 		super(ref);
 
 		// get the service object
-		this.serviceObject = RemoteOSGiServiceImpl.context.getService(ref);
+		this.serviceObject = RemoteOSGiServiceImpl.context.getService(service);
 		if (serviceObject == null) {
 			throw new IllegalStateException("Service is not present.");
 		}
@@ -85,7 +85,7 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 		// get the interface classes
 		final ClassLoader bundleLoader = serviceObject.getClass()
 				.getClassLoader();
-		final String[] interfaceNames = (String[]) ref
+		final String[] interfaceNames = (String[]) service
 				.getProperty(Constants.OBJECTCLASS);
 		final int interfaceCount = interfaceNames.length;
 		final Class[] serviceInterfaces = new Class[interfaceCount];
@@ -100,7 +100,7 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 			}
 		}
 
-		final Dictionary headers = ref.getBundle().getHeaders();
+		final Dictionary headers = service.getBundle().getHeaders();
 		final CodeAnalyzer inspector = new CodeAnalyzer(bundleLoader,
 				(String) headers.get(Constants.IMPORT_PACKAGE),
 				(String) headers.get(Constants.EXPORT_PACKAGE));

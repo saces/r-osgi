@@ -497,18 +497,18 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * @since 0.6
 	 * @category RemoteOSGiService
 	 */
-	void registerService(final ServiceReference reference)
+	void registerService(final ServiceReference ref)
 			throws RemoteOSGiException {
 		// sanity check
-		if (reference == null) {
+		if (ref == null) {
 			throw new RemoteOSGiException("Cannot register a null service");
 		}
 
-		final ServiceReference ref = Arrays.asList(
-				(String[]) reference.getProperty(Constants.OBJECTCLASS))
-				.contains(RemoteRegistration.class.getName()) ? (ServiceReference) reference
+		final ServiceReference service = Arrays.asList(
+				(String[]) ref.getProperty(Constants.OBJECTCLASS))
+				.contains(RemoteRegistration.class.getName()) ? (ServiceReference) ref
 				.getProperty(RemoteRegistration.SERVICE_REFERENCE)
-				: reference;
+				: ref;
 
 		try {
 
@@ -521,11 +521,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 				// for the moment, don't accept registrations from bundles that
 				// have already been fetched from a remote peer.
-				if (ref.getBundle().getLocation().startsWith("r-osgi://")) {
+				if (service.getBundle().getLocation().startsWith("r-osgi://")) {
 					return;
 				}
 
-				reg = new BundledServiceRegistration(ref, storage);
+				reg = new BundledServiceRegistration(ref, service, storage);
 
 				if (log != null) {
 					log.log(LogService.LOG_INFO, "REGISTERING "
@@ -535,7 +535,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 			} else {
 				// default: proxied service
-				reg = new ProxiedServiceRegistration(ref);
+				reg = new ProxiedServiceRegistration(ref, service);
 
 				if (log != null) {
 					log.log(LogService.LOG_INFO, "REGISTERING "
@@ -545,7 +545,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 			}
 
-			serviceRegistrations.put(ref, reg);
+			serviceRegistrations.put(service, reg);
 
 			final Dictionary attribs = reg.getProperties();
 			final ServiceURL[] urls = reg.getURLs();
@@ -562,10 +562,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		} catch (ServiceLocationException e) {
 			e.printStackTrace();
 			throw new RemoteOSGiException(
-					"Error on SLP layer while registering " + ref, e);
+					"Error on SLP layer while registering " + service, e);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
-			throw new RemoteOSGiException("Cannot find class " + ref, e);
+			throw new RemoteOSGiException("Cannot find class " + service, e);
 		}
 	}
 
