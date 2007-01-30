@@ -66,6 +66,8 @@ class RemoteServiceRegistration {
 	 */
 	RemoteServiceRegistration(final ServiceReference reference, final ServiceReference service)
 			throws ServiceLocationException {
+		System.out.println("reference is " + reference);
+		System.out.println("service is " + service);
 		this.reference = reference;
 		this.serviceID = ((Long) service.getProperty(Constants.SERVICE_ID))
 				.longValue();
