@@ -505,10 +505,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		}
 
 		final ServiceReference service = Arrays.asList(
-				(String[]) ref.getProperty(Constants.OBJECTCLASS))
-				.contains(RemoteRegistration.class.getName()) ? (ServiceReference) ref
-				.getProperty(RemoteRegistration.SERVICE_REFERENCE)
-				: ref;
+				(String[]) ref.getProperty(Constants.OBJECTCLASS)).contains(
+				RemoteRegistration.class.getName()) ? (ServiceReference) ref
+				.getProperty(RemoteRegistration.SERVICE_REFERENCE) : ref;
 
 		try {
 
@@ -733,25 +732,18 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * @return return the services.
 	 */
 	static String[] getServices() {
-		try {
-			final ArrayList result = new ArrayList();
-			final ServiceReference[] references = context.getServiceReferences(
-					null, "(" + R_OSGi_REGISTRATION + "=*)");
-			if (references == null) {
-				return new String[0];
+		final ArrayList result = new ArrayList();
+		final RemoteServiceRegistration[] regs = (RemoteServiceRegistration[]) serviceRegistrations
+				.values().toArray(
+						new RemoteServiceRegistration[serviceRegistrations
+								.size()]);
+		for (int i = 0; i < regs.length; i++) {
+			ServiceURL[] urls = regs[i].getURLs();
+			for (int j = 0; j < urls.length; j++) {
+				result.add(urls[i].toString());
 			}
-			for (int i = 0; i < references.length; i++) {
-				ServiceURL[] urls = ((RemoteServiceRegistration) serviceRegistrations
-						.get(references[i])).getURLs();
-				for (int j = 0; j < urls.length; j++) {
-					result.add(urls[i].toString());
-				}
-			}
-			return (String[]) result.toArray(new String[result.size()]);
-		} catch (InvalidSyntaxException e) {
-			e.printStackTrace();
-			return null;
 		}
+		return (String[]) result.toArray(new String[result.size()]);
 	}
 
 	static RemoteServiceRegistration getService(final ServiceURL url) {
