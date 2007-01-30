@@ -4,7 +4,7 @@
   <artifactId>project</artifactId>
   <packaging>pom</packaging>
   <name>R-OSGi</name>
-  <version>0.6.0_pre</version>
+  <version>0.6.0</version>
   <description>R-OSGi Project</description>
   <url>http://r-osgi.sourceforge.net</url>
   <issueManagement>
@@ -30,12 +30,13 @@
     <license>
       <name>BSD license</name>
       <distribution>repo</distribution>
+ 	  <url>LICENSE.txt</url>      
     </license>
   </licenses>
   <scm>
     <connection>scm:svn:https://r-osgi.svn.sourceforge.net/svnroot/r-osgi</connection>
     <developerConnection>scm:svn:rjan@https://r-osgi.svn.sourceforge.net/svnroot/r-osgi</developerConnection>
-    <tag>jSLP</tag>
+    <tag>R-OSGi</tag>
     <url>http://r-osgi.svn.sourceforge.net/r-osgi</url>
   </scm>
   <organization>

@@ -115,7 +115,7 @@ public interface RemoteOSGiService {
 	 * implemented as remote calls, implemented methods remain untouched. This
 	 * allows to perform some of the work on client side (inside of implemented
 	 * methods). The value of this property in the service property dictionary
-	 * has to be a <code>Class</code> object.
+	 * has to be a the name of a class.
 	 * 
 	 * @since 0.5
 	 */
@@ -138,7 +138,7 @@ public interface RemoteOSGiService {
 	/**
 	 * property for registration of a service UI component that gived the user a
 	 * presentation of the service. The value of the property in the service
-	 * property dictionary has to be a <code>Class</code> object of a class
+	 * property dictionary has to be a name of a class
 	 * implementing
 	 * <code>org.service.proposition.remote.ServiceUIComponent</code>. When
 	 * this property is set, the presentation is injected into the bundle and

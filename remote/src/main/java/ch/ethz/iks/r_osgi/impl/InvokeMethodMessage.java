@@ -169,10 +169,10 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 * @param port
 	 *            the port.
 	 * @throws ServiceLocationException
-	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#restamp(java.lang.String,
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#rewrite(java.lang.String,
 	 *      java.lang.String, int)
 	 */
-	public void restamp(final String protocol, final String host, final int port)
+	public void rewrite(final String protocol, final String host, final int port)
 			throws IllegalArgumentException {
 		try {
 			final ServiceURL original = new ServiceURL(serviceURL, 0);

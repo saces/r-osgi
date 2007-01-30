@@ -63,9 +63,9 @@ public final class ServiceImpl implements ServiceInterface {
 	public String echoService(final String message, final Integer count) {
 		StringBuffer buffer = new StringBuffer();
 		final int c = count.intValue();
-		for (int i = 0; i < c; i++) {
+		for (int i = 0; i &lt; c; i++) {
 			buffer.append(message);
-			if (i < c - 1) {
+			if (i &lt; c - 1) {
 				buffer.append(" | ");
 			}
 		}
@@ -142,9 +142,9 @@ context.registerService(ServiceInterface.class.getName(), new ServiceImpl(), pro
 
 (...)
 </source>
-
+</p>
 </subsection>
-			<subsection name="Smart proxy example">
+			<subsection name="Handling of existing services">
 			<p>
 			This way of registering services for remote access is still a bit invasive. It requires to alter the part of the code
 			which registers the service (typically, the BundleActivator). To deal with existing bundles, there is an alternative 

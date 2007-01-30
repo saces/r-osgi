@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+	<properties>
+		<title>R-OSGi - transparent OSGi remote extension for distributed services - Troubleshooting</title>
+		<author email="rellermeyer_AT_inf.ethz.ch">Jan S. Rellermeyer</author>
+	</properties>
+	<meta name="keyword" content="Projects, using, OSGi, R-OSGi, rosgi, remote, remoting, Java, J2ME, embedded systems, Event, Service, EventAdmin, Remote Event, RemoteEvent, SLP, Remote services, service discovery"/>
+	<meta name="description" content="The Lego mindstorm robots are controlled by R-OSGi, the OSGi remote service framework based on jSLP, the pure java slp implementation."/>
+	<meta http-equiv="cache-control" content="no-cache"/>
+	<meta http-equiv="pragma" content="no-cache"/>
+	<meta http-equiv="robots" content="index, follow"/>
+	<body>
+		<section name="Troubleshooting Service Discovery">
+			<subsection name="Tracing the messages">
+				<p>
+					First, set all debug properties to have more information about what happens on the network layer. Most important, set <code>net.slp.traceMsg</code> to see
+					the SLP messages. Make sure that a <code>LogService</code> is present. On Concierge, this is always the case but the log output has to be enabled by setting 
+					<code>ch.ethz.iks.concierge.log.enabled=true</code> and <code>ch.ethz.iks.concierge.log.level=4</code>. 
+				</p>
+			</subsection>
+			<subsection name="Multicast Convergence returns no results">
+				<p>
+					If this is the case, check if you have firewalls on the machines. SLP operates by default on port 427, R-OSGi operated by default on port 9278. Open the SLP port 
+					for TCP and UDP traffic and the R-OSGi port for TCP traffic. Note that the distros available for download are configured to run the SLP protocol on the non-standard
+					port <i>10427</i> to allow running R-OSGi as non-root user. If no interoperability with existing SLP services or infrastructure has to be ensured, this is okay as long 
+					as all R-OSGi peers have their jSLP configured to use the same port.
+				</p>
+				<p>
+					For the case that this still does not help, have a look on which adress is reported by jSLP to be the one where the SLP protocol runs on. If the adress is something wired 
+					(like,e.g., <i>127.0.1.1</i>), you are most likely running Linux and have no default route set. This can be fixed by explicitly telling jSLP on which interface it should run, 
+					by setting <code>net.slp.interfaces=<i>ip-address</i></code>. 
+				</p>				
+			</subsection>
+			<subsection name="Multihomed machines">
+				<p>
+					Make sure that the routes for the multicast addresses used by SLP are pointing to the right network interface. For instance, if you have <i>eth1</i> as the interface to your local network
+					and this is the interface where you want to use R-OSGi on, do something like:
+<source>
+route add -host 239.255.255.253 dev eth1
+</source>				
+					Otherwise, the multicast messages by jSLP follow the default route and this might lead them to your WAN instead of your LAN. 			
+				</p>
+			</subsection>			
+		</section>
+		<section name="Troubleshooting Service Access">
+			<subsection name="Debug options">
+				<p>
+					R-OSGi has a couple of debug properties that enable debug outputs and can help you to find out what is happening inside of the R-OSGi system. See the <a href="properties.html">Properties</a> for details.
+					One again, the debug output requires the presence of an OSGi <code>LogService</code>.
+				</p>
+			</subsection>
+			<subsection name="Multiple R-OSGi instances on the same machine">
+				<p>
+					It is possible to run multiple R-OSGi instances on the same machine, if you configure each of them to run on a different port by setting <code>ch.ethz.iks.r_osgi.port</code>. jSLP is able to run multiple 
+					instances sharing the same daemon so this should not be a problem. However, note that the first instance of jSLP always holds the (shared) daemon and if this instance is shut down, the other instances 
+					will be rendered inoperable unless a new instance is started which then takes over the daemon part.
+				</p>
+			</subsection>		
+		</section>
+	</body>
+</document>

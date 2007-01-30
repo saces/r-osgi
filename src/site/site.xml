@@ -26,6 +26,7 @@
 			<item name="What's new" href="/whatsnew.html"/>
 			<item name="Getting Started" href="/userguide.html"/>
 			<item name="Advanced R-OSGi" href="/advanced.html"/>
+			<item name="Network Channels" href="/channels.html"/>
 			<item name="ServiceUI" href="/serviceUI.html"/>
 			<item name="Examples" href="/mindstorm.html" collapse="false">
 				<item name="Lego Mindstorm Robots" href="/mindstorm.html"/>

@@ -135,7 +135,7 @@ public abstract class RemoteOSGiMessage {
 	}
 
 	/**
-	 * restamp the message for bridging.
+	 * rewrite the serviceURLs contained in the message for bridging.
 	 * 
 	 * @param protocol
 	 *            the protocol.
@@ -146,7 +146,7 @@ public abstract class RemoteOSGiMessage {
 	 * @throws IllegalArgumentException
 	 *             if the result is an invalid SLP serviceURL.
 	 */
-	public abstract void restamp(final String protocol, final String host,
+	public abstract void rewrite(final String protocol, final String host,
 			final int port) throws IllegalArgumentException;
 
 }

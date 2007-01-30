@@ -11,15 +11,20 @@
 	<meta http-equiv="robots" content="index, follow"/>
 	<body>
 		<section name="Getting started with R-OSGi">
-			<subsection name="Installation">
+			<subsection name="Quick Start">
+			<p>
+					For a quick start, you can download the sample client and service distros. They contain a full configuration with Concierge, jSLP and R-OSGi for easy evaluation of our technology. Simply unpack the zips and place the client and service on two different machines within the same subnet
+					and it should run out of the box. The SLP service discovery layer sometimes requires some adjustments of firewalls and the presence of a default route to run properly. See <a href="troubleshooting.html">Troubleshooting</a> for details.	
+					Please note that R-OSGi generally does not make any assumptions about static role assignment, such as client or service provider. Only for reasons of simplicity, the distribution is devided into a pure service provider and a pure service client part.	
+			</p>
+			</subsection>
+			<subsection name="Creating your own deployment">
 				<p>
 					First of all, install an OSGi framework implementation of your choice. It should be at least OSGi R3 compliant. You can use, for instance, our own R3 implementation <a href="http://concierge.sourceforge.net">Concierge</a>.<br/>
 					Next, download the current version of R-OSGi from a <a href="http://sourceforge.net/project/showfiles.php?group_id=158382">sourceforge mirror</a>. <br/>
 					And download the current version of jSLP-OSGi from a <a href="http://sourceforge.net/project/showfiles.php?group_id=151721">sourceforge mirror</a>. <br/>
 					If you plan to use remote events, then you also need an EventAdmin implementation. Either your framework has one for you, or in case you are using an R3 framework (EventAdmin came out with R4), you can take the backport from Concierge.
-				</p>
-				<p>
-					For a quick start, you can download the sample client and service distributions. They contain a full configuration with Concierge, jSLP and R-OSGi for easy evaluation of our technology. 
+					Due to its lightweight architecture, R-OSGi runs on every Java VM which is at least CDC 1.0 compliant.
 				</p>
 			</subsection>
 			<subsection name="The big picture of R-OSGi">
@@ -31,7 +36,8 @@
 					true, which has the effect that whatever services has been discovered that matches one of the the <code>DiscoveryListener.SERVICE_INTERFACES</code> (if set), 
 					is directly fetched and in this sense <i>imported</i> into the local framework. The application itself has registered a listener and will be able to operate on the service
 					as if it was a local service, because it actually is a local service with the only difference that the logic resides on a remote machine and all calls to service methods are 
-					redirected through a remote method invocation scheme.  
+					redirected through a remote method invocation scheme. \\
+					The registration of existing services for remote access through surrogate services is described in <a href="advanced.htlm">Advanced R-OSGi</a>.
 				</p>
 				<p>
 					The orthogonal setting is an application like the one we present below. In some cases, the application is absolutely aware of distribution. In fact, 
@@ -44,8 +50,14 @@
 					Just for the case that we are interested in a specific service from a specific host that we have just fetched, we can use this method to make our lifes a bit easier. In our example, the robot controller 
 					wants to present exactly the robot to the user that has been fetched before and this is the reason why we use this method.
 				</p>
+				<p>
+					Besides remote access to services, R-OSGi also features remote events. With the current 0.6.x release, the handling of events has fundamentally changed. Events are now by default 
+					forwarded to every connected peer that has a local registration of an <code>EventHandler</code> with matching topics. Thereby, the application are able to seemlessly make use of events that 
+					occured on a remote machine. If it is required to distinguish between local and remote events, this is still possible since all forwarded events contain an additional property <code>RemoteOSGiServiceImpl.EVENT_SENDER_URL</code>
+					which contains the ID of the network channel which forwarded the event. 
+				</p>
 			</subsection>
-			<subsection name="Registering a service for remoting (service provider side)">
+			<subsection name="Registering a service for remote access (service provider side)">
 				A registration with a proxy policy is done in the following way:
 <source>
 public class RobotActivator implements BundleActivator {

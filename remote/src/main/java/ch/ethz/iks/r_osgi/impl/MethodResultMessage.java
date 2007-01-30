@@ -182,10 +182,10 @@ class MethodResultMessage extends RemoteOSGiMessageImpl {
 	 *            the host.
 	 * @param port
 	 *            the port.
-	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#restamp(java.lang.String,
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#rewrite(java.lang.String,
 	 *      java.lang.String, int)
 	 */
-	public void restamp(final String protocol, final String host, final int port) {
+	public void rewrite(final String protocol, final String host, final int port) {
 
 	}
 
