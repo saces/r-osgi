@@ -31,7 +31,7 @@
 			<tr>
 				<td><i>SwissQM</i></td>
 				<td>SwissQM is a stack-based Virtual Machine for wireless sensor networks. We use R-OSGi in an experimental branch to provide an integration into the Eclipse IDE.</td>
-				<td>http://www.swissqm.inf.ethz.ch/</td>
+				<td><a href="http://www.swissqm.inf.ethz.ch">http://www.swissqm.inf.ethz.ch</a></td>
 			</tr>
 		</table>
 		</p>		
