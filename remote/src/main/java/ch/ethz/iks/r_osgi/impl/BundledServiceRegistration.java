@@ -81,7 +81,7 @@ final class BundledServiceRegistration extends RemoteServiceRegistration {
 	 */
 	BundledServiceRegistration(final ServiceReference ref, final ServiceReference service, final String storage)
 			throws RemoteOSGiException, ServiceLocationException {
-		super(ref, service);
+		super(service);
 
 		final Bundle bundle = service.getBundle();
 		final Dictionary headers = bundle.getHeaders();

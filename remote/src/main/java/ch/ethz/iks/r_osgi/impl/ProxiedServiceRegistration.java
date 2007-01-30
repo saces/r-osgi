@@ -74,7 +74,7 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 	ProxiedServiceRegistration(final ServiceReference ref, final ServiceReference service)
 			throws ClassNotFoundException, ServiceLocationException {
 
-		super(ref, service);
+		super(service);
 
 		// get the service object
 		this.serviceObject = RemoteOSGiServiceImpl.context.getService(service);
