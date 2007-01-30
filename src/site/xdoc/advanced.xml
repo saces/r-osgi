@@ -19,68 +19,164 @@
 		</p>
 			<p>
 			It is e.g. possible to have a method that returns an attribute of the local framework or that uses a local service instead of redirecting the
-			invocation to the service provider. Implemented methods can themselves use every abstract or implemented method of the abstract class. For 
-			more sophisticated applications, it is possible to inject additional classes into the proxy bundle. This is also useful, if methods have
-			non standard objects as parameter and the developer does not want to assume that these classes are always present on the service consumer 
-			platform. 
+			invocation to the service provider. Implemented methods can themselves use every abstract or implemented method of the abstract class. R-OSGi 
+			injects all classes into the bundle that are references within the service interface (i.e., as method parameter) or within the code of the 
+			smart proxy class, if they were not imported by the original bundle. For 
+			more sophisticated applications, it is possible to inject additional classes into the proxy bundle. This is also useful, for instance, if methods have
+			interfaces as formal parameter and the developer wants to provide an implementation of the interface (which is not part of the execution environment). 
+			By this, it can be avoided that the bundle makes too much assumptions about the presence of certain implementation of interfaces. 
 		</p>
 			<subsection name="Smart proxy example">
 				<p>
-		TestInterface:
+		ServiceInterface:
 <source>			
-import osgi.service.proposition.remote.RemoteOSGiException;
+package ch.ethz.iks.r_osgi.sample.api;
 
-public interface TestInterface {
-    public String callMe(String str, int i) throws RemoteOSGiException;
-}			
+public interface ServiceInterface {
+
+	public String echoService(final String message, final Integer count);
+
+	public String reverseService(final String message);
+
+	public boolean equalsRemote(Object other);
+
+	public void printRemote(int i, float f);
+
+	public void zero();
+
+	public void local();
+
+}
 </source>
+
+		ServiceImpl:
+<source>			
+package ch.ethz.iks.r_osgi.sample.service;
+
+import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
+
+/**
+ * just a simple sample service plays around with strings
+ */
+public final class ServiceImpl implements ServiceInterface {
+
+	public String echoService(final String message, final Integer count) {
+		StringBuffer buffer = new StringBuffer();
+		final int c = count.intValue();
+		for (int i = 0; i < c; i++) {
+			buffer.append(message);
+			if (i < c - 1) {
+				buffer.append(" | ");
+			}
+		}
+		return buffer.toString();
+	}
+
+	public String reverseService(String message) {
+		return new StringBuffer().append(message).reverse().toString();
+	}
+
+	public void local() {
+		System.out.println("Server: local called");
+		throw new RuntimeException("Local cannot be called remotely");
+	}
+
+	public void zero() {
+		System.out.println("Server: zero called.");
+	}
+
+	public boolean equalsRemote(Object other) {
+		return equals(other);
+	}
+
+	public void printRemote(int i, float f) {
+		System.out.println("i is " + i);
+		System.out.println("f is " + f);
+	}
+}
+</source>
+
 					<br/>
-		TestSmartProxy:
+		SmartService:
 <source>			
-public abstract class TestSmartProxy implements TestInterface {
+package ch.ethz.iks.r_osgi.sample.service;
 
-    public abstract String callMe(String str, int i);
+import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 
-    public void localMethod(String str) {
-        System.out.println("LOCAL METHOD CALLED WITH " + str);
-    }
-}		
-</source>
+public abstract class SmartService implements ServiceInterface {
+
+	public abstract String echoService(String message, Integer count);
+
+	public abstract String reverseService(String message);
+
+	public abstract boolean equalsRemote(Object other);
+
+	public void local() {
+		System.out.println("Local invocation");
+		zero();
+	}
+
+	public abstract void printRemote(int i, float f);
+
+	public abstract void zero();
+
+	public boolean equals(Object obj) {
+		System.out.println("checking for equality");
+		if (!obj.equals(this)) {
+			return equalsRemote(obj);
+		} else {
+			return true;
+		}
+	}
+}</source>
 					<br/>
 		Registration by whiteboard pattern:
 <source>
 (...)
 
 Dictionary properties = new Hashtable();
-properties.put(RemoteOSGiService.R_OSGi_REGISTRATION, USE_PROXY_POLICY);
-properties.put(RemoteOSGiService.SMART_PROXY, TestSmartProxy.class);
+properties.put(RemoteOSGiService.R_OSGi_REGISTRATION, SERVICE_PROXY_POLICY);
+properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class.getName());
 
-context.registerService(TestInterface.class.getName(), new TestService(), properties);
+context.registerService(ServiceInterface.class.getName(), new ServiceImpl(), properties);
 
 (...)
 </source>
-or use the legacy <i>remote.registerService(...)</i> method call for registration. 
-					<br/>
-			If the abstract smart proxy class does not implement the service interface, an Exception is thrown.
-		</p>
-			</subsection>
-			<subsection name="Class injection example">
-				<p>
-			Class injections can be every Java class or interface. They are injected into the proxy bundle with the same package that 
-			they had on the service provider platform. Example:
+
+</subsection>
+			<subsection name="Smart proxy example">
+			<p>
+			This way of registering services for remote access is still a bit invasive. It requires to alter the part of the code
+			which registers the service (typically, the BundleActivator). To deal with existing bundles, there is an alternative 
+			way of registering services for remote access through an external surrogate service:
 <source>
-(...)
+public class Activator implements BundleActivator, SurrogateRegistration {
 
-Dictionary properties = new Hashtable();
-properties.put(RemoteOSGiService.R_OSGi_REGISTRATION, USE_PROXY_POLICY);
-properties.put(RemoteOSGiService.CLASS_INJECTIONS, new Class[] {javax.mail.Service.class, javax.mail.Message.class});
+	public void start(BundleContext context) throws Exception {
 
-(...)
-</source>
-			Class injections can be used with or, as in the example, without a smart proxy.	Please note that class injections will disappear in future versions when the 
-			system is able handle this issue in an automatic way.
+		final Hashtable properties = new Hashtable();
+		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
+				RemoteOSGiService.SERVICE_PROXY_POLICY);
+		properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class
+				.getName());		
+				
+		final ServiceReference legacyService = context.getServiceReference(ServiceInterface.class.getName());		
+		properties.put(SurrogateRegistration.SERVICE_REFERENCE, legacyService);
+		
+		context.registerService(SurrogateRegistration.class.getName(), this, properties);
+
+	}
+	
+...
+
+}
+	
+</source>	
+			Thus, the existing service (in the above example, it is a <code>ServiceImpl</code> registered as <code>ServiceInterface</code> service)
+			remains unchanged and the registration is performed through a surrogate that can reside in a different bundle serving as adapter between 
+			the legacy application and the remote world. 
 		</p>
-			</subsection>
+		</subsection>
 		</section>
 	</body>
 </document>

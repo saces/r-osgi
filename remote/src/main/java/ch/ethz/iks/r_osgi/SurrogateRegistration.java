@@ -37,7 +37,7 @@ package ch.ethz.iks.r_osgi;
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
  */
-public interface RemoteRegistration {
+public interface SurrogateRegistration {
 
 	static final String SERVICE_REFERENCE = "legacy.service.reference";
 

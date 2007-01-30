@@ -57,7 +57,7 @@ import ch.ethz.iks.r_osgi.DiscoveryListener;
 import ch.ethz.iks.r_osgi.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
-import ch.ethz.iks.r_osgi.RemoteRegistration;
+import ch.ethz.iks.r_osgi.SurrogateRegistration;
 import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.Timestamp;
 import ch.ethz.iks.r_osgi.NetworkChannelFactory;
@@ -506,8 +506,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 		final ServiceReference service = Arrays.asList(
 				(String[]) ref.getProperty(Constants.OBJECTCLASS)).contains(
-				RemoteRegistration.class.getName()) ? (ServiceReference) ref
-				.getProperty(RemoteRegistration.SERVICE_REFERENCE) : ref;
+				SurrogateRegistration.class.getName()) ? (ServiceReference) ref
+				.getProperty(SurrogateRegistration.SERVICE_REFERENCE) : ref;
 
 		try {
 
