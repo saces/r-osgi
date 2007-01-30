@@ -497,7 +497,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * @since 0.6
 	 * @category RemoteOSGiService
 	 */
-	void registerService(final ServiceReference ref)
+	private void registerService(final ServiceReference ref)
 			throws RemoteOSGiException {
 		// sanity check
 		if (ref == null) {
@@ -545,7 +545,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 			}
 
-			serviceRegistrations.put(ref, reg);
+			serviceRegistrations.put(service, reg);
 
 			final Dictionary attribs = reg.getProperties();
 			final ServiceURL[] urls = reg.getURLs();
