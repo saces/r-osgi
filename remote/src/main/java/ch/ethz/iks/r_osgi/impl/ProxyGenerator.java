@@ -437,9 +437,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			method.visitVarInsn(ALOAD, 1);
 			method.visitLdcInsn(ServiceUIComponent.class.getName());
 			method.visitVarInsn(ALOAD, 4);
-			method.visitVarInsn(ALOAD, 2);
+			method.visitVarInsn(ALOAD, 0);
+			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
+					+ ENDPOINT_I + ";");
 			method.visitLdcInsn(url);
-			method.visitMethodInsn(INVOKEINTERFACE, REMOTING_I,
+			method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
 					"getPresentationProperties",
 					"(Ljava/lang/String;)Ljava/util/Dictionary;");
 			method
