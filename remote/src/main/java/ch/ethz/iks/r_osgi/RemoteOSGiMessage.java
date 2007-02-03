@@ -28,6 +28,7 @@
  */
 package ch.ethz.iks.r_osgi;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
@@ -115,9 +116,10 @@ public abstract class RemoteOSGiMessage {
 	 * 
 	 * @param output
 	 *            the object output stream.
+	 * @throws IOException 
 	 * @since 0.6
 	 */
-	public abstract void send(final ObjectOutputStream output);
+	public abstract void send(final ObjectOutputStream output) throws IOException;
 
 	/**
 	 * parse a message from a <code>DataInput</code>.

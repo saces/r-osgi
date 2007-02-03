@@ -149,8 +149,7 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	 *             in case of IO failures.
 	 */
 	public final void send(final ObjectOutputStream out)
-			throws RemoteOSGiException {
-		try {
+			throws IOException {
 			synchronized (out) {
 				out.reset();
 				out.write(1);
@@ -159,10 +158,6 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 				writeBody(out);
 				out.flush();
 			}
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-			throw new RemoteOSGiException("IO Error", ioe);
-		}
 	}
 
 	/**
