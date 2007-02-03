@@ -145,7 +145,7 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	 * 
 	 * @param out
 	 *            thte ObjectOutputStream.
-	 * @throws RemoteOSGiException
+	 * @throws IOException
 	 *             in case of IO failures.
 	 */
 	public final void send(final ObjectOutputStream out)
