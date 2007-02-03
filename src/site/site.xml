@@ -29,10 +29,10 @@
 			<item name="Network Channels" href="/channels.html"/>
 			<item name="ServiceUI" href="/serviceUI.html"/>
 			<item name="Examples" href="/mindstorm.html" collapse="false">
-				<item name="Lego Mindstorm Robots" href="/mindstorm.html"/>
+				<item name="Lego Mindstorms Robots" href="/mindstorms.html"/>
 			</item>
 			<item name="R-OSGi Properties" href="/properties.html"/>
-			<item name="JavaDocs" href="/apidocs/index.html" target="new"/>
+			<item name="JavaDocs" href="/remote/apidocs/index.html" target="new"/>
 			<item name="Download" href="http://sourceforge.net/project/showfiles.php?group_id=158382"/>
 			<item name="Project License" href="/license.html"/>
 			<item name="Projects Using R-OSGi" href="/using.html"/>
