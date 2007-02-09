@@ -30,21 +30,31 @@
 package ch.ethz.iks.r_osgi.serviceUI;
 
 import java.awt.BorderLayout;
+import java.awt.Button;
 import java.awt.CardLayout;
 import java.awt.Choice;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Label;
+import java.awt.List;
 import java.awt.Panel;
+import java.awt.TextField;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.ItemListener;
+import java.net.InetAddress;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.osgi.framework.InvalidSyntaxException;
@@ -54,6 +64,7 @@ import ch.ethz.iks.r_osgi.DiscoveryListener;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.ServiceUIComponent;
+import ch.ethz.iks.slp.ServiceLocationException;
 import ch.ethz.iks.slp.ServiceURL;
 
 /**
@@ -82,6 +93,8 @@ class ServiceUI extends Frame implements DiscoveryListener {
 	private Choice service;
 
 	private Label statusLine;
+
+	private Button connect;
 
 	private HashMap knownServices = new HashMap(2);
 
@@ -159,59 +172,120 @@ class ServiceUI extends Frame implements DiscoveryListener {
 		};
 		statusPanel.setBackground(Color.gray);
 		statusLine = new Label("Idle ...");
+		connect = new Button("connect");
+		connect.addActionListener(new ActionListener() {
+
+			public void actionPerformed(final ActionEvent e) {
+				new Dialog(new Frame(), "R-OSGi ServiceUI") {
+
+					public void setVisible(final boolean visible) {
+						if (visible) {
+							setLayout(new FlowLayout(FlowLayout.CENTER, 20, 20));
+							add(new Label("Connect to:"), BorderLayout.WEST);
+							final TextField hostaddress = new TextField(10);
+							add(hostaddress, BorderLayout.CENTER);
+							final Button c = new Button("Connect");
+							c.addActionListener(new ActionListener() {
+								public void actionPerformed(final ActionEvent e) {
+									String haddress = hostaddress.getText();
+									String hostString = null;
+									String protocol = null;
+									int port = 9278;
+									int pos = haddress.indexOf("://");
+									if (pos > -1) {
+										protocol = haddress.substring(0, pos);
+										haddress = haddress.substring(pos + 3);
+									}
+									pos = haddress.indexOf(":");
+									if (pos > -1) {
+										hostString = haddress.substring(0, pos);
+										port = Integer.parseInt(haddress
+												.substring(pos + 1));
+									} else {
+										hostString = haddress;
+									}
+									try {
+										final ServiceURL[] services = ServiceUIActivator.remote
+												.connect(InetAddress
+														.getByName(hostString),
+														port, protocol);
+										new Dialog(new Frame(),
+												"R-OSGi ServiceUI") {
+											public void setVisible(
+													boolean visible) {
+												if (visible) {
+													setLayout(new BorderLayout());
+													final List list = new List();
+													for (int i = 0; i < services.length; i++) {
+														list.add(services[i]
+																.toString());
+													}
+													list
+															.addActionListener(new ActionListener() {
+																public void actionPerformed(
+																		final ActionEvent e) {
+																	try {
+																		final ServiceURL selected = new ServiceURL(
+																				list
+																						.getSelectedItem(),
+																				0);
+																		fetchService(selected);
+																	} catch (ServiceLocationException e1) {
+																		e1
+																				.printStackTrace();
+																	}
+																	setVisible(false);
+																}
+															});
+													add(list,
+															BorderLayout.CENTER);
+													Button button = new Button(
+															"close");
+													button
+															.addActionListener(new ActionListener() {
+
+																public void actionPerformed(
+																		ActionEvent e) {
+																	setVisible(false);
+																}
+
+															});
+													add(button, BorderLayout.SOUTH);
+													pack();
+												}
+												super.setVisible(visible);
+											}
+										}.setVisible(true);
+
+									} catch (RemoteOSGiException e1) {
+										e1.printStackTrace();
+									} catch (UnknownHostException e1) {
+										e1.printStackTrace();
+									}
+									setVisible(false);
+								}
+							});
+							add(c, BorderLayout.EAST);
+							pack();
+						}
+						super.setVisible(visible);
+					}
+				}.setVisible(true);
+			}
+
+		});
 
 		service = new Choice();
 		service.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent evt) {
 				String serviceName = (String) evt.getItem();
 				ServiceURL url = (ServiceURL) knownServices.get(serviceName);
-				try {
-					ServiceUIActivator.remote.fetchService(url);
-					ServiceReference ref = ServiceUIActivator.remote
-							.getFetchedServiceReference(url);
-					if (ref != null) {
-						String presentation = (String) ref
-								.getProperty(RemoteOSGiService.PRESENTATION);
-
-						if (presentation != null) {
-
-							StringBuffer buffer = new StringBuffer();
-							buffer.append("(&(");
-							buffer.append(RemoteOSGiService.REMOTE_HOST);
-							buffer.append('=');
-							buffer.append(url.getHost());
-							buffer.append(")(");
-							buffer.append(RemoteOSGiService.PRESENTATION);
-							buffer.append('=');
-							buffer.append(presentation);
-							buffer.append("))");
-							ServiceReference[] presRefs = ServiceUIActivator.context
-									.getServiceReferences(
-											ServiceUIComponent.class.getName(),
-											buffer.toString());
-
-							if (presRefs != null) {
-								ServiceUIComponent comp = (ServiceUIComponent) ServiceUIActivator.context
-										.getService(presRefs[0]);
-								addPanel(getServiceString(url), comp.getPanel());
-							} else {
-								System.err.println("No registration matches "
-										+ buffer.toString());
-							}
-						} else {
-							statusLine.setText("No presentation found.");
-							new CleanStatusLineThread();
-						}
-					}
-				} catch (RemoteOSGiException e) {
-					e.printStackTrace();
-				} catch (InvalidSyntaxException e) {
-					e.printStackTrace();
-				}
+				fetchService(url);
 				service.remove(serviceName);
 			}
 		});
 		statusPanel.setLayout(new BorderLayout());
+		statusPanel.add(connect, BorderLayout.WEST);
 		statusPanel.add(statusLine, BorderLayout.CENTER);
 		statusPanel.add(service, BorderLayout.EAST);
 		add(statusPanel, BorderLayout.SOUTH);
@@ -219,6 +293,52 @@ class ServiceUI extends Frame implements DiscoveryListener {
 		add(displayPanel, BorderLayout.CENTER);
 
 		setVisible(true);
+	}
+
+	private void fetchService(final ServiceURL url) {
+		try {
+			ServiceUIActivator.remote.fetchService(url);
+			ServiceReference ref = ServiceUIActivator.remote
+					.getFetchedServiceReference(url);
+			if (ref != null) {
+				String presentation = (String) ref
+						.getProperty(RemoteOSGiService.PRESENTATION);
+
+				if (presentation != null) {
+
+					StringBuffer buffer = new StringBuffer();
+					buffer.append("(&(");
+					buffer.append(RemoteOSGiService.REMOTE_HOST);
+					buffer.append('=');
+					buffer.append(url.getHost());
+					buffer.append(")(");
+					buffer.append(RemoteOSGiService.PRESENTATION);
+					buffer.append('=');
+					buffer.append(presentation);
+					buffer.append("))");
+					ServiceReference[] presRefs = ServiceUIActivator.context
+							.getServiceReferences(ServiceUIComponent.class
+									.getName(), buffer.toString());
+
+					if (presRefs != null) {
+						ServiceUIComponent comp = (ServiceUIComponent) ServiceUIActivator.context
+								.getService(presRefs[0]);
+						addPanel(getServiceString(url), comp.getPanel());
+					} else {
+						System.err.println("No registration matches "
+								+ buffer.toString());
+					}
+				} else {
+					statusLine.setText("No presentation found.");
+					new CleanStatusLineThread();
+				}
+			}
+		} catch (RemoteOSGiException e) {
+			e.printStackTrace();
+		} catch (InvalidSyntaxException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	private void addPanel(String name, Panel panel) {
@@ -273,7 +393,7 @@ class ServiceUI extends Frame implements DiscoveryListener {
 	public void notifyDiscovery(ServiceURL url) {
 		String serviceString = getServiceString(url);
 		knownServices.put(serviceString, url);
-		statusLine.setText("Discovered new " + serviceString);
+		statusLine.setText("New " + serviceString);
 		new CleanStatusLineThread();
 		service.add(serviceString);
 		service.invalidate();
