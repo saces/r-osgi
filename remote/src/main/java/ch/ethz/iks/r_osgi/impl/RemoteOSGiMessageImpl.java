@@ -40,7 +40,7 @@ import ch.ethz.iks.r_osgi.RemoteOSGiException;
  * Abstract base class for all Messages.
  * </p>
  * 
- * @author Jan S. Rellermeyer, ETH Zürich
+ * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.1
  */
 public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
@@ -150,13 +150,13 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	 */
 	public final void send(final ObjectOutputStream out)
 			throws IOException {
-			synchronized (out) {
-				out.reset();
+			synchronized (out) {				
 				out.write(1);
 				out.write(funcID);
 				out.writeShort(xid);
 				writeBody(out);
 				out.flush();
+				out.reset();
 			}
 	}
 
