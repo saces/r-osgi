@@ -150,13 +150,13 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	 */
 	public final void send(final ObjectOutputStream out)
 			throws IOException {
-			synchronized (out) {				
+			synchronized (out) {
+				out.reset();
 				out.write(1);
 				out.write(funcID);
 				out.writeShort(xid);
 				writeBody(out);
-				out.flush();
-				//out.reset();
+				out.flush();				
 			}
 	}
 
