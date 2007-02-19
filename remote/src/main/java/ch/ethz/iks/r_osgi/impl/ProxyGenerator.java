@@ -187,8 +187,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		attr.putValue("Bundle-Activator", className);
 		attr.putValue("Bundle-Classpath", ".");
 		attr.putValue("Import-Package",
-				"".equals(imports) ? "ch.ethz.iks.r_osgi"
-						: "ch.ethz.iks.r_osgi, " + imports);
+				"".equals(imports) ? "org.osgi.framework, ch.ethz.iks.r_osgi"
+						: "org.osgi.framework, ch.ethz.iks.r_osgi, " + imports);
 		if (!"".equals(deliv.getExports())) {
 			attr.putValue("Export-Package", deliv.getExports());
 		}
