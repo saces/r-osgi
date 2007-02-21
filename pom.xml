@@ -78,10 +78,33 @@
       </plugin>
     </plugins>
   </reporting>
+  <repositories>
+    <repository>
+      <id>ETH Zurich IKS Snapshots</id>
+      <url>http://www.flowsgi.inf.ethz.ch/repository/maven2/</url>
+    </repository>
+
+    <repository>
+      <id>Maven Snapshots</id>
+      <url>http://snapshots.maven.codehaus.org/maven2/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
+  </repositories>  
+  
   <distributionManagement>
     <site>
       <id>sourceforge-site</id>
       <url>scp://shell.sourceforge.net/home/groups/r/r-/r-osgi/htdocs/</url>
     </site>
+    <repository>
+      <id>iks-snapshots</id>
+      <name>ETH Zurich IKS Snapshots</name>
+      <url>scp://flowsgi.inf.ethz.ch/repository/maven2</url>
+    </repository>
   </distributionManagement>
 </project>
