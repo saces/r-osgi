@@ -80,17 +80,17 @@
   </reporting>
   <repositories>
     <repository>
-      <id>ETH Zurich IKS Snapshots</id>
+      <id>iks-repository</id>
+      <name>ETH Zurich IKS Repository</name>
       <url>http://www.flowsgi.inf.ethz.ch/repository/maven2/</url>
     </repository>
-
     <repository>
           <id>safehaus-repository</id>
           <name>Safehaus Repository</name>
           <url>http://m2.safehaus.org</url>
     </repository>
   </repositories> 
-   <pluginRepositories>
+  <pluginRepositories>
     <pluginRepository>
       <id>snapshots</id>
       <name>snapshot plugins</name>
@@ -102,7 +102,6 @@
       <url>http://people.apache.org/repo/m2-snapshot-repository</url>
     </pluginRepository>
   </pluginRepositories>
- 
   <distributionManagement>
     <site>
       <id>sourceforge-site</id>
