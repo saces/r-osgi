@@ -600,7 +600,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			}
 			return result;
 		} catch (IOException ioe) {
-			// ioe.printStackTrace();
+			ioe.printStackTrace();
 			throw new RemoteOSGiException("Connection to " + protocol + "://"
 					+ host + ":" + port + " failed", ioe);
 		}
