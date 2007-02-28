@@ -633,12 +633,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (remoteServices != null) {
 			this.remoteServices = remoteServices;
 		}
-		
+
 		// TODO: REMOVE DEBUG OUTPUTS
 		System.out.println("--------------------------------");
 		System.out.println("NEW STATEMENTS: " + lease);
 		System.out.println("--------------------------------");
-		
+
 		final String[] theTopics = lease.getTopics();
 		if (theTopics != null) {
 			remoteTopics = theTopics;
@@ -697,12 +697,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		switch (msg.getFuncID()) {
 		// requests
 		case RemoteOSGiMessageImpl.LEASE: {
+			System.out.println("LEASELEASELEASELEASE: " + msg);
 			final LeaseMessage lease = (LeaseMessage) msg;
 			updateStatements(lease);
 
-			if (lease.getXID() == 0) {
-				return null;
-			}
+			// if (lease.getXID() == 0) {
+			// return null;
+			// }
 
 			return lease.replyWith(RemoteOSGiServiceImpl.getServices(),
 					RemoteOSGiServiceImpl.getTopics());
