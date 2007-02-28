@@ -697,7 +697,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		switch (msg.getFuncID()) {
 		// requests
 		case RemoteOSGiMessageImpl.LEASE: {
-			System.out.println("LEASELEASELEASELEASE: " + msg);
 			final LeaseMessage lease = (LeaseMessage) msg;
 			updateStatements(lease);
 
@@ -838,6 +837,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		public void handleEvent(final Event event) {
 			try {
+				System.out.println("FORWARDING: " + event);
 				send(new RemoteEventMessage(event, getID()));
 			} catch (Exception e) {
 				e.printStackTrace();
