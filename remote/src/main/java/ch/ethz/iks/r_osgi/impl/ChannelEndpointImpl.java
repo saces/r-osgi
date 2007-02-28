@@ -837,8 +837,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		public void handleEvent(final Event event) {
 			try {
-				System.out.println("FORWARDING: " + event);
 				send(new RemoteEventMessage(event, getID()));
+				if (RemoteOSGiServiceImpl.MSG_DEBUG) {
+					RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
+							"Forwarding Event " + event);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
