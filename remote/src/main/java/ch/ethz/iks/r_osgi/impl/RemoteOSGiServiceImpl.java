@@ -1258,6 +1258,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			final String[] theTopics = (String[]) ref
 					.getProperty(EventConstants.EVENT_TOPIC);
 
+			// TODO: REMOVE DEBUG OUTPUT
+			System.out.println("------------------------");
+			System.out.println("NEW LISTENER FOR " + java.util.Arrays.asList(theTopics));
+			System.out.println("------------------------");
+			
 			if (type == ServiceEvent.REGISTERED
 					|| type == ServiceEvent.MODIFIED) {
 				for (int i = 0; i < theTopics.length; i++) {

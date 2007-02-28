@@ -17,3 +17,4 @@ Require-Bundle: jSLP_OSGi,
  org.eclipse.equinox.event;resolution:=optional,
  org.eclipse.osgi.services
 Eclipse-AutoStart: true 
+Eclipse-LazyStart: true

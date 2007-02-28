@@ -633,6 +633,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (remoteServices != null) {
 			this.remoteServices = remoteServices;
 		}
+		
+		// TODO: REMOVE DEBUG OUTPUTS
+		System.out.println("--------------------------------");
+		System.out.println("NEW STATEMENTS: " + lease);
+		System.out.println("--------------------------------");
+		
 		final String[] theTopics = lease.getTopics();
 		if (theTopics != null) {
 			remoteTopics = theTopics;
@@ -658,6 +664,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					handlerReg = null;
 				} else {
 					// update topics
+					System.out.println("TOPIC UPDATE " + theTopics);
 					final Dictionary properties = new Hashtable();
 					properties.put(EventConstants.EVENT_TOPIC, theTopics);
 					properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
