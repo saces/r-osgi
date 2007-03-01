@@ -740,7 +740,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		for (int i = 0; i < regs.length; i++) {
 			ServiceURL[] urls = regs[i].getURLs();
 			for (int j = 0; j < urls.length; j++) {
-				result.add(urls[i].toString());
+				result.add(urls[j].toString());
 			}
 		}
 		return (String[]) result.toArray(new String[result.size()]);
