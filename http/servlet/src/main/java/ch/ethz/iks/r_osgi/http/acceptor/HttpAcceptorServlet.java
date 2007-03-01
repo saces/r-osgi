@@ -80,7 +80,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		final String host = req.getProtocol() + req.getRemoteAddr() + req.getRemotePort();
+		final String host = req.getProtocol() + req.getRemoteAddr() + req.getRemoteUser();
 		System.out.println("getting " + host);
 
 		ChannelBridge bridge = (ChannelBridge) bridges.get(host);
