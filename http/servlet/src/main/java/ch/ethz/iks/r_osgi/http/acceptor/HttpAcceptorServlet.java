@@ -117,19 +117,23 @@ public class HttpAcceptorServlet extends HttpServlet {
 			System.out.println("{REMOTE -> LOCAL}: " + msg);
 
 			final Integer xid = new Integer(msg.getXID());
+			
+			boolean firstLease = true;
+			
 			synchronized (waitMap) {
 				waitMap.put(xid, WAITING);
 			}
 			msg.send(localOut);
 			localOut.flush();
 
-			if (msg.getFuncID() == RemoteOSGiMessage.LEASE) {
+			if (msg.getFuncID() == RemoteOSGiMessage.LEASE && firstLease) {
 				ObjectOutputStream baseOut = new ObjectOutputStream(
 						new ChunkedEncoderOutputStream(resp.getOutputStream()));
 				baseOut = new ObjectOutputStream(
 						new ChunkedEncoderOutputStream(resp.getOutputStream()));
 				resp.setHeader("Transfer-Encoding", "chunked");
 				resp.setContentType("multipart/x-r_osgi");
+				firstLease = false;
 
 				// intentionally, the request that carried the lease does not
 				// terminate (as long as the connection is open). It is used to
