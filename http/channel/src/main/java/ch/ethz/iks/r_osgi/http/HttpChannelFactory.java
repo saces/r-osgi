@@ -136,6 +136,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 */
 		private ChannelEndpoint endpoint;
 
+		private double channelUID; 
 		/**
 		 * create a new TCPChannel.
 		 * 
@@ -152,6 +153,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			this.port = port;
 			this.protocol = protocol;
 			this.endpoint = endpoint;
+			this.channelUID = Math.random();
 			init();
 		}
 
