@@ -398,6 +398,16 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				}
 			}
 
+			// bootstrapping existing network channels
+			final ServiceReference[] references3 = context
+					.getServiceReferences(
+							NetworkChannelFactory.class.getName(), null);
+			if (references3 != null) {
+				for (int i = 0; i < references3.length; i++) {
+					registerNetworkChannel(references3[i]);
+				}
+			}
+
 			if (DEBUG) {
 				log.log(LogService.LOG_DEBUG, "Local topic space " + topics);
 			}
@@ -1174,23 +1184,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			}
 
 			if (type == ServiceEvent.REGISTERED) {
-				final Object protocol = ref
-						.getProperty(NetworkChannelFactory.PROTOCOL_PROPERTY);
-				if (protocol == null) {
-					log.log(LogService.LOG_WARNING, "NetworkChannelFactory "
-							+ ref + " has no protocol property and is ignored");
-				} else if (protocol instanceof String) {
-					final NetworkChannelFactory transport = (NetworkChannelFactory) context
-							.getService(ref);
-					factories.put((String) protocol, transport);
-				} else if (protocol instanceof String[]) {
-					final String[] p = (String[]) protocol;
-					final NetworkChannelFactory transport = (NetworkChannelFactory) context
-							.getService(ref);
-					for (int i = 0; i < p.length; i++) {
-						factories.put(p[i], transport);
-					}
-				}
+				registerNetworkChannel(ref);
 			} else if (type == ServiceEvent.UNREGISTERING) {
 				final Object protocol = ref
 						.getProperty(NetworkChannelFactory.PROTOCOL_PROPERTY);
@@ -1202,6 +1196,27 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 						factories.remove(p[i]);
 					}
 				}
+			}
+		}
+	}
+
+	private void registerNetworkChannel(final ServiceReference ref) {
+		final Object protocol = ref
+				.getProperty(NetworkChannelFactory.PROTOCOL_PROPERTY);
+
+		if (protocol == null) {
+			log.log(LogService.LOG_WARNING, "NetworkChannelFactory " + ref
+					+ " has no protocol property and is ignored");
+		} else if (protocol instanceof String) {
+			final NetworkChannelFactory transport = (NetworkChannelFactory) context
+					.getService(ref);
+			factories.put((String) protocol, transport);
+		} else if (protocol instanceof String[]) {
+			final String[] p = (String[]) protocol;
+			final NetworkChannelFactory transport = (NetworkChannelFactory) context
+					.getService(ref);
+			for (int i = 0; i < p.length; i++) {
+				factories.put(p[i], transport);
 			}
 		}
 	}
@@ -1260,9 +1275,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 			// TODO: REMOVE DEBUG OUTPUT
 			System.out.println("------------------------");
-			System.out.println("NEW LISTENER FOR " + java.util.Arrays.asList(theTopics));
+			System.out.println("NEW LISTENER FOR "
+					+ java.util.Arrays.asList(theTopics));
 			System.out.println("------------------------");
-			
+
 			if (type == ServiceEvent.REGISTERED
 					|| type == ServiceEvent.MODIFIED) {
 				for (int i = 0; i < theTopics.length; i++) {
