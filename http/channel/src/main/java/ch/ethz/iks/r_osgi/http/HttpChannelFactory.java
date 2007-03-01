@@ -136,7 +136,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 */
 		private ChannelEndpoint endpoint;
 
-		private double channelUID; 
+		private String channelUID; 
 		/**
 		 * create a new TCPChannel.
 		 * 
@@ -153,7 +153,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			this.port = port;
 			this.protocol = protocol;
 			this.endpoint = endpoint;
-			this.channelUID = Math.random();
+			this.channelUID = new Double(Math.random()).toString();
 			init();
 		}
 
@@ -252,7 +252,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			connection.setRequestMethod("POST");
 			connection.setRequestProperty("Content-Type",
 					"application/x-r_osgi");
-			connection.setRequestProperty("channel", getID());
+			connection.setRequestProperty("channel", channelUID);
 			connection.setUseCaches(false);
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
