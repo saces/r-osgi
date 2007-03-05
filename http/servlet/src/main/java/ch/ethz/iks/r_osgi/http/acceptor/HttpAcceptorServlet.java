@@ -101,6 +101,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 		private static final Object WAITING = new Object();
 
+		private boolean firstLease = true;
+		
 		private ChannelBridge() throws IOException {
 			socket = new Socket("localhost", R_OSGi_PORT);
 			localIn = new ObjectInputStream(socket.getInputStream());
@@ -117,8 +119,6 @@ public class HttpAcceptorServlet extends HttpServlet {
 			System.out.println("{REMOTE -> LOCAL}: " + msg);
 
 			final Integer xid = new Integer(msg.getXID());
-			
-			boolean firstLease = true;
 			
 			synchronized (waitMap) {
 				waitMap.put(xid, WAITING);
