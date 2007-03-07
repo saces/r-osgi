@@ -576,6 +576,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			System.out.println("advertising");
 			
 			for (int i = 0; i < urls.length; i++) {
+				System.out.println("REGISTERING " + urls[i]);
 				advertiser.register(urls[i], attribs);
 			}
 
