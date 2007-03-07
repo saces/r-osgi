@@ -544,6 +544,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 			} else {
 				// default: proxied service
+				// TODO: remove debug output
+				System.out.println("creating registration");
+				
 				reg = new ProxiedServiceRegistration(ref, service);
 
 				if (log != null) {
@@ -554,19 +557,32 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 			}
 
+			// TODO: remove debug output
+			System.out.println("putting registration");
 			serviceRegistrations.put(service, reg);
 
 			final Dictionary attribs = reg.getProperties();
 			final ServiceURL[] urls = reg.getURLs();
 
 			// schedule for registration on SLP layer
+
+			// TODO: remove debug output
+			System.out.println("schedule");
+			
 			reregistration.schedule(reg, System.currentTimeMillis()
 					+ (DEFAULT_SLP_LIFETIME - 1) * 1000);
 
+			// TODO: remove debug output
+			System.out.println("advertising");
+			
 			for (int i = 0; i < urls.length; i++) {
 				advertiser.register(urls[i], attribs);
 			}
 
+			// TODO: remove debug output
+			System.out.println("finished advertising");
+
+			
 			return;
 		} catch (ServiceLocationException e) {
 			e.printStackTrace();
