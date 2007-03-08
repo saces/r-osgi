@@ -561,12 +561,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			final ServiceURL[] urls = reg.getURLs();
 
 			// schedule for registration on SLP layer
-			//reregistration.schedule(reg, System.currentTimeMillis()
-			//		+ (DEFAULT_SLP_LIFETIME - 1) * 1000);
+			reregistration.schedule(reg, System.currentTimeMillis()
+					+ (DEFAULT_SLP_LIFETIME - 1) * 1000);
 
 			for (int i = 0; i < urls.length; i++) {
-				// TODO: restore the correct behavior
-				// advertiser.register(urls[i], attribs);
+				 advertiser.register(urls[i], attribs);
 			}
 
 			return;
@@ -1274,13 +1273,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			}
 			final String[] theTopics = (String[]) ref
 					.getProperty(EventConstants.EVENT_TOPIC);
-
-			// TODO: REMOVE DEBUG OUTPUT
-			System.out.println("------------------------");
-			System.out.println("NEW LISTENER FOR "
-					+ java.util.Arrays.asList(theTopics));
-			System.out.println("------------------------");
-
+			
 			if (type == ServiceEvent.REGISTERED
 					|| type == ServiceEvent.MODIFIED) {
 				for (int i = 0; i < theTopics.length; i++) {
