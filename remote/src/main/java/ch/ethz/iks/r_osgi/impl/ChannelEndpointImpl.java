@@ -634,11 +634,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			this.remoteServices = remoteServices;
 		}
 
-		// TODO: REMOVE DEBUG OUTPUTS
-		System.out.println("--------------------------------");
-		System.out.println("NEW STATEMENTS: " + lease);
-		System.out.println("--------------------------------");
-
 		final String[] theTopics = lease.getTopics();
 		if (theTopics != null) {
 			remoteTopics = theTopics;

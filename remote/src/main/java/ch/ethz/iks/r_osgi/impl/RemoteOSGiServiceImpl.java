@@ -543,8 +543,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				}
 
 			} else {
-				// default: proxied service
-				
+				// default: proxied service				
 				reg = new ProxiedServiceRegistration(ref, service);
 
 				if (log != null) {
@@ -1005,9 +1004,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 							while (services.hasMoreElements()) {
 								final ServiceURL service = (ServiceURL) services
 										.next();
-								if (service.getHost().equals(MY_ADDRESS)) {
-									continue;
-								}
+								
+								// FIXME: this is not true anymore !!!
+								//if (service.getHost().equals(MY_ADDRESS)) {
+								//	continue;
+								//}
 								if (!knownServices.contains(service)) {
 									notifyDiscovery(service);
 									knownServices.add(service);
