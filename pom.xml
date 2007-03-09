@@ -4,7 +4,7 @@
   <artifactId>project</artifactId>
   <packaging>pom</packaging>
   <name>R-OSGi</name>
-  <version>0.6.0</version>
+  <version>0.6.1</version>
   <description>R-OSGi Project</description>
   <url>http://r-osgi.sourceforge.net</url>
   <issueManagement>
@@ -52,6 +52,7 @@
     <module>http/servlet</module>
     <module>sample/http/client</module>
     <module>sample/http/service</module>
+    <module>sample/clockservice</module>
     <module>serviceUI</module>
   </modules>
   <dependencies>
