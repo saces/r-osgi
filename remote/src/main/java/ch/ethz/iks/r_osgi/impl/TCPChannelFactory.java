@@ -294,7 +294,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 									"{TCP Channel} received " + msg);
 						}
 						endpoint.receivedMessage(msg);
-					} catch (Exception e) {
+					} catch (Throwable t) {
 						connected = false;
 						try {
 							socket.close();
