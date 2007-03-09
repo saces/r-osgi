@@ -12,8 +12,8 @@
 	<body>
 		<section name="Overview">
 			<p>
-			<b>Current release: 0.6.0</b><br/>
-			The new release contains some major improvements in terms of transparency, performance, and integration into the OSGi framework. Furthermore, the network transport has been modularized and now allows to plugin alternative implementations of <i>NetworkChannels</i> to make use of other protocols or network links. As part of R-OSGi, we now provide an implementation for http(s).  
+			<b>Current release: 0.6.1</b><br/>
+			Fixed some minor bugs in the remote bundle. Fixed a bug in the http.servlet bundle that occured when additional event handlers were registered on either side.
 			</p>
 			<p>
         	R-OSGi runs as an OSGi bundle and enables distribution for arbitrary OSGi framework implementations. 
@@ -51,7 +51,7 @@
 			R-OSGi is part of the <a href="http://www.flowsgi.inf.ethz.ch">flowSGi</a> project, which is an ongoing research project at <a href="http://www.pc.inf.ethz.ch">Institute for Pervasive Computing</a>, <a href="http://www.ethz.ch">ETH Zurich</a>.		
 		</p>
 		<p>
-			If you want to hear more about R-OSGi and see interesting use cases, you should consider to attend our long talk at EclipseCon 2007: <b><a href="http://www.eclipsecon.org/2007/index.php?page=sub/&amp;id=3661">Services Everywhere: OSGi in Distributed Environments</a></b>, Wednesday, March 7th, 15:30, Grand Ballroom C. <br/>
+			Thanks to all who attended our talk at EclipseCon 2007: <b><a href="http://www.eclipsecon.org/2007/index.php?page=sub/&amp;id=3661">Services Everywhere: OSGi in Distributed Environments</a></b>. Both the paper and the presentation slides are available on the <a href="http://eclipsezilla.eclipsecon.org/show_bug.cgi?id=3661">Eclipsezilla</a>.<br/>
 			<a href="http://www.eclipsecon.org/2007/"><img border="0" heigth="64" width="400" src="http://www.eclipsecon.org/2007/image600x96.gif"/></a>
 		</p>
 		</section>
