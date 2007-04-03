@@ -10,8 +10,7 @@ Bundle-ClassPath: .,
  lib/asm-2.2.jar
 Bundle-Activator: ch.ethz.iks.r_osgi.impl.RemoteOSGiActivator
 DynamicImport-Package: *
-Require-Bundle: jSLP_OSGi,
- org.eclipse.osgi,
+Require-Bundle: org.eclipse.osgi,
  org.eclipse.osgi.util,
  org.eclipse.equinox.log;resolution:=optional,
  org.eclipse.equinox.event;resolution:=optional,

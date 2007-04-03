@@ -179,7 +179,7 @@ final class CodeAnalyzer implements ClassVisitor {
 			final String[] explicitInjections, final String presentation)
 			throws ClassNotFoundException, IOException {
 		closure.add(iface);
-
+		
 		if (smartProxy != null) {
 			closure.add(smartProxy);
 		}
@@ -241,13 +241,12 @@ final class CodeAnalyzer implements ClassVisitor {
 	 *             if the classes bytecode cannot be found and accessed.
 	 */
 	private void visit(final String className) throws ClassNotFoundException,
-			IOException {
+			IOException {		
 		final String classFile = className.replace('.', '/') + ".class";
 
 		if (importsMap.containsKey(packageOf(className))) {
 			proxyExports.add(packageOf(className));
 		}
-
 		final ClassReader reader = new ClassReader(loader
 				.getResourceAsStream(classFile));
 
@@ -279,6 +278,7 @@ final class CodeAnalyzer implements ClassVisitor {
 	 *            the type.
 	 */
 	private void visitType(final Type t) {
+
 		if (t.getSort() < 9) {
 			visited.add(t.getClassName());
 			return;
@@ -288,8 +288,16 @@ final class CodeAnalyzer implements ClassVisitor {
 			return;
 		}
 
+		if (t.getClassName().equals("null")) {
+			return;
+		}
+
 		final String className = t.getClassName();
 		final String iClassName = className.replace('.', '/');
+		if (visited.contains(iClassName)) {
+			return;
+		}
+		
 		if (className.startsWith("java")) {
 			visited.add(iClassName);
 			return;
@@ -306,7 +314,7 @@ final class CodeAnalyzer implements ClassVisitor {
 			visited.add(iClassName);
 			return;
 		}
-
+		
 		visited.add(iClassName);
 		closure.add(className);
 	}
