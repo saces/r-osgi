@@ -93,6 +93,11 @@
   </repositories> 
   <pluginRepositories>
     <pluginRepository>
+      <id>maven</id>
+      <name>maven repository</name>
+      <url>http://repo1.maven.org/maven2</url>
+    </pluginRepository>
+    <pluginRepository>
       <id>snapshots</id>
       <name>snapshot plugins</name>
       <url>http://snapshots.maven.codehaus.org/maven2</url>
