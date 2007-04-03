@@ -682,8 +682,13 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			case Type.ARRAY:
 				final int esort = returnType.getElementType().getSort();
 				
-				method.visitTypeInsn(CHECKCAST, "["
-						+ (esort < Type.ARRAY ? returnType.getElementType().toString() : returnType.getInternalName()) + ";");
+				if (esort < Type.ARRAY) {
+					method.visitTypeInsn(CHECKCAST, "["
+							+ returnType.getElementType().toString());
+				} else {
+					method.visitTypeInsn(CHECKCAST, "["
+						+ returnType.getInternalName() + ";");
+				}
 				method.visitInsn(ARETURN);
 				break;
 			default:
