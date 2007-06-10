@@ -182,6 +182,16 @@ public interface RemoteOSGiService {
 	ServiceURL[] connect(final InetAddress host, final int port,
 			final String protocol) throws RemoteOSGiException;
 
+	
+	/**
+	 * disconnect from a connected host
+	 * @param host
+	 * @param port
+	 * @param protocol
+	 * @throws RemoteOSGiException
+	 */
+	void disconnect(final ServiceURL url) throws RemoteOSGiException;
+	
 	/**
 	 * fetch the discovered remote service. The service will be fetched from the
 	 * service providing host and a proxy bundle is registered with the local
@@ -194,7 +204,7 @@ public interface RemoteOSGiService {
 	 * @since 0.5
 	 */
 	void fetchService(final ServiceURL service) throws RemoteOSGiException;
-
+	
 	/**
 	 * get the service that has just been fetched. Only works if the service has
 	 * been fetched in form of a proxy.

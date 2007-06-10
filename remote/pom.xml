@@ -38,6 +38,7 @@
 					<osgiManifest>
 						<bundleActivator>ch.ethz.iks.r_osgi.impl.RemoteOSGiActivator</bundleActivator>
 						<bundleName>R-OSGi</bundleName>
+						<bundleSymbolicName>ch.ethz.iks.r_osgi.remote</bundleSymbolicName>
 						<bundleDescription>R-OSGi remote bundle</bundleDescription>
 						<bundleVendor>Jan S. Rellermeyer, IKS, ETH Zurich</bundleVendor>
 						<importPackage>org.osgi.framework, ch.ethz.iks.slp, org.osgi.service.event</importPackage>

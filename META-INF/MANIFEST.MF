@@ -1,19 +1,16 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: R_OSGi
-Bundle-SymbolicName: R_OSGi
-Bundle-Version: 0.6.0
+Bundle-SymbolicName: ch.ethz.iks.r_osgi
+Bundle-Version: 0.6.1
 Bundle-Localization: plugin
 Export-Package: ch.ethz.iks.util,
- ch.ethz.iks.r_osgi
+ ch.ethz.iks.r_osgi, org.objectweb.asm
 Bundle-ClassPath: .,
  lib/asm-2.2.jar
 Bundle-Activator: ch.ethz.iks.r_osgi.impl.RemoteOSGiActivator
 DynamicImport-Package: *
-Require-Bundle: org.eclipse.osgi,
- org.eclipse.osgi.util,
- org.eclipse.equinox.log;resolution:=optional,
- org.eclipse.equinox.event;resolution:=optional,
- org.eclipse.osgi.services
-Eclipse-AutoStart: true 
-Eclipse-LazyStart: true
+Import-Package: org.osgi.framework, org.osgi.service.event, org.osgi.service.log 
+Require-Bundle: ch.ethz.iks.slp
+Bundle-Vendor: Jan S. Rellermeyer, IKS, ETH Zurich
+Eclipse-LazyStart: false

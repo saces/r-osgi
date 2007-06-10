@@ -615,6 +615,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 					+ host + ":" + port + " failed", ioe);
 		}
 	}
+	
+	public void disconnect(ServiceURL url) throws RemoteOSGiException {
+		ChannelEndpointImpl channel = getChannel(url);
+		channel.dispose();		
+	}
 
 	/**
 	 * fetch the discovered remote service. The service will be fetched from the
