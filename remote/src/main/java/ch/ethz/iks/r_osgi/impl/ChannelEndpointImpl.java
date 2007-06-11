@@ -659,7 +659,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					handlerReg = null;
 				} else {
 					// update topics
-					System.out.println("TOPIC UPDATE " + theTopics);
+					// TODO: remove debug output
+					System.out.println("TOPIC UPDATE " + java.util.Arrays.asList(theTopics));
 					final Dictionary properties = new Hashtable();
 					properties.put(EventConstants.EVENT_TOPIC, theTopics);
 					properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
