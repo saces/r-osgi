@@ -829,18 +829,13 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * update the leases.
 	 */
 	static void updateLeases() {
-		new Thread() {
-			public void run() {
-				ChannelEndpointImpl[] endpoints = (ChannelEndpointImpl[]) channels
-						.values().toArray(
-								new ChannelEndpointImpl[channels.size()]);
-				final String[] myServices = getServices();
-				final String[] myTopics = getTopics();
-				for (int i = 0; i < endpoints.length; i++) {
-					endpoints[i].renewLease(myServices, myTopics);
-				}
-			}
-		}.start();
+		ChannelEndpointImpl[] endpoints = (ChannelEndpointImpl[]) channels
+				.values().toArray(new ChannelEndpointImpl[channels.size()]);
+		final String[] myServices = getServices();
+		final String[] myTopics = getTopics();
+		for (int i = 0; i < endpoints.length; i++) {
+			endpoints[i].renewLease(myServices, myTopics);
+		}
 	}
 
 	/*
