@@ -543,7 +543,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				}
 
 			} else {
-				// default: proxied service				
+				// default: proxied service
 				reg = new ProxiedServiceRegistration(ref, service);
 
 				if (log != null) {
@@ -564,7 +564,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 					+ (DEFAULT_SLP_LIFETIME - 1) * 1000);
 
 			for (int i = 0; i < urls.length; i++) {
-				 advertiser.register(urls[i], attribs);
+				advertiser.register(urls[i], attribs);
 			}
 
 			return;
@@ -615,10 +615,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 					+ host + ":" + port + " failed", ioe);
 		}
 	}
-	
+
 	public void disconnect(ServiceURL url) throws RemoteOSGiException {
 		ChannelEndpointImpl channel = getChannel(url);
-		channel.dispose();		
+		channel.dispose();
 	}
 
 	/**
@@ -829,13 +829,18 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * update the leases.
 	 */
 	static void updateLeases() {
-		ChannelEndpointImpl[] endpoints = (ChannelEndpointImpl[]) channels
-				.values().toArray(new ChannelEndpointImpl[channels.size()]);
-		final String[] myServices = getServices();
-		final String[] myTopics = getTopics();
-		for (int i = 0; i < endpoints.length; i++) {
-			endpoints[i].renewLease(myServices, myTopics);
-		}
+		new Thread() {
+			public void run() {
+				ChannelEndpointImpl[] endpoints = (ChannelEndpointImpl[]) channels
+						.values().toArray(
+								new ChannelEndpointImpl[channels.size()]);
+				final String[] myServices = getServices();
+				final String[] myTopics = getTopics();
+				for (int i = 0; i < endpoints.length; i++) {
+					endpoints[i].renewLease(myServices, myTopics);
+				}
+			}
+		}.start();
 	}
 
 	/*
@@ -1009,11 +1014,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 							while (services.hasMoreElements()) {
 								final ServiceURL service = (ServiceURL) services
 										.next();
-								
+
 								// FIXME: this is not true anymore !!!
-								//if (service.getHost().equals(MY_ADDRESS)) {
-								//	continue;
-								//}
+								// if (service.getHost().equals(MY_ADDRESS)) {
+								// continue;
+								// }
 								if (!knownServices.contains(service)) {
 									notifyDiscovery(service);
 									knownServices.add(service);
@@ -1279,7 +1284,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			}
 			final String[] theTopics = (String[]) ref
 					.getProperty(EventConstants.EVENT_TOPIC);
-			
+
 			if (type == ServiceEvent.REGISTERED
 					|| type == ServiceEvent.MODIFIED) {
 				for (int i = 0; i < theTopics.length; i++) {
