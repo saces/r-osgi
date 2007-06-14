@@ -31,7 +31,9 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -99,6 +101,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	private Map injections;
 
 	/**
+	 * set to determine if a method has already been implemented
+	 */
+	private Set implemented;
+
+	/**
 	 * the constants.
 	 */
 	private static final int[] ICONST = { ICONST_0, ICONST_1, ICONST_2,
@@ -164,9 +171,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			final DeliverServiceMessage deliv) throws IOException {
 		serviceURL = service;
 		sourceID = generateSourceID(service.getHost());
-
+		implemented = new HashSet();
 		injections = deliv.getInjections();
-
 		byte[] bytes = deliv.getProxyName() == null ? generateProxyClass(deliv
 				.getInterfaceName(), deliv.getInterfaceClass())
 				: generateProxyClass(deliv.getInterfaceName(), deliv
@@ -313,166 +319,180 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			final String[] interfaces) {
 		MethodVisitor method;
 		FieldVisitor field;
-		implName = "proxy/" + sourceID + "/" + name + "Impl";
 
-		if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
-			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
-					"creating proxy class " + implName);
-		}
+		if (interfaceClassName.replace(".", "/").equals(name)) {
+			implName = "proxy/" + sourceID + "/" + name + "Impl";
 
-		if ((access & ACC_INTERFACE) == 0) {
-			writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
-					"java/lang/Object", new String[] {
-							interfaceClassName.replace('.', '/'),
-							"org/osgi/framework/BundleActivator" });
-		} else {
-			writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
-					"java/lang/Object", new String[] {
-							interfaceClassName.replace('.', '/'),
-							"org/osgi/framework/BundleActivator" });
 			if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
-						"Creating Proxy Bundle from Interface "
-								+ interfaceClassName);
+						"creating proxy class " + implName);
 			}
 
-			// creates a MethodWriter for the (implicit) constructor
-			method = writer
-					.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
-			method.visitVarInsn(ALOAD, 0);
-			method.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>",
-					"()V");
-			method.visitInsn(RETURN);
-			method.visitMaxs(2, 1);
-			method.visitEnd();
+			if ((access & ACC_INTERFACE) == 0) {
+				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
+						"java/lang/Object", new String[] {
+								interfaceClassName.replace('.', '/'),
+								"org/osgi/framework/BundleActivator" });
+			} else {
+				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
+						"java/lang/Object", new String[] {
+								interfaceClassName.replace('.', '/'),
+								"org/osgi/framework/BundleActivator" });
+				if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
+					RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
+							"Creating Proxy Bundle from Interface "
+									+ interfaceClassName);
+				}
 
+				// creates a MethodWriter for the (implicit) constructor
+				method = writer.visitMethod(ACC_PUBLIC, "<init>", "()V", null,
+						null);
+				method.visitVarInsn(ALOAD, 0);
+				method.visitMethodInsn(INVOKESPECIAL, "java/lang/Object",
+						"<init>", "()V");
+				method.visitInsn(RETURN);
+				method.visitMaxs(2, 1);
+				method.visitEnd();
+
+			}
+
+			final String url = serviceURL.toString();
+
+			field = writer.visitField(ACC_PRIVATE, "endpoint",
+					"Lch/ethz/iks/r_osgi/ChannelEndpoint;", null, null);
+			field.visitEnd();
+
+			{
+
+				method = writer.visitMethod(ACC_PUBLIC, "start",
+						"(Lorg/osgi/framework/BundleContext;)V", null,
+						new String[] { "java/lang/Exception" });
+				method.visitCode();
+				method.visitVarInsn(ALOAD, 1);
+				method.visitVarInsn(ALOAD, 1);
+				method.visitLdcInsn(Remoting.class.getName());
+				method
+						.visitMethodInsn(INVOKEINTERFACE,
+								"org/osgi/framework/BundleContext",
+								"getServiceReference",
+								"(Ljava/lang/String;)Lorg/osgi/framework/ServiceReference;");
+				method
+						.visitMethodInsn(INVOKEINTERFACE,
+								"org/osgi/framework/BundleContext",
+								"getService",
+								"(Lorg/osgi/framework/ServiceReference;)Ljava/lang/Object;");
+				method.visitTypeInsn(CHECKCAST, REMOTING_I);
+				method.visitVarInsn(ASTORE, 2);
+				method.visitVarInsn(ALOAD, 0);
+				method.visitVarInsn(ALOAD, 2);
+				method.visitLdcInsn(url);
+				method.visitMethodInsn(INVOKEINTERFACE, REMOTING_I,
+						"getEndpoint", "(Ljava/lang/String;)L" + ENDPOINT_I
+								+ ";");
+				method.visitFieldInsn(PUTFIELD, implName, "endpoint", "L"
+						+ ENDPOINT_I + ";");
+				method.visitVarInsn(ALOAD, 0);
+				method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
+						+ ENDPOINT_I + ";");
+				method.visitLdcInsn(url);
+				method.visitVarInsn(ALOAD, 1);
+				method.visitLdcInsn(interfaceClassName);
+				method.visitVarInsn(ALOAD, 0);
+				method.visitVarInsn(ALOAD, 0);
+				method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
+						+ ENDPOINT_I + ";");
+				method.visitLdcInsn(url);
+				method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
+						"getProperties",
+						"(Ljava/lang/String;)Ljava/util/Dictionary;");
+				method
+						.visitMethodInsn(
+								INVOKEINTERFACE,
+								"org/osgi/framework/BundleContext",
+								"registerService",
+								"(Ljava/lang/String;Ljava/lang/Object;Ljava/util/Dictionary;)Lorg/osgi/framework/ServiceRegistration;");
+				method
+						.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
+								"trackRegistration",
+								"(Ljava/lang/String;Lorg/osgi/framework/ServiceRegistration;)V");
+				method.visitVarInsn(ALOAD, 0);
+				method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
+						+ ENDPOINT_I + ";");
+				method.visitLdcInsn(url);
+				method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
+						"getProperties",
+						"(Ljava/lang/String;)Ljava/util/Dictionary;");
+				method.visitLdcInsn(RemoteOSGiService.PRESENTATION);
+				method.visitMethodInsn(INVOKEVIRTUAL, "java/util/Dictionary",
+						"get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+				method.visitTypeInsn(CHECKCAST, "java/lang/String");
+				method.visitVarInsn(ASTORE, 3);
+				method.visitVarInsn(ALOAD, 3);
+				Label l0 = new Label();
+				method.visitJumpInsn(IFNULL, l0);
+				method.visitVarInsn(ALOAD, 3);
+				method.visitMethodInsn(INVOKESTATIC, "java/lang/Class",
+						"forName", "(Ljava/lang/String;)Ljava/lang/Class;");
+				method.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class",
+						"newInstance", "()Ljava/lang/Object;");
+				method.visitTypeInsn(CHECKCAST, UICOMP_I);
+				method.visitVarInsn(ASTORE, 4);
+				method.visitVarInsn(ALOAD, 4);
+				method.visitVarInsn(ALOAD, 0);
+				method.visitVarInsn(ALOAD, 1);
+				method
+						.visitMethodInsn(INVOKEINTERFACE, UICOMP_I,
+								"initComponent",
+								"(Ljava/lang/Object;Lorg/osgi/framework/BundleContext;)V");
+				method.visitVarInsn(ALOAD, 1);
+				method.visitLdcInsn(ServiceUIComponent.class.getName());
+				method.visitVarInsn(ALOAD, 4);
+				method.visitVarInsn(ALOAD, 0);
+				method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
+						+ ENDPOINT_I + ";");
+				method.visitLdcInsn(url);
+				method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
+						"getPresentationProperties",
+						"(Ljava/lang/String;)Ljava/util/Dictionary;");
+				method
+						.visitMethodInsn(
+								INVOKEINTERFACE,
+								"org/osgi/framework/BundleContext",
+								"registerService",
+								"(Ljava/lang/String;Ljava/lang/Object;Ljava/util/Dictionary;)Lorg/osgi/framework/ServiceRegistration;");
+				method.visitInsn(POP);
+				method.visitLabel(l0);
+				method.visitInsn(RETURN);
+				method.visitMaxs(7, 5);
+				method.visitEnd();
+			}
+			{
+				method = writer.visitMethod(ACC_PUBLIC, "stop",
+						"(Lorg/osgi/framework/BundleContext;)V", null,
+						new String[] { "java/lang/Exception" });
+				method.visitCode();
+				method.visitVarInsn(ALOAD, 0);
+				method.visitFieldInsn(GETFIELD, implName, "endpoint",
+						"Lch/ethz/iks/r_osgi/ChannelEndpoint;");
+				method.visitLdcInsn(url);
+				method.visitMethodInsn(INVOKEINTERFACE,
+						"ch/ethz/iks/r_osgi/ChannelEndpoint",
+						"untrackRegistration", "(Ljava/lang/String;)V");
+				method.visitVarInsn(ALOAD, 0);
+				method.visitInsn(ACONST_NULL);
+				method.visitFieldInsn(PUTFIELD, implName, "endpoint",
+						"Lch/ethz/iks/r_osgi/ChannelEndpoint;");
+				method.visitInsn(RETURN);
+				method.visitMaxs(2, 2);
+				method.visitEnd();
+			}
 		}
+		// recurse over superinterfaces
+		for (int i = 0; i < interfaces.length; i++) {
+			ClassReader reader = new ClassReader((byte[]) injections
+					.get(interfaces[i] + ".class"));
+			reader.accept(this, null, false);
 
-		final String url = serviceURL.toString();
-
-		field = writer.visitField(ACC_PRIVATE, "endpoint",
-				"Lch/ethz/iks/r_osgi/ChannelEndpoint;", null, null);
-		field.visitEnd();
-
-		{
-
-			method = writer.visitMethod(ACC_PUBLIC, "start",
-					"(Lorg/osgi/framework/BundleContext;)V", null,
-					new String[] { "java/lang/Exception" });
-			method.visitCode();
-			method.visitVarInsn(ALOAD, 1);
-			method.visitVarInsn(ALOAD, 1);
-			method.visitLdcInsn(Remoting.class.getName());
-			method
-					.visitMethodInsn(INVOKEINTERFACE,
-							"org/osgi/framework/BundleContext",
-							"getServiceReference",
-							"(Ljava/lang/String;)Lorg/osgi/framework/ServiceReference;");
-			method
-					.visitMethodInsn(INVOKEINTERFACE,
-							"org/osgi/framework/BundleContext", "getService",
-							"(Lorg/osgi/framework/ServiceReference;)Ljava/lang/Object;");
-			method.visitTypeInsn(CHECKCAST, REMOTING_I);
-			method.visitVarInsn(ASTORE, 2);
-			method.visitVarInsn(ALOAD, 0);
-			method.visitVarInsn(ALOAD, 2);
-			method.visitLdcInsn(url);
-			method.visitMethodInsn(INVOKEINTERFACE, REMOTING_I, "getEndpoint",
-					"(Ljava/lang/String;)L" + ENDPOINT_I + ";");
-			method.visitFieldInsn(PUTFIELD, implName, "endpoint", "L"
-					+ ENDPOINT_I + ";");
-			method.visitVarInsn(ALOAD, 0);
-			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
-					+ ENDPOINT_I + ";");
-			method.visitLdcInsn(url);
-			method.visitVarInsn(ALOAD, 1);
-			method.visitLdcInsn(interfaceClassName);
-			method.visitVarInsn(ALOAD, 0);
-			method.visitVarInsn(ALOAD, 0);
-			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
-					+ ENDPOINT_I + ";");
-			method.visitLdcInsn(url);
-			method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
-					"getProperties",
-					"(Ljava/lang/String;)Ljava/util/Dictionary;");
-			method
-					.visitMethodInsn(
-							INVOKEINTERFACE,
-							"org/osgi/framework/BundleContext",
-							"registerService",
-							"(Ljava/lang/String;Ljava/lang/Object;Ljava/util/Dictionary;)Lorg/osgi/framework/ServiceRegistration;");
-			method
-					.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
-							"trackRegistration",
-							"(Ljava/lang/String;Lorg/osgi/framework/ServiceRegistration;)V");
-			method.visitVarInsn(ALOAD, 0);
-			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
-					+ ENDPOINT_I + ";");
-			method.visitLdcInsn(url);
-			method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
-					"getProperties",
-					"(Ljava/lang/String;)Ljava/util/Dictionary;");
-			method.visitLdcInsn(RemoteOSGiService.PRESENTATION);
-			method.visitMethodInsn(INVOKEVIRTUAL, "java/util/Dictionary",
-					"get", "(Ljava/lang/Object;)Ljava/lang/Object;");
-			method.visitTypeInsn(CHECKCAST, "java/lang/String");
-			method.visitVarInsn(ASTORE, 3);
-			method.visitVarInsn(ALOAD, 3);
-			Label l0 = new Label();
-			method.visitJumpInsn(IFNULL, l0);
-			method.visitVarInsn(ALOAD, 3);
-			method.visitMethodInsn(INVOKESTATIC, "java/lang/Class", "forName",
-					"(Ljava/lang/String;)Ljava/lang/Class;");
-			method.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class",
-					"newInstance", "()Ljava/lang/Object;");
-			method.visitTypeInsn(CHECKCAST, UICOMP_I);
-			method.visitVarInsn(ASTORE, 4);
-			method.visitVarInsn(ALOAD, 4);
-			method.visitVarInsn(ALOAD, 0);
-			method.visitVarInsn(ALOAD, 1);
-			method.visitMethodInsn(INVOKEINTERFACE, UICOMP_I, "initComponent",
-					"(Ljava/lang/Object;Lorg/osgi/framework/BundleContext;)V");
-			method.visitVarInsn(ALOAD, 1);
-			method.visitLdcInsn(ServiceUIComponent.class.getName());
-			method.visitVarInsn(ALOAD, 4);
-			method.visitVarInsn(ALOAD, 0);
-			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
-					+ ENDPOINT_I + ";");
-			method.visitLdcInsn(url);
-			method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
-					"getPresentationProperties",
-					"(Ljava/lang/String;)Ljava/util/Dictionary;");
-			method
-					.visitMethodInsn(
-							INVOKEINTERFACE,
-							"org/osgi/framework/BundleContext",
-							"registerService",
-							"(Ljava/lang/String;Ljava/lang/Object;Ljava/util/Dictionary;)Lorg/osgi/framework/ServiceRegistration;");
-			method.visitInsn(POP);
-			method.visitLabel(l0);
-			method.visitInsn(RETURN);
-			method.visitMaxs(7, 5);
-			method.visitEnd();
-		}
-		{
-			method = writer.visitMethod(ACC_PUBLIC, "stop",
-					"(Lorg/osgi/framework/BundleContext;)V", null,
-					new String[] { "java/lang/Exception" });
-			method.visitCode();
-			method.visitVarInsn(ALOAD, 0);
-			method.visitFieldInsn(GETFIELD, implName, "endpoint",
-					"Lch/ethz/iks/r_osgi/ChannelEndpoint;");
-			method.visitLdcInsn(url);
-			method.visitMethodInsn(INVOKEINTERFACE,
-					"ch/ethz/iks/r_osgi/ChannelEndpoint",
-					"untrackRegistration", "(Ljava/lang/String;)V");
-			method.visitVarInsn(ALOAD, 0);
-			method.visitInsn(ACONST_NULL);
-			method.visitFieldInsn(PUTFIELD, implName, "endpoint",
-					"Lch/ethz/iks/r_osgi/ChannelEndpoint;");
-			method.visitInsn(RETURN);
-			method.visitMaxs(2, 2);
-			method.visitEnd();
 		}
 	}
 
@@ -584,10 +604,14 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			final String desc, final String signature, final String[] exceptions) {
 		int methodAccess = access;
 
-		final Type[] args = Type.getArgumentTypes(desc);
-		boolean needsBoxing = false;
-
 		if ((methodAccess & ACC_ABSTRACT) != 0) {
+			if (implemented.contains(name + desc)) {
+				return null;
+			}
+
+			final Type[] args = Type.getArgumentTypes(desc);
+			boolean needsBoxing = false;
+			
 			methodAccess = (methodAccess ^ ACC_ABSTRACT);
 			MethodVisitor method = writer.visitMethod(methodAccess, name, desc,
 					signature, exceptions);
@@ -681,13 +705,13 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				break;
 			case Type.ARRAY:
 				final int esort = returnType.getElementType().getSort();
-				
+
 				if (esort < Type.ARRAY) {
 					method.visitTypeInsn(CHECKCAST, "["
 							+ returnType.getElementType().toString());
 				} else {
 					method.visitTypeInsn(CHECKCAST, "["
-						+ returnType.getInternalName() + ";");
+							+ returnType.getInternalName() + ";");
 				}
 				method.visitInsn(ARETURN);
 				break;
@@ -700,12 +724,15 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					(args.length == 0 ? 4 : 7) + (needsBoxing ? 2 : 0),
 					1 + args.length);
 			method.visitEnd();
+
+			implemented.add(name + desc);
 			return null;
 
 		} else {
 			// proxy method, contains code so just rewrite the code ...
 			MethodVisitor method = writer.visitMethod(access, name, desc,
 					signature, exceptions);
+			implemented.add(name + desc);
 			return new MethodRewriter(method);
 		}
 	}
