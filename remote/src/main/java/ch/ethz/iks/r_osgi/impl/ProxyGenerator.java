@@ -611,7 +611,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 			final Type[] args = Type.getArgumentTypes(desc);
 			boolean needsBoxing = false;
-			
+
 			methodAccess = (methodAccess ^ ACC_ABSTRACT);
 			MethodVisitor method = writer.visitMethod(methodAccess, name, desc,
 					signature, exceptions);
@@ -704,13 +704,20 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitInsn(returnType.getOpcode(IRETURN));
 				break;
 			case Type.ARRAY:
-				final int esort = returnType.getElementType().getSort();
 
+				final StringBuffer a = new StringBuffer();
+				for (int i = 0; i < returnType.getDimensions(); i++) {
+					a.append("[");
+				}
+
+				final int esort = returnType.getElementType().getSort();
 				if (esort < Type.ARRAY) {
-					method.visitTypeInsn(CHECKCAST, "["
+					// primitive array
+					method.visitTypeInsn(CHECKCAST, a.toString()
 							+ returnType.getElementType().toString());
 				} else {
-					method.visitTypeInsn(CHECKCAST, "["
+					// object array
+					method.visitTypeInsn(CHECKCAST, a.toString()
 							+ returnType.getInternalName() + ";");
 				}
 				method.visitInsn(ARETURN);
