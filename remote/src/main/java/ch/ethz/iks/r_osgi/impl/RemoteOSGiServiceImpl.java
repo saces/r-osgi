@@ -773,7 +773,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			final ServiceReference[] refs = context.getServiceReferences(
 					interfaceName, filter);
 			if (refs == null) {
-				System.out.println("WARNING: COUND NOT FIND " + filter);
+				if (log != null) {
+					log.log(LogService.LOG_WARNING, "COUND NOT FIND " + filter);
+				}
 				return null;
 			}
 			return (RemoteServiceRegistration) serviceRegistrations

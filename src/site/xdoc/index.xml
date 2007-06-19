@@ -12,8 +12,8 @@
 	<body>
 		<section name="Overview">
 			<p>
-			<b>Current release: 0.6.1</b><br/>
-			Fixed some minor bugs in the remote bundle. Fixed a bug in the http.servlet bundle that occured when additional event handlers were registered on either side.
+			<b>Current release: 0.6.2</b><br/>
+			Fixed some bugs in the proxy generation. Now regards potential inheritance of the service interface.
 			</p>
 			<p>
         	R-OSGi runs as an OSGi bundle and enables distribution for arbitrary OSGi framework implementations. 
