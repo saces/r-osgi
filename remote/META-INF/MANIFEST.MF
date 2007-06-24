@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: R_OSGi
-Bundle-SymbolicName: ch.ethz.iks.r_osgi
-Bundle-Version: 0.6.1
+Bundle-SymbolicName: ch.ethz.iks.r_osgi.remote
+Bundle-Version: 0.9.91
 Bundle-Localization: plugin
 Export-Package: ch.ethz.iks.util,
  ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.channels, org.objectweb.asm
@@ -13,3 +13,4 @@ DynamicImport-Package: *
 Import-Package: org.osgi.framework, org.osgi.util.tracker, org.osgi.service.event, org.osgi.service.log 
 Bundle-Vendor: Jan S. Rellermeyer, IKS, ETH Zurich
 Eclipse-LazyStart: false
+Bundle-RequiredExecutionEnvironment: OSGi/Minimum-1.0
