@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: ch.ethz.iks.r_osgi.sample.client
+Bundle-Name: R-OSGi Sample Client
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.sample.client
 Bundle-Version: 0.9.91
 Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich

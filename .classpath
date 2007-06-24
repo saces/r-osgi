@@ -2,15 +2,15 @@
 <classpath>
 	<classpathentry kind="src" path="remote/src/main/java"/>
 	<classpathentry kind="src" path="remote/src/test/java"/>
+	<classpathentry kind="src" path="service_discovery/jslp/src/main/java"/>
+	<classpathentry kind="src" path="serviceUI/src/main/java"/>
+	<classpathentry kind="src" path="sample/client/src/main/java"/>
+	<classpathentry kind="src" path="sample/api/src/main/java"/>
 	<classpathentry kind="src" path="sample/service/src/main/java"/>
+	<classpathentry kind="src" path="sample/http/client/src/main/java"/>
 	<classpathentry kind="src" path="http/channel/src/main/java"/>
 	<classpathentry kind="src" path="http/servlet/src/main/java"/>
-	<classpathentry kind="src" path="serviceUI/src/main/java"/>
-	<classpathentry kind="src" path="sample/api/src/main/java"/>
 	<classpathentry kind="src" path="sample/clockservice/src/main/java"/>
-	<classpathentry kind="src" path="service_discovery/jslp/src/main/java"/>
-	<classpathentry kind="src" path="sample/client/src/main/java"/>
-	<classpathentry kind="src" path="sample/http/client/src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/OSGi%Minimum-1.0"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
