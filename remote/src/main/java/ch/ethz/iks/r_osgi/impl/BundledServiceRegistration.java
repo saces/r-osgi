@@ -40,7 +40,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
-import ch.ethz.iks.slp.ServiceLocationException;
 
 /**
  * a registration for a service that has been registered with TRANSFER_BUNDLE
@@ -80,7 +79,7 @@ final class BundledServiceRegistration extends RemoteServiceRegistration {
 	 *             if the generated SLP service url is invalid.
 	 */
 	BundledServiceRegistration(final ServiceReference ref, final ServiceReference service, final String storage)
-			throws RemoteOSGiException, ServiceLocationException {
+			throws RemoteOSGiException {
 		super(service);
 
 		final Bundle bundle = service.getBundle();

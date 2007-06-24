@@ -26,47 +26,75 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi;
+package ch.ethz.iks.r_osgi.channels;
 
 import java.io.IOException;
 import java.net.InetAddress;
 
+import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
+
 /**
- * Interface for services that create transport channel implementations. Must
- * not necessarily be an OSGi service factory, since this service is only used
- * by the R-OSGi bundle.
+ * <p>
+ * Interface for all transport channel classes. Implementations of this
+ * interface are typically returned by services that offer the
+ * <code>TransportChannelFactory</code> service.
+ * </p>
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.6
  */
-public interface NetworkChannelFactory {
+public interface NetworkChannel {
 
 	/**
-	 * this constant should be set in the properties. The <code>String</code>
-	 * set to this property is matched with the protocol argument that client
-	 * bundles requesting for connections. Can also be a <code>String[]</code>.
-	 */
-	String PROTOCOL_PROPERTY = "protocol";
-
-	/**
-	 * get a new connection to a remote OSGi framework.
+	 * get the protocol that this channel uses on the transport layer.
 	 * 
-	 * @param endpoint
-	 *            the channel endpoint.
-	 * @param address
-	 *            the address to connect to.
-	 * @param port
-	 *            the port to connect to.
-	 * @param protocol
-	 *            the protocol if the factory is registered for multiple
-	 *            protocols.
-	 * @return a new transport channel that is typically already connected to
-	 *         the endpoint and ready to send messages.
-	 * @throws IOException
-	 *             in case of connection errors.
+	 * @return the protocol identifier as <code>String</code>. Should be in
+	 *         lowercase.
+	 * @since 0.6
 	 */
-	NetworkChannel getConnection(final ChannelEndpoint endpoint,
-			final InetAddress address, final int port, final String protocol)
-			throws IOException;
+	String getProtocol();
+
+	/**
+	 * get the address that the channel is connected to.
+	 * 
+	 * @return the address.
+	 * @since 0.6
+	 */
+	InetAddress getInetAddress();
+
+	/**
+	 * get the port that the channel is connected to.
+	 * 
+	 * @return the port.
+	 * @since 0.6
+	 */
+	int getPort();
+
+	/**
+	 * get the (unique) ID of the channel.
+	 * 
+	 * @return the ID.
+	 */
+	String getID();
+
+	/**
+	 * reconnect the channel to the endpoint.
+	 * 
+	 * @throws IOException
+	 *             if the channel cannot be reconnected.
+	 * @since 0.6
+	 */
+	void reconnect() throws IOException;
+
+	/**
+	 * send a message through the channel.
+	 * 
+	 * @param message
+	 *            the message to be sent.
+	 * @throws IOException
+	 *             if the transport fails.
+	 * @since 0.6
+	 */
+	void sendMessage(final RemoteOSGiMessage message) throws IOException;
 
 }

@@ -32,9 +32,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
-
-import ch.ethz.iks.slp.ServiceLocationException;
-import ch.ethz.iks.slp.ServiceURL;
 import ch.ethz.iks.util.SmartSerializer;
 
 /**
@@ -46,11 +43,6 @@ import ch.ethz.iks.util.SmartSerializer;
  * @since 0.1
  */
 class InvokeMethodMessage extends RemoteOSGiMessageImpl {
-
-	/**
-	 * the serviceURL string of the remote service.
-	 */
-	private String serviceURL;
 
 	/**
 	 * the signature of the method that is requested to be invoked.
@@ -72,10 +64,10 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 * @param params
 	 *            the parameter that are passed to the method.
 	 */
-	InvokeMethodMessage(final String service, final String methodSignature,
+	InvokeMethodMessage(final String url, final String methodSignature,
 			final Object[] params) {
 		funcID = INVOKE_METHOD;
-		this.serviceURL = service;
+		this.url = url;
 		this.methodSignature = methodSignature;
 		this.arguments = params;
 	}
@@ -89,7 +81,7 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *      |       R-OSGi header (function = InvokeMsg = 3)                |
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |   length of &lt;ServiceURL&gt;     |    &lt;ServiceURL&gt; String       \
+	 *      |   length of &lt;url&gt;     |    &lt;url&gt; String       \
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *      |    length of &lt;MethodSignature&gt;     |     &lt;MethodSignature&gt; String       \
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -105,11 +97,11 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 */
 	InvokeMethodMessage(final ObjectInputStream input) throws IOException {
 		funcID = INVOKE_METHOD;
-		serviceURL = input.readUTF();
+		url = input.readUTF();
 		methodSignature = input.readUTF();
 		final short argLength = input.readShort();
 		arguments = new Object[argLength];
-		for (int i = 0; i < argLength; i++) {
+		for (short i = 0; i < argLength; i++) {
 			arguments[i] = SmartSerializer.deserialize(input);
 		}
 	}
@@ -124,10 +116,10 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		out.writeUTF(serviceURL);
+		out.writeUTF(url);
 		out.writeUTF(methodSignature);
 		out.writeShort(arguments.length);
-		for (int i = 0; i < arguments.length; i++) {
+		for (short i = 0; i < arguments.length; i++) {
 			SmartSerializer.serialize(arguments[i], out);
 		}
 	}
@@ -142,49 +134,12 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	}
 
 	/**
-	 * get the service url of the service.
-	 * 
-	 * @return the service url as string.
-	 */
-	String getServiceURL() {
-		return serviceURL;
-	}
-
-	/**
 	 * get the method signature.
 	 * 
 	 * @return the method signature.
 	 */
 	String getMethodSignature() {
 		return methodSignature;
-	}
-
-	/**
-	 * restamp the service URL to a new address.
-	 * 
-	 * @param protocol
-	 *            the protocol.
-	 * @param host
-	 *            the host.
-	 * @param port
-	 *            the port.
-	 * @throws ServiceLocationException
-	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#rewrite(java.lang.String,
-	 *      java.lang.String, int)
-	 */
-	public void rewrite(final String protocol, final String host, final int port)
-			throws IllegalArgumentException {
-		try {
-			final ServiceURL original = new ServiceURL(serviceURL, 0);
-			final ServiceURL restamped = new ServiceURL(original
-					.getServiceType()
-					+ "://"
-					+ (protocol != null ? (protocol + "://") : "")
-					+ host + ":" + port + original.getURLPath(), 0);
-			serviceURL = restamped.toString();
-		} catch (ServiceLocationException sle) {
-			throw new IllegalArgumentException(sle.getMessage());
-		}
 	}
 
 	/**
@@ -197,8 +152,8 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("[INVOKE_METHOD] - XID: ");
 		buffer.append(xid);
-		buffer.append(", serviceURL ");
-		buffer.append(serviceURL);
+		buffer.append(", url ");
+		buffer.append(url);
 		buffer.append(", methodName ");
 		buffer.append("methodName");
 		buffer.append(", params: ");

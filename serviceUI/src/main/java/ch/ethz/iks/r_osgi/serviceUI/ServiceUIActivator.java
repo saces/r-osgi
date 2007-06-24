@@ -33,7 +33,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-import ch.ethz.iks.r_osgi.DiscoveryListener;
+import ch.ethz.iks.r_osgi.RemoteServiceListener;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 
 public class ServiceUIActivator implements BundleActivator {
@@ -50,7 +50,7 @@ public class ServiceUIActivator implements BundleActivator {
 		if (ref != null) {
 			remote = (RemoteOSGiService) context.getService(ref);
 			serviceUI = new ServiceUI();
-			context.registerService(DiscoveryListener.class.getName(),
+			context.registerService(RemoteServiceListener.class.getName(),
 					serviceUI, null);
 		} else {
 			throw new RuntimeException("Could not retrieve RemoteOSGiService");

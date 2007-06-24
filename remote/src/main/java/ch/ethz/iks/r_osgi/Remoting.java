@@ -28,7 +28,8 @@
  */
 package ch.ethz.iks.r_osgi;
 
-import ch.ethz.iks.slp.ServiceURL;
+import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
+import ch.ethz.iks.r_osgi.types.Timestamp;
 
 /**
  * This interface is used by generated proxy bundles. Applications don't have to
@@ -48,7 +49,7 @@ public interface Remoting {
 	 * @return the endpoint or <code>null</code>
 	 * @since 0.6
 	 */
-	ChannelEndpoint getEndpoint(final String serviceURL);
+	ChannelEndpoint getEndpoint(final String url);
 
 	/**
 	 * transform a timestamp into the peer's local time.
@@ -62,6 +63,6 @@ public interface Remoting {
 	 *             if the transformation fails.
 	 * @since 0.2
 	 */
-	Timestamp transformTimestamp(final ServiceURL sender,
+	Timestamp transformTimestamp(final RemoteServiceReference ref,
 			final Timestamp timestamp) throws RemoteOSGiException;
 }

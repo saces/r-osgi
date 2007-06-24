@@ -30,7 +30,8 @@ package ch.ethz.iks.r_osgi;
 
 import java.net.InetAddress;
 import org.osgi.framework.ServiceReference;
-import ch.ethz.iks.slp.ServiceURL;
+
+import ch.ethz.iks.r_osgi.types.Timestamp;
 
 /**
  * <p>
@@ -155,9 +156,9 @@ public interface RemoteOSGiService {
 	 * find out whether a service is provided by an R-OSGi proxy, check for the
 	 * presence of this key in the service properties.
 	 * 
-	 * @since 0.4
+	 * @since 1.0
 	 */
-	String REMOTE_HOST = "service.remote.host";
+	String SERVICE_URL = "service.url";
 
 	/**
 	 * connect to a remote OSGi framework. Has to be called prior to any service
@@ -179,7 +180,7 @@ public interface RemoteOSGiService {
 	 *             in case of connection errors.
 	 * @since 0.6
 	 */
-	ServiceURL[] connect(final InetAddress host, final int port,
+	RemoteServiceReference[] connect(final InetAddress host, final int port,
 			final String protocol) throws RemoteOSGiException;
 
 	
@@ -190,7 +191,7 @@ public interface RemoteOSGiService {
 	 * @param protocol
 	 * @throws RemoteOSGiException
 	 */
-	void disconnect(final ServiceURL url) throws RemoteOSGiException;
+	void disconnect(final RemoteServiceReference ref) throws RemoteOSGiException;
 	
 	/**
 	 * fetch the discovered remote service. The service will be fetched from the
@@ -203,7 +204,7 @@ public interface RemoteOSGiService {
 	 *             if the fetching fails.
 	 * @since 0.5
 	 */
-	void fetchService(final ServiceURL service) throws RemoteOSGiException;
+	void fetchService(final RemoteServiceReference ref) throws RemoteOSGiException;
 	
 	/**
 	 * get the service that has just been fetched. Only works if the service has
@@ -214,7 +215,7 @@ public interface RemoteOSGiService {
 	 * @return the service belonging to the service url or null, if no such
 	 *         service is present.
 	 */
-	Object getFetchedService(final ServiceURL url);
+	Object getFetchedService(final RemoteServiceReference ref);
 
 	/**
 	 * get the service reference of the service that has just been fetched.
@@ -224,7 +225,7 @@ public interface RemoteOSGiService {
 	 * @return the service reference belonging to the service or null, if no
 	 *         such service is present.
 	 */
-	ServiceReference getFetchedServiceReference(final ServiceURL url);
+	ServiceReference getFetchedServiceReference(final RemoteServiceReference ref);
 
 	/**
 	 * transform a timestamp into the peer's local time.
@@ -238,15 +239,7 @@ public interface RemoteOSGiService {
 	 *             if the transformation fails.
 	 * @since 0.2
 	 */
-	Timestamp transformTimestamp(ServiceURL sender, Timestamp timestamp)
+	Timestamp transformTimestamp(RemoteServiceReference ref, Timestamp timestamp)
 			throws RemoteOSGiException;
-
-	/**
-	 * get my own IP.
-	 * 
-	 * @return the own InetAddress, to be consistent with the SLP layer.
-	 * @since 0.4
-	 */
-	InetAddress getMyIP();
 
 }

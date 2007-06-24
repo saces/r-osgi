@@ -99,14 +99,42 @@ public final class CollectionUtils {
 	 */
 	public static Collection intersection(final Collection c1,
 			final Collection c2) {
-		List list = new ArrayList();
-		for (Iterator iter = c1.iterator(); iter.hasNext();) {
-			Object obj = iter.next();
-			if (c2.contains(obj)) {
-				list.add(obj);
+		final List list = new ArrayList();
+		final Object[] members_c1 = c1.toArray();
+		for (int i = 0; i < members_c1.length; i++) {
+			if (c2.contains(members_c1[i])) {
+				list.add(members_c1[i]);
 			}
 		}
 		return list;
+	}
+
+	public static Collection union(final Collection c1, final Collection c2) {
+		List list = new ArrayList();
+		addAllUnique(list, c1);
+		addAllUnique(list, c2);
+		return list;
+	}
+
+	public static Collection rightDifference(final Collection c1,
+			final Collection c2) {
+		List result = new ArrayList();
+		final Object[] members_c1 = c1.toArray();
+		for (int i = 0; i < members_c1.length; i++) {
+			if (!c2.contains(members_c1[i])) {
+				result.add(members_c1[i]);
+			}
+		}
+		return result;
+	}
+
+	public static Collection leftDifference(final Collection c1,
+			final Collection c2) {
+		return rightDifference(c2, c1);
+	}
+
+	public static Collection difference(final Collection c1, final Collection c2) {
+		return union(leftDifference(c1, c2), rightDifference(c1, c2));
 	}
 
 	/**

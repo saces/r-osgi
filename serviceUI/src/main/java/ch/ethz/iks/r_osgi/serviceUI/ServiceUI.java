@@ -60,17 +60,17 @@ import java.util.HashMap;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 
-import ch.ethz.iks.r_osgi.DiscoveryListener;
+import ch.ethz.iks.r_osgi.RemoteServiceEvent;
+import ch.ethz.iks.r_osgi.RemoteServiceListener;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
-import ch.ethz.iks.r_osgi.ServiceUIComponent;
-import ch.ethz.iks.slp.ServiceLocationException;
-import ch.ethz.iks.slp.ServiceURL;
+import ch.ethz.iks.r_osgi.RemoteServiceReference;
+import ch.ethz.iks.r_osgi.types.ServiceUIComponent;
 
 /**
  * @author Jan S. Rellermeyer, ETH Zurich
  */
-class ServiceUI extends Frame implements DiscoveryListener {
+class ServiceUI extends Frame implements RemoteServiceListener {
 
 	private static final long serialVersionUID = 7556679981800636909L;
 
@@ -205,7 +205,7 @@ class ServiceUI extends Frame implements DiscoveryListener {
 										hostString = haddress;
 									}
 									try {
-										final ServiceURL[] services = ServiceUIActivator.remote
+										final RemoteServiceReference[] refs = ServiceUIActivator.remote
 												.connect(InetAddress
 														.getByName(hostString),
 														port, protocol);
@@ -216,24 +216,19 @@ class ServiceUI extends Frame implements DiscoveryListener {
 												if (visible) {
 													setLayout(new BorderLayout());
 													final List list = new List();
-													for (int i = 0; i < services.length; i++) {
-														list.add(services[i]
-																.toString());
+													for (int i = 0; i < refs.length; i++) {
+														list.add(refs[i]
+																.getURL());
+
 													}
 													list
 															.addActionListener(new ActionListener() {
 																public void actionPerformed(
 																		final ActionEvent e) {
-																	try {
-																		final ServiceURL selected = new ServiceURL(
-																				list
-																						.getSelectedItem(),
-																				0);
+																		final RemoteServiceReference selected = (RemoteServiceReference) knownServices
+																				.get(list
+																						.getSelectedItem());
 																		fetchService(selected);
-																	} catch (ServiceLocationException e1) {
-																		e1
-																				.printStackTrace();
-																	}
 																	setVisible(false);
 																}
 															});
@@ -250,7 +245,8 @@ class ServiceUI extends Frame implements DiscoveryListener {
 																}
 
 															});
-													add(button, BorderLayout.SOUTH);
+													add(button,
+															BorderLayout.SOUTH);
 													pack();
 												}
 												super.setVisible(visible);
@@ -279,8 +275,9 @@ class ServiceUI extends Frame implements DiscoveryListener {
 		service.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent evt) {
 				String serviceName = (String) evt.getItem();
-				ServiceURL url = (ServiceURL) knownServices.get(serviceName);
-				fetchService(url);
+				RemoteServiceReference ref = (RemoteServiceReference) knownServices
+						.get(serviceName);
+				fetchService(ref);
 				service.remove(serviceName);
 			}
 		});
@@ -295,11 +292,11 @@ class ServiceUI extends Frame implements DiscoveryListener {
 		setVisible(true);
 	}
 
-	private void fetchService(final ServiceURL url) {
+	private void fetchService(final RemoteServiceReference ref) {
 		try {
-			ServiceUIActivator.remote.fetchService(url);
-			ServiceReference ref = ServiceUIActivator.remote
-					.getFetchedServiceReference(url);
+			ServiceUIActivator.remote.fetchService(ref);
+			ServiceReference sref = ServiceUIActivator.remote
+					.getFetchedServiceReference(ref);
 			if (ref != null) {
 				String presentation = (String) ref
 						.getProperty(RemoteOSGiService.PRESENTATION);
@@ -308,9 +305,9 @@ class ServiceUI extends Frame implements DiscoveryListener {
 
 					StringBuffer buffer = new StringBuffer();
 					buffer.append("(&(");
-					buffer.append(RemoteOSGiService.REMOTE_HOST);
+					buffer.append(RemoteOSGiService.SERVICE_URL);
 					buffer.append('=');
-					buffer.append(url.getHost());
+					buffer.append(ref.getURL());
 					buffer.append(")(");
 					buffer.append(RemoteOSGiService.PRESENTATION);
 					buffer.append('=');
@@ -323,7 +320,7 @@ class ServiceUI extends Frame implements DiscoveryListener {
 					if (presRefs != null) {
 						ServiceUIComponent comp = (ServiceUIComponent) ServiceUIActivator.context
 								.getService(presRefs[0]);
-						addPanel(getServiceString(url), comp.getPanel());
+						addPanel(ref.getURL(), comp.getPanel());
 					} else {
 						System.err.println("No registration matches "
 								+ buffer.toString());
@@ -390,33 +387,22 @@ class ServiceUI extends Frame implements DiscoveryListener {
 		}
 	}
 
-	public void notifyDiscovery(ServiceURL url) {
-		String serviceString = getServiceString(url);
-		knownServices.put(serviceString, url);
-		statusLine.setText("New " + serviceString);
-		new CleanStatusLineThread();
-		service.add(serviceString);
-		service.invalidate();
-		validate();
+	public void remoteServiceEvent(RemoteServiceEvent event) {
+		// TODO Auto-generated method stub
+		
 	}
 
-	private static String getServiceString(ServiceURL url) {
-		String serviceString = url.getServiceType().getConcreteTypeName();
-		int pos = serviceString.lastIndexOf("/");
-		if (pos > -1) {
-			serviceString = serviceString.substring(pos + 1);
-		}
-		serviceString = serviceString + " (" + url.getHost() + ")";
-		return serviceString;
-	}
+	/*
+	 * public void notifyDiscovery(ServiceURL url) { String serviceString =
+	 * getServiceString(url); knownServices.put(serviceString, url);
+	 * statusLine.setText("New " + serviceString); new CleanStatusLineThread();
+	 * service.add(serviceString); service.invalidate(); validate(); }
+	 */
 
-	public void notifyServiceLost(ServiceURL url) {
-		String serviceString = getServiceString(url);
-		knownServices.remove(serviceString);
-		statusLine.setText("Lost " + serviceString);
-		new CleanStatusLineThread();
-		removePanel(serviceString);
-		service.invalidate();
-		validate();
-	}
+	/*
+	 * public void notifyServiceLost(ServiceURL url) { String serviceString =
+	 * getServiceString(url); knownServices.remove(serviceString);
+	 * statusLine.setText("Lost " + serviceString); new CleanStatusLineThread();
+	 * removePanel(serviceString); service.invalidate(); validate(); }
+	 */
 }

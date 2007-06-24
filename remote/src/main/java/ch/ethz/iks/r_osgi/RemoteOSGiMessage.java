@@ -85,12 +85,14 @@ public abstract class RemoteOSGiMessage {
 	/**
 	 * type code for service attribute updates.
 	 */
-	public static final short STATE_UPDATE = 9;
+	public static final short LEASE_UPDATE = 9;
 
 	/**
 	 * the type code or functionID in SLP notation.
 	 */
 	protected short funcID;
+
+	protected String url;
 
 	/**
 	 * Get the function ID (type code) of the message.
@@ -116,10 +118,11 @@ public abstract class RemoteOSGiMessage {
 	 * 
 	 * @param output
 	 *            the object output stream.
-	 * @throws IOException 
+	 * @throws IOException
 	 * @since 0.6
 	 */
-	public abstract void send(final ObjectOutputStream output) throws IOException;
+	public abstract void send(final ObjectOutputStream output)
+			throws IOException;
 
 	/**
 	 * parse a message from a <code>DataInput</code>.
@@ -148,7 +151,7 @@ public abstract class RemoteOSGiMessage {
 	 * @throws IllegalArgumentException
 	 *             if the result is an invalid SLP serviceURL.
 	 */
-	public abstract void rewrite(final String protocol, final String host,
+	public abstract void rewriteURL(final String protocol, final String host,
 			final int port) throws IllegalArgumentException;
 
 }

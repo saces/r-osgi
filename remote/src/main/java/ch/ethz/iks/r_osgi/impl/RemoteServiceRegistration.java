@@ -33,9 +33,6 @@ import java.util.Hashtable;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 
-import ch.ethz.iks.slp.ServiceLocationException;
-import ch.ethz.iks.slp.ServiceURL;
-
 /**
  * abstract class of remote service registrations.
  * 
@@ -53,8 +50,6 @@ class RemoteServiceRegistration {
 	 */
 	private final long serviceID;
 
-	private final ServiceURL[] urls;
-
 	private final String[] interfaceNames;
 
 	/**
@@ -64,24 +59,12 @@ class RemoteServiceRegistration {
 	 *            the service reference.
 	 * @throws ServiceLocationException
 	 */
-	RemoteServiceRegistration(final ServiceReference service)
-			throws ServiceLocationException {
+	RemoteServiceRegistration(final ServiceReference service) {
 		this.reference = service;
 		this.serviceID = ((Long) service.getProperty(Constants.SERVICE_ID))
 				.longValue();
 		this.interfaceNames = (String[]) service
 				.getProperty(Constants.OBJECTCLASS);
-		final int interfaceCount = interfaceNames.length;
-
-		// build the service URLs
-		this.urls = new ServiceURL[interfaceCount];
-		for (int i = 0; i < interfaceCount; i++) {
-			urls[i] = new ServiceURL("service:osgi:"
-					+ interfaceNames[i].replace('.', '/') + "://"
-					+ RemoteOSGiServiceImpl.MY_ADDRESS + ":"
-					+ RemoteOSGiServiceImpl.R_OSGI_PORT + "/" + serviceID,
-					RemoteOSGiServiceImpl.DEFAULT_SLP_LIFETIME);
-		}
 	}
 
 	/**
@@ -109,10 +92,6 @@ class RemoteServiceRegistration {
 			props.put(keys[i], reference.getProperty(keys[i]));
 		}
 		return props;
-	}
-
-	ServiceURL[] getURLs() {
-		return urls;
 	}
 
 	String[] getInterfaceNames() {

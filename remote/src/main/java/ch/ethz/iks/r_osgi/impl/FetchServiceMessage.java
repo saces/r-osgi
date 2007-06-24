@@ -31,9 +31,8 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
+import ch.ethz.iks.r_osgi.RemoteServiceReference;
 
-import ch.ethz.iks.slp.ServiceLocationException;
-import ch.ethz.iks.slp.ServiceURL;
 
 /**
  * <p>
@@ -47,11 +46,6 @@ import ch.ethz.iks.slp.ServiceURL;
 class FetchServiceMessage extends RemoteOSGiMessageImpl {
 
 	/**
-	 * the name of the service as serviceURL string.
-	 */
-	private String serviceURL;
-
-	/**
 	 * hidden default constructor.
 	 */
 	private FetchServiceMessage() {
@@ -63,9 +57,9 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 * @param service
 	 *            the service url of the service that is fetched.
 	 */
-	FetchServiceMessage(final ServiceURL service) {
+	FetchServiceMessage(final RemoteServiceReference ref) {
 		funcID = FETCH_SERVICE;
-		serviceURL = service.toString();
+		url = ref.getURL();
 	}
 
 	/**
@@ -77,7 +71,7 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *    |       R-OSGi header (function = Fetch = 1)                    |
 	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    |   length of &lt;ServiceURL&gt;     |     &lt;ServiceURL&gt; String      \
+	 *    |   length of &lt;url&gt;     |     &lt;url&gt; String      \
 	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
@@ -88,7 +82,7 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 *             if something goes wrong.
 	 */
 	FetchServiceMessage(final ObjectInputStream input) throws IOException {
-		serviceURL = input.readUTF();
+		url = input.readUTF();
 	}
 
 	/**
@@ -101,44 +95,7 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		out.writeUTF(serviceURL);
-	}
-
-	/**
-	 * get the name of the service to be fetched.
-	 * 
-	 * @return the service name.
-	 */
-	String getServiceURL() {
-		return serviceURL;
-	}
-
-	/**
-	 * restamp the service URL to a new address.
-	 * 
-	 * @param protocol
-	 *            the protocol.
-	 * @param host
-	 *            the host.
-	 * @param port
-	 *            the port.
-	 * @throws ServiceLocationException
-	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#rewrite(java.lang.String,
-	 *      java.lang.String, int)
-	 */
-	public void rewrite(final String protocol, final String host, final int port)
-			throws IllegalArgumentException {
-		try {
-			final ServiceURL original = new ServiceURL(serviceURL, 0);
-			final ServiceURL restamped = new ServiceURL(original
-					.getServiceType()
-					+ "://"
-					+ (protocol != null ? (protocol + "://") : "")
-					+ host + ":" + port + original.getURLPath(), 0);
-			serviceURL = restamped.toString();
-		} catch (ServiceLocationException sle) {
-			throw new IllegalArgumentException(sle.getMessage());
-		}
+		out.writeUTF(url);
 	}
 
 	/**
@@ -152,8 +109,8 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 		buffer.append("[FETCH_MESSAGE]");
 		buffer.append("- XID: ");
 		buffer.append(xid);
-		buffer.append(", serviceName: ");
-		buffer.append(serviceURL);
+		buffer.append(", URL: ");
+		buffer.append(url);
 		return buffer.toString();
 	}
 }

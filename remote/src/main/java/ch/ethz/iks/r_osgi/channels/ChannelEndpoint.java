@@ -26,11 +26,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi;
+package ch.ethz.iks.r_osgi.channels;
 
 import java.util.Dictionary;
 
 import org.osgi.framework.ServiceRegistration;
+
+import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 
 /**
  * The endpoint of a channel to a connected remote peer.

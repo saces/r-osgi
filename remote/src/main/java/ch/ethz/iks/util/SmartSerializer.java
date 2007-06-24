@@ -41,7 +41,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 
-import ch.ethz.iks.r_osgi.BoxedPrimitive;
+import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
 
 /**
  * <p>

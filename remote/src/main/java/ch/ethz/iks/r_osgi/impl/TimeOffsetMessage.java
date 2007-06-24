@@ -32,7 +32,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
-
 import ch.ethz.iks.util.SmartSerializer;
 
 /**
@@ -126,22 +125,6 @@ class TimeOffsetMessage extends RemoteOSGiMessageImpl {
 	}
 
 	/**
-	 * has no effect for this type.
-	 * 
-	 * @param protocol
-	 *            the protocol.
-	 * @param host
-	 *            the host.
-	 * @param port
-	 *            the port.
-	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#rewrite(java.lang.String,
-	 *      java.lang.String, int)
-	 */
-	public void rewrite(final String protocol, final String host, final int port) {
-
-	}
-
-	/**
 	 * String representation for debug outputs.
 	 * 
 	 * @return a string representation.
@@ -149,7 +132,7 @@ class TimeOffsetMessage extends RemoteOSGiMessageImpl {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[INVOKE_METHOD, ");
+		buffer.append("[TIME_OFFSET, ");
 		buffer.append("] - XID: ");
 		buffer.append(xid);
 		buffer.append("timeSeries: ");

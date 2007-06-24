@@ -31,12 +31,12 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
-import ch.ethz.iks.slp.ServiceLocationException;
-import ch.ethz.iks.slp.ServiceURL;
+import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.util.SmartSerializer;
 
 /**
@@ -61,24 +61,9 @@ import ch.ethz.iks.util.SmartSerializer;
 final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 
 	/**
-	 * the serviceURL of the actual service implementation, including transport
-	 * and service id on the remote host.
-	 */
-	private String serviceURL;
-
-	/**
-	 * The attributes of the registered OSGi service. All attributes that are
-	 * registered on the service platform server will be transferred to the
-	 * remote machine except the PID to avoid collisions. PID are generally used
-	 * with managed services and it is not recommended to let the framework
-	 * manage remote proxies by the service application.
-	 */
-	private Dictionary attributes;
-
-	/**
 	 * The class name of the interface that describes the service.
 	 */
-	private final String serviceInterfaceName;
+	private final String[] serviceInterfaceNames;
 
 	/**
 	 * Optionally, the class name of a smart proxy class.
@@ -117,13 +102,13 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * @throws RemoteOSGiException
 	 *             in case of Exceptions during class serialization.
 	 */
-	DeliverServiceMessage(final String serviceInterfaceName,
+	DeliverServiceMessage(final String serviceInterfaceNames[],
 			final String smartProxyName, final HashMap injections,
 			final String imports, final String exports)
 			throws RemoteOSGiException {
 		funcID = DELIVER_SERVICE;
 
-		this.serviceInterfaceName = serviceInterfaceName;
+		this.serviceInterfaceNames = serviceInterfaceNames;
 		this.smartProxyName = smartProxyName;
 		this.injections = injections;
 		this.imports = imports;
@@ -135,10 +120,8 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * @param fetchReq
 	 * @param attributes
 	 */
-	void init(final FetchServiceMessage fetchReq, final Dictionary attributes) {
-		// TODO: ensure, that the attributes are fresh !!!
-		this.attributes = attributes;
-		this.serviceURL = fetchReq.getServiceURL();
+	void init(final FetchServiceMessage fetchReq) {
+		this.url = fetchReq.getURL();
 		this.xid = fetchReq.xid;
 	}
 
@@ -152,8 +135,6 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 *        |       R-OSGi header (function = Service = 2)                  |
 	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *        |   length of &lt;ServiceURL&gt;     |    &lt;ServiceURL&gt; String       \
-	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *        | Attribute Dictionary MarshalledObject                         \
 	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *        |          imports                                              \ 
 	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -174,25 +155,21 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 *             in case of parse errors.
 	 */
 	DeliverServiceMessage(final ObjectInputStream input) throws IOException {
-		// the serviceURL
-		serviceURL = input.readUTF();
-		// unmarshal the attributes.
-		attributes = (Dictionary) SmartSerializer.deserialize(input);
+		// the url
+		url = input.readUTF();
 		// imports
 		imports = input.readUTF();
 		// exports
 		exports = input.readUTF();
-		// deserialize interface
-		serviceInterfaceName = input.readUTF();
-
-		// deserialize the smart proxy, if defined.
+		// interface names
+		serviceInterfaceNames = readStringArray(input);
+		// smart proxy name, if defined.
 		String p = input.readUTF();
 		smartProxyName = "".equals(p) ? null : p;
-
 		// process all class injections
-		final int blocks = input.readInt();
+		final short blocks = input.readShort();
 		injections = new HashMap(blocks);
-		for (int i = 0; i < blocks; i++) {
+		for (short i = 0; i < blocks; i++) {
 			injections.put(input.readUTF(), readBytes(input));
 		}
 	}
@@ -206,39 +183,23 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 *             in case of parse errors.
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		out.writeUTF(serviceURL);
-		SmartSerializer.serialize(attributes, out);
+		if (url == null) {
+			throw new IllegalStateException(
+					"DeliverServiceMessage not initialized");
+		}
+		out.writeUTF(url);
 		out.writeUTF(imports);
 		out.writeUTF(exports);
-		out.writeUTF(serviceInterfaceName);
+		writeStringArray(out, serviceInterfaceNames);
 		out.writeUTF(smartProxyName == null ? "" : smartProxyName);
-		final int blocks = injections.size();
-		out.writeInt(blocks);
+		final short blocks = (short) injections.size();
+		out.writeShort(blocks);
 		final String[] injectionNames = (String[]) injections.keySet().toArray(
 				new String[blocks]);
-		for (int i = 0; i < injections.size(); i++) {
-			final String injection = injectionNames[i];
-			out.writeUTF(injection);
-			writeBytes(out, (byte[]) injections.get(injection));
+		for (short i = 0; i < blocks; i++) {
+			out.writeUTF(injectionNames[i]);
+			writeBytes(out, (byte[]) injections.get(injectionNames[i]));
 		}
-	}
-
-	/**
-	 * get the service url.
-	 * 
-	 * @return the service url.
-	 */
-	String getServiceURL() {
-		return serviceURL;
-	}
-
-	/**
-	 * get the attributes of the delivered service.
-	 * 
-	 * @return a <code>Dictionary</code> of attributes.
-	 */
-	Dictionary getAttributes() {
-		return attributes;
 	}
 
 	/**
@@ -246,8 +207,8 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * 
 	 * @return the class name of the interface.
 	 */
-	String getInterfaceName() {
-		return serviceInterfaceName;
+	String[] getInterfaceNames() {
+		return serviceInterfaceNames;
 	}
 
 	/**
@@ -256,7 +217,8 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * @return the interface class.
 	 */
 	byte[] getInterfaceClass() {
-		return (byte[]) injections.get(serviceInterfaceName.replace('.', '/')
+		return (byte[]) injections.get(serviceInterfaceNames[0].replace('.',
+				'/')
 				+ ".class");
 	}
 
@@ -307,34 +269,6 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	}
 
 	/**
-	 * restamp the service URL to a new address.
-	 * 
-	 * @param protocol
-	 *            the protocol.
-	 * @param host
-	 *            the host.
-	 * @param port
-	 *            the port.
-	 * @throws ServiceLocationException
-	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#rewrite(java.lang.String,
-	 *      java.lang.String, int)
-	 */
-	public void rewrite(final String protocol, final String host, final int port)
-			throws IllegalArgumentException {
-		try {
-			final ServiceURL original = new ServiceURL(serviceURL, 0);
-			final ServiceURL restamped = new ServiceURL(original
-					.getServiceType()
-					+ "://"
-					+ (protocol != null ? (protocol + "://") : "")
-					+ host + ":" + port + original.getURLPath(), 0);
-			serviceURL = restamped.toString();
-		} catch (ServiceLocationException sle) {
-			throw new IllegalArgumentException(sle.getMessage());
-		}
-	}
-
-	/**
 	 * String representation for debug outputs.
 	 * 
 	 * @return a string representation.
@@ -344,10 +278,8 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("[DELIVER_SERVICE] - XID: ");
 		buffer.append(xid);
-		buffer.append(", attributes: ");
-		buffer.append(attributes);
 		buffer.append(", serviceInterfaceName: ");
-		buffer.append(serviceInterfaceName);
+		buffer.append(Arrays.asList(serviceInterfaceNames));
 		if (smartProxyName != null) {
 			buffer.append(" smartProxy: ");
 			buffer.append(smartProxyName);

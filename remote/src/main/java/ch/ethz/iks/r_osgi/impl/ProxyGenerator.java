@@ -31,6 +31,7 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -50,12 +51,10 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.osgi.service.log.LogService;
-
-import ch.ethz.iks.r_osgi.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.Remoting;
-import ch.ethz.iks.r_osgi.ServiceUIComponent;
-import ch.ethz.iks.slp.ServiceURL;
+import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
+import ch.ethz.iks.r_osgi.types.ServiceUIComponent;
 
 /**
  * Bytecode manipulation magic to build proxy bundles for interfaces and smart
@@ -73,7 +72,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	/**
 	 * interface class name.
 	 */
-	private String interfaceClassName;
+	private String[] interfaceClassNames;
 
 	/**
 	 * smart proxy class name.
@@ -88,7 +87,12 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	/**
 	 * the service url.
 	 */
-	private ServiceURL serviceURL;
+	private String url;
+
+	/**
+	 * 
+	 */
+	private String channelID;
 
 	/**
 	 * the ASM class writer.
@@ -167,15 +171,18 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * @throws IOException
 	 *             in case of proxy generation error
 	 */
-	protected String generateProxyBundle(final ServiceURL service,
-			final DeliverServiceMessage deliv) throws IOException {
-		serviceURL = service;
-		sourceID = generateSourceID(service.getHost());
+	protected String generateProxyBundle(final String url,
+			final String channelID, final DeliverServiceMessage deliv)
+			throws IOException {
+
+		this.url = url;
+		this.channelID = channelID;
+		sourceID = generateSourceID(url);
 		implemented = new HashSet();
 		injections = deliv.getInjections();
 		byte[] bytes = deliv.getProxyName() == null ? generateProxyClass(deliv
-				.getInterfaceName(), deliv.getInterfaceClass())
-				: generateProxyClass(deliv.getInterfaceName(), deliv
+				.getInterfaceNames(), deliv.getInterfaceClass())
+				: generateProxyClass(deliv.getInterfaceNames(), deliv
 						.getInterfaceClass(), deliv.getProxyName(), deliv
 						.getProxyClass());
 
@@ -192,9 +199,12 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		attr.putValue("Created-By", "R-OSGi Proxy Generator");
 		attr.putValue("Bundle-Activator", className);
 		attr.putValue("Bundle-Classpath", ".");
-		attr.putValue("Import-Package",
-				"".equals(imports) ? "org.osgi.framework, ch.ethz.iks.r_osgi"
-						: "org.osgi.framework, ch.ethz.iks.r_osgi, " + imports);
+		attr
+				.putValue(
+						"Import-Package",
+						"".equals(imports) ? "org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.channels"
+								: "org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.channels, "
+										+ imports);
 		if (!"".equals(deliv.getExports())) {
 			attr.putValue("Export-Package", deliv.getExports());
 		}
@@ -242,6 +252,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					"Created Proxy Bundle " + file);
 		}
 
+		// TODO: remove debug output
+		System.out.println("GENERATED PROXY BUNDLE " + file);
 		return file.getAbsolutePath();
 	}
 
@@ -255,14 +267,14 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * @throws IOException
 	 *             in case of generation error
 	 */
-	private byte[] generateProxyClass(final String interfaceName,
+	private byte[] generateProxyClass(final String[] interfaceNames,
 			final byte[] interfaceClass) throws IOException {
-		interfaceClassName = interfaceName;
+		interfaceClassNames = interfaceNames;
 		try {
 			final ClassReader reader = new ClassReader(interfaceClass);
 			writer = new ClassWriter(true);
 			reader.accept(this, null, false);
-			interfaceClassName = null;
+			interfaceClassNames = null;
 			final byte[] bytes = writer.toByteArray();
 			return bytes;
 		} catch (Exception e) {
@@ -285,15 +297,15 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * @throws IOException
 	 *             in case of generation error
 	 */
-	private byte[] generateProxyClass(final String interfaceName,
+	private byte[] generateProxyClass(final String[] interfaceNames,
 			final byte[] interfaceClass, final String proxyName,
 			final byte[] proxyClass) throws IOException {
-		interfaceClassName = interfaceName;
+		interfaceClassNames = interfaceNames;
 		smartProxyClassName = proxyName;
 		ClassReader reader = new ClassReader(proxyClass);
 		writer = new ClassWriter(false);
 		reader.accept(this, null, false);
-		interfaceClassName = null;
+		interfaceClassNames = null;
 		byte[] bytes = writer.toByteArray();
 		return bytes;
 	}
@@ -320,7 +332,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		MethodVisitor method;
 		FieldVisitor field;
 
-		if (interfaceClassName.replace(".", "/").equals(name)) {
+		if (interfaceClassNames[0].replace(".", "/").equals(name)) {
 			implName = "proxy/" + sourceID + "/" + name + "Impl";
 
 			if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
@@ -328,20 +340,22 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 						"creating proxy class " + implName);
 			}
 
+			final String[] serviceInterfaces = new String[interfaceClassNames.length + 1];
+			for (int i = 0; i < interfaceClassNames.length; i++) {
+				serviceInterfaces[i] = interfaceClassNames[i].replace('.', '/');
+			}
+			serviceInterfaces[interfaceClassNames.length] = "org/osgi/framework/BundleActivator";
+
 			if ((access & ACC_INTERFACE) == 0) {
 				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
-						"java/lang/Object", new String[] {
-								interfaceClassName.replace('.', '/'),
-								"org/osgi/framework/BundleActivator" });
+						"java/lang/Object", serviceInterfaces);
 			} else {
 				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
-						"java/lang/Object", new String[] {
-								interfaceClassName.replace('.', '/'),
-								"org/osgi/framework/BundleActivator" });
+						"java/lang/Object", serviceInterfaces);
 				if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
 					RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
-							"Creating Proxy Bundle from Interface "
-									+ interfaceClassName);
+							"Creating Proxy Bundle from Interfaces "
+									+ Arrays.asList(interfaceClassNames));
 				}
 
 				// creates a MethodWriter for the (implicit) constructor
@@ -356,14 +370,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 			}
 
-			final String url = serviceURL.toString();
-
-			field = writer.visitField(ACC_PRIVATE, "endpoint",
-					"Lch/ethz/iks/r_osgi/ChannelEndpoint;", null, null);
+			field = writer.visitField(ACC_PRIVATE, "endpoint", "L" + ENDPOINT_I
+					+ ";", null, null);
 			field.visitEnd();
 
 			{
-
 				method = writer.visitMethod(ACC_PUBLIC, "start",
 						"(Lorg/osgi/framework/BundleContext;)V", null,
 						new String[] { "java/lang/Exception" });
@@ -385,7 +396,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitVarInsn(ASTORE, 2);
 				method.visitVarInsn(ALOAD, 0);
 				method.visitVarInsn(ALOAD, 2);
-				method.visitLdcInsn(url);
+				method.visitLdcInsn(channelID);
 				method.visitMethodInsn(INVOKEINTERFACE, REMOTING_I,
 						"getEndpoint", "(Ljava/lang/String;)L" + ENDPOINT_I
 								+ ";");
@@ -396,7 +407,26 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 						+ ENDPOINT_I + ";");
 				method.visitLdcInsn(url);
 				method.visitVarInsn(ALOAD, 1);
-				method.visitLdcInsn(interfaceClassName);
+
+				final int len = interfaceClassNames.length;
+				if (len < 6) {
+					method.visitInsn(ICONST[interfaceClassNames.length]);
+				} else {
+					method.visitIntInsn(BIPUSH, len);
+				}
+				method.visitTypeInsn(ANEWARRAY, "java/lang/String");
+				for (int i = 0; i < len && i < 6; i++) {
+					method.visitInsn(DUP);
+					method.visitInsn(ICONST[i]);
+					method.visitLdcInsn(interfaceClassNames[i]);
+					method.visitInsn(AASTORE);
+				}
+				for (int i = 6; i < len; i++) {
+					method.visitInsn(DUP);
+					method.visitIntInsn(BIPUSH, i);
+					method.visitLdcInsn(interfaceClassNames[i]);
+					method.visitInsn(AASTORE);
+				}
 				method.visitVarInsn(ALOAD, 0);
 				method.visitVarInsn(ALOAD, 0);
 				method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
@@ -410,7 +440,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 								INVOKEINTERFACE,
 								"org/osgi/framework/BundleContext",
 								"registerService",
-								"(Ljava/lang/String;Ljava/lang/Object;Ljava/util/Dictionary;)Lorg/osgi/framework/ServiceRegistration;");
+								"([Ljava/lang/String;Ljava/lang/Object;Ljava/util/Dictionary;)Lorg/osgi/framework/ServiceRegistration;");
 				method
 						.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
 								"trackRegistration",
@@ -472,16 +502,15 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 						new String[] { "java/lang/Exception" });
 				method.visitCode();
 				method.visitVarInsn(ALOAD, 0);
-				method.visitFieldInsn(GETFIELD, implName, "endpoint",
-						"Lch/ethz/iks/r_osgi/ChannelEndpoint;");
+				method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
+						+ ENDPOINT_I + ";");
 				method.visitLdcInsn(url);
-				method.visitMethodInsn(INVOKEINTERFACE,
-						"ch/ethz/iks/r_osgi/ChannelEndpoint",
+				method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
 						"untrackRegistration", "(Ljava/lang/String;)V");
 				method.visitVarInsn(ALOAD, 0);
 				method.visitInsn(ACONST_NULL);
-				method.visitFieldInsn(PUTFIELD, implName, "endpoint",
-						"Lch/ethz/iks/r_osgi/ChannelEndpoint;");
+				method.visitFieldInsn(PUTFIELD, implName, "endpoint", "L"
+						+ ENDPOINT_I + ";");
 				method.visitInsn(RETURN);
 				method.visitMaxs(2, 2);
 				method.visitEnd();
@@ -619,7 +648,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			method.visitVarInsn(ALOAD, 0);
 			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
 					+ ENDPOINT_I + ";");
-			method.visitLdcInsn(serviceURL.toString());
+			method.visitLdcInsn(url);
 			method.visitLdcInsn(name + desc);
 			if (args.length < 5) {
 				method.visitInsn(ICONST[args.length]);
@@ -1079,7 +1108,10 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * @return sourceID
 	 */
 	private static String generateSourceID(final String id) {
-		char[] chars = id.toCharArray();
+		final int pos1 = id.indexOf("://");
+		final int pos3 = id.lastIndexOf(":");
+		char[] chars = id.substring(pos1 + 3, pos3).replace('/', '_')
+				.toCharArray();
 		StringBuffer buffer = new StringBuffer();
 		for (int i = 0; i < chars.length; i++) {
 			if (chars[i] == '.') {

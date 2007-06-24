@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>ch.ethz.iks.r-osgi</groupId>
 		<artifactId>project</artifactId>
-		<version>0.6.2</version>
+		<version>1.0_RC1</version>
 	</parent>
 	<groupId>ch.ethz.iks.r-osgi</groupId>
 	<artifactId>remote</artifactId>
@@ -41,7 +41,7 @@
 						<bundleSymbolicName>ch.ethz.iks.r_osgi.remote</bundleSymbolicName>
 						<bundleDescription>R-OSGi remote bundle</bundleDescription>
 						<bundleVendor>Jan S. Rellermeyer, IKS, ETH Zurich</bundleVendor>
-						<importPackage>org.osgi.framework, ch.ethz.iks.slp, org.osgi.service.event</importPackage>
+						<importPackage>org.osgi.framework, org.osgi.util.tracker, org.osgi.service.log, org.osgi.service.event</importPackage>
 						<exportPackage>org.osgi.service.event, ch.ethz.iks.r_osgi, ch.ethz.iks.util, org.objectweb.asm</exportPackage>
 						<dynamicImportPackage>*</dynamicImportPackage>
 					</osgiManifest>
@@ -61,12 +61,6 @@
 			<groupId>asm</groupId>
 			<artifactId>asm</artifactId>
 			<version>2.2</version>
-		</dependency>
-		<dependency>
-			<groupId>ch.ethz.iks.slp</groupId>
-			<artifactId>jslp-osgi</artifactId>
-			<version>1.0_RC1</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
         	<groupId>junit</groupId>

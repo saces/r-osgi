@@ -121,8 +121,8 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 			case TIME_OFFSET:
 				msg = new TimeOffsetMessage(input);
 				break;
-			case STATE_UPDATE:
-				msg = new StateUpdateMessage(input);
+			case LEASE_UPDATE:
+				msg = new LeaseUpdateMessage(input);
 				break;
 			default:
 				throw new RemoteOSGiException("funcID " + funcID
@@ -148,16 +148,14 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	 * @throws IOException
 	 *             in case of IO failures.
 	 */
-	public final void send(final ObjectOutputStream out)
-			throws IOException {
-			synchronized (out) {
-				//out.reset();
-				out.write(1);
-				out.write(funcID);
-				out.writeShort(xid);
-				writeBody(out);
-				out.flush();				
-			}
+	public final void send(final ObjectOutputStream out) throws IOException {
+		synchronized (out) {
+			out.write(1);
+			out.write(funcID);
+			out.writeShort(xid);
+			writeBody(out);
+			out.flush();
+		}
 	}
 
 	/**
@@ -204,6 +202,61 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 		if (bytes.length > 0) {
 			out.write(bytes);
 		}
+	}
+
+	protected static void writeStringArray(final ObjectOutputStream out,
+			final String[] strings) throws IOException {
+		final short length = (short) strings.length;
+		out.writeShort(length);
+		for (short i = 0; i < length; i++) {
+			out.writeUTF(strings[i]);
+		}
+	}
+	
+	protected static String[] readStringArray(final ObjectInputStream in) throws IOException {
+		final short length = in.readShort();
+		final String[] result = new String[length];
+		for (short i=0; i<length; i++) {
+			result[i] = in.readUTF();
+		}
+		return result;
+	}
+	
+	/**
+	 * get the service url of the service.
+	 * 
+	 * @return the service url as string.
+	 */
+	final String getURL() {
+		return url;
+	}
+
+	/**
+	 * rewrite the serviceURLs contained in the message for bridging.
+	 * 
+	 * @param protocol
+	 *            the protocol.
+	 * @param host
+	 *            the host name/address.
+	 * @param port
+	 *            the port.
+	 * @throws IllegalArgumentException
+	 *             if the result is an invalid SLP serviceURL.
+	 */
+	public final void rewriteURL(final String protocol, final String host,
+			final int port) throws IllegalArgumentException {
+		if (url == null) {
+			throw new IllegalArgumentException(
+					"Message does not contain an URL");
+		}
+		url = protocol + "://" + host + "/" + getServiceID() + ":" + port;
+	}
+
+	final Long getServiceID() {
+		final int d2 = url.lastIndexOf("/");
+		final int d3 = url.lastIndexOf(":");
+		final String serviceID = url.substring(d2 + 1, d3);
+		return Long.valueOf(serviceID);
 	}
 
 }

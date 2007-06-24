@@ -10,12 +10,10 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
-
-import ch.ethz.iks.r_osgi.DiscoveryListener;
+import ch.ethz.iks.r_osgi.RemoteServiceListener;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
-import ch.ethz.iks.slp.ServiceURL;
 
 public class Activator implements BundleActivator {
 
@@ -23,7 +21,7 @@ public class Activator implements BundleActivator {
 
 	private RemoteOSGiService remote;
 
-	private DiscoveryListener listener;
+	private RemoteServiceListener listener;
 
 	private ServiceInterface service;
 
@@ -42,7 +40,7 @@ public class Activator implements BundleActivator {
 			throw new BundleException("OSGi remote service is not present.");
 		}
 
-		listener = new DiscoveryListener() {
+		listener = new RemoteServiceListener() {
 			// discovered matching service
 			public void notifyDiscovery(final ServiceURL url) {
 				System.out.println("found service " + url);
@@ -99,9 +97,9 @@ public class Activator implements BundleActivator {
 			}
 		};
 		final Dictionary props = new Hashtable();
-		props.put(DiscoveryListener.SERVICE_INTERFACES,
+		props.put(RemoteServiceListener.SERVICE_INTERFACES,
 				new String[] { ServiceInterface.class.getName() });
-		context.registerService(DiscoveryListener.class.getName(), listener,
+		context.registerService(RemoteServiceListener.class.getName(), listener,
 				props);
 
 		final Dictionary properties = new Hashtable();

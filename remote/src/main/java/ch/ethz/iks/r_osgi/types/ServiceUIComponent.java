@@ -26,73 +26,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi;
+package ch.ethz.iks.r_osgi.types;
 
-import java.io.IOException;
-import java.net.InetAddress;
+import java.awt.Panel;
+
+import org.osgi.framework.BundleContext;
 
 /**
  * <p>
- * Interface for all transport channel classes. Implementations of this
- * interface are typically returned by services that offer the
- * <code>TransportChannelFactory</code> service.
+ * Presentations for services implement this interface.
+ * </p>
+ * <p>
+ * When the ServiceUI fetches a service that has the presentation property set,
+ * it first invokes the <code>initComponent</code> method of the
+ * <code>ServiceUIComponent</code> to let it initialize. Then, the
+ * <code>getPanel</code> method is called that is expected to return a panel
+ * that presents the service.
  * </p>
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
- * @since 0.6
+ * @since 0.3
  */
-public interface NetworkChannel {
+public interface ServiceUIComponent {
 
 	/**
-	 * get the protocol that this channel uses on the transport layer.
+	 * called by the system when the component is initialized.
 	 * 
-	 * @return the protocol identifier as <code>String</code>. Should be in
-	 *         lowercase.
-	 * @since 0.6
+	 * @param serviceObject
+	 *            the service object of the service to which the
+	 *            ServiceUIComponent is bound.
+	 * @param context
+	 *            a bundle context. Can be used if the component has to access
+	 *            other OSGi services or has to interact differently with the
+	 *            framework.
+	 * @since 0.5
 	 */
-	String getProtocol();
+	void initComponent(final Object serviceObject, final BundleContext context);
 
 	/**
-	 * get the address that the channel is connected to.
+	 * get the main panel of the presentation.
 	 * 
-	 * @return the address.
-	 * @since 0.6
+	 * @return the panel.
+	 * @since 0.5
 	 */
-	InetAddress getInetAddress();
-
-	/**
-	 * get the port that the channel is connected to.
-	 * 
-	 * @return the port.
-	 * @since 0.6
-	 */
-	int getPort();
-
-	/**
-	 * get the (unique) ID of the channel.
-	 * 
-	 * @return the ID.
-	 */
-	String getID();
-
-	/**
-	 * reconnect the channel to the endpoint.
-	 * 
-	 * @throws IOException
-	 *             if the channel cannot be reconnected.
-	 * @since 0.6
-	 */
-	void reconnect() throws IOException;
-
-	/**
-	 * send a message through the channel.
-	 * 
-	 * @param message
-	 *            the message to be sent.
-	 * @throws IOException
-	 *             if the transport fails.
-	 * @since 0.6
-	 */
-	void sendMessage(final RemoteOSGiMessage message) throws IOException;
+	Panel getPanel();
 
 }

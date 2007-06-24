@@ -26,49 +26,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi;
+package ch.ethz.iks.r_osgi.channels;
 
-import java.awt.Panel;
+import java.io.IOException;
+import java.net.InetAddress;
 
-import org.osgi.framework.BundleContext;
 
 /**
- * <p>
- * Presentations for services implement this interface.
- * </p>
- * <p>
- * When the ServiceUI fetches a service that has the presentation property set,
- * it first invokes the <code>initComponent</code> method of the
- * <code>ServiceUIComponent</code> to let it initialize. Then, the
- * <code>getPanel</code> method is called that is expected to return a panel
- * that presents the service.
- * </p>
+ * Interface for services that create transport channel implementations. Must
+ * not necessarily be an OSGi service factory, since this service is only used
+ * by the R-OSGi bundle.
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
- * @since 0.3
+ * @since 0.6
  */
-public interface ServiceUIComponent {
+public interface NetworkChannelFactory {
 
 	/**
-	 * called by the system when the component is initialized.
-	 * 
-	 * @param serviceObject
-	 *            the service object of the service to which the
-	 *            ServiceUIComponent is bound.
-	 * @param context
-	 *            a bundle context. Can be used if the component has to access
-	 *            other OSGi services or has to interact differently with the
-	 *            framework.
-	 * @since 0.5
+	 * this constant should be set in the properties. The <code>String</code>
+	 * set to this property is matched with the protocol argument that client
+	 * bundles requesting for connections. Can also be a <code>String[]</code>.
 	 */
-	void initComponent(final Object serviceObject, final BundleContext context);
+	String PROTOCOL_PROPERTY = "protocol";
 
 	/**
-	 * get the main panel of the presentation.
+	 * get a new connection to a remote OSGi framework.
 	 * 
-	 * @return the panel.
-	 * @since 0.5
+	 * @param endpoint
+	 *            the channel endpoint.
+	 * @param address
+	 *            the address to connect to.
+	 * @param port
+	 *            the port to connect to.
+	 * @param protocol
+	 *            the protocol if the factory is registered for multiple
+	 *            protocols.
+	 * @return a new transport channel that is typically already connected to
+	 *         the endpoint and ready to send messages.
+	 * @throws IOException
+	 *             in case of connection errors.
 	 */
-	Panel getPanel();
+	NetworkChannel getConnection(final ChannelEndpoint endpoint,
+			final InetAddress address, final int port, final String protocol)
+			throws IOException;
 
 }

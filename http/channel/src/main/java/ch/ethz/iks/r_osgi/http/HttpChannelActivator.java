@@ -33,7 +33,8 @@ import java.util.Hashtable;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import ch.ethz.iks.r_osgi.NetworkChannelFactory;
+
+import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 
 /**
  * 

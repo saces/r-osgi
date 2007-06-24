@@ -34,31 +34,29 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Constants;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
-import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.log.LogService;
-
-import ch.ethz.iks.r_osgi.ChannelEndpoint;
-import ch.ethz.iks.r_osgi.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
-import ch.ethz.iks.r_osgi.NetworkChannel;
-import ch.ethz.iks.slp.ServiceLocationException;
-import ch.ethz.iks.slp.ServiceURL;
+import ch.ethz.iks.r_osgi.RemoteServiceEvent;
+import ch.ethz.iks.r_osgi.RemoteServiceReference;
+import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
+import ch.ethz.iks.r_osgi.channels.NetworkChannel;
+import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 
 /**
  * <p>
@@ -70,8 +68,8 @@ import ch.ethz.iks.slp.ServiceURL;
  * Endpoints exchange symmetric leases when they are established. These leases
  * contain the statements of supply and demand. The peer states the services it
  * offers and the event topics it is interested in. Whenever one of these
- * statements undergo a change, the lease has to be renewed. Leases expire with
- * the closing of the network channel and the two bound endpoints.
+ * statements undergo a change, a lease update has to be sent. Leases expire
+ * with the closing of the network channel and the two endpoints.
  * </p>
  * <p>
  * The network transport of channels is modular and exchangeable. Services can
@@ -96,15 +94,15 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 	/**
 	 * the services provided by the OSGi framework holding the remote channel
-	 * endpoint.
+	 * endpoint. List of RemoteServiceReferences
 	 */
-	private String[] remoteServices;
+	private Map remoteServices = new HashMap(0);
 
 	/**
 	 * the topics of interest of the OSGi framework holding the remote channel
-	 * endpoint.
+	 * endpoint. List of topic strings
 	 */
-	private String[] remoteTopics;
+	private List remoteTopics = new ArrayList(0);
 
 	/**
 	 * the time offset between this peer's local time and the local time of the
@@ -123,22 +121,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private final Map receiveQueue = new HashMap(0);
 
 	/**
-	 * map of service url -> attribute dictionary.
+	 * map of service url -> RemoteServiceRegistration.
 	 */
-	private final HashMap attributes = new HashMap(0);
+	private final HashMap localServices = new HashMap(2);
 
 	/**
-	 * map of service url -> service object.
-	 */
-	private final HashMap services = new HashMap(2);
-
-	/**
-	 * reverse map: service reference -> service url.
-	 */
-	private final HashMap serviceURLs = new HashMap(2);
-
-	/**
-	 * map service url -> service registration.
+	 * map of service url -> service registration.
 	 */
 	private final HashMap proxiedServices = new HashMap(0);
 
@@ -146,7 +134,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * map service url -> proxy bundle. If the endpoint is closed, the proxies
 	 * are unregistered.
 	 */
-	private final HashMap proxies = new HashMap(0);
+	private final HashMap proxyBundles = new HashMap(0);
 
 	/**
 	 * the handler registration, if the remote topic space is not empty.
@@ -202,8 +190,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"opening new channel " + getID());
 		}
-		renewLease(RemoteOSGiServiceImpl.getServices(), RemoteOSGiServiceImpl
-				.getTopics());
 		RemoteOSGiServiceImpl.registerChannel(this);
 	}
 
@@ -222,11 +208,24 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		RemoteOSGiServiceImpl.registerChannel(this);
 	}
 
+	RemoteServiceReference[] sendLease(
+			final RemoteServiceRegistration[] myServices,
+			final String[] myTopics) {
+		final LeaseMessage lease = (LeaseMessage) sendMessage(new LeaseMessage(
+				myServices, myTopics));
+
+		return processLease(lease);
+	}
+
+	void updateLease(final LeaseUpdateMessage msg) {
+		send(msg);
+	}
+
 	/**
 	 * get the channel ID.
 	 * 
 	 * @return the channel ID.
-	 * @see ch.ethz.iks.r_osgi.ChannelEndpoint#getID() *
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#getID() *
 	 * @category ChannelEndpoint
 	 */
 	public String getID() {
@@ -238,7 +237,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * 
 	 * @param msg
 	 *            the received message.
-	 * @see ch.ethz.iks.r_osgi.ChannelEndpoint#receivedMessage(ch.ethz.iks.r_osgi.RemoteOSGiMessage)
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#receivedMessage(ch.ethz.iks.r_osgi.RemoteOSGiMessage)
 	 * @category ChannelEndpoint
 	 */
 	public void receivedMessage(final RemoteOSGiMessage msg) {
@@ -326,8 +325,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (handlerReg != null) {
 			handlerReg.unregister();
 		}
-		Bundle[] bundles = (Bundle[]) proxies.values().toArray(
-				new Bundle[proxies.size()]);
+		Bundle[] bundles = (Bundle[]) proxyBundles.values().toArray(
+				new Bundle[proxyBundles.size()]);
 		for (int i = 0; i < bundles.length; i++) {
 			try {
 				if (bundles[i].getState() != Bundle.UNINSTALLED) {
@@ -342,11 +341,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		remoteTopics = null;
 		timeOffset = null;
 		receiveQueue.clear();
-		attributes.clear();
-		services.clear();
-		serviceURLs.clear();
+		localServices.clear();
 		proxiedServices.clear();
-		proxies.clear();
+		proxyBundles.clear();
 		handlerReg = null;
 		reconnecting = true;
 		synchronized (receiveQueue) {
@@ -363,8 +360,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @return the service attributes.
 	 * @category ChannelEndpoint
 	 */
-	public Dictionary getProperties(final String serviceURL) {
-		return (Dictionary) attributes.get(serviceURL);
+	public Dictionary getProperties(final String url) {
+		return getRemoteReference(url).getProperties();
+	}
+
+	private RemoteServiceReferenceImpl getRemoteReference(final String url) {
+		return (RemoteServiceReferenceImpl) remoteServices.get(url);
 	}
 
 	/**
@@ -376,30 +377,23 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @return the presentation attributes.
 	 * @category ChannelEndpoint
 	 */
-	public Dictionary getPresentationProperties(final String serviceURL) {
+	public Dictionary getPresentationProperties(final String url) {
 		final Dictionary attribs = new Hashtable();
-		try {
-			attribs.put(RemoteOSGiServiceImpl.REMOTE_HOST, new ServiceURL(
-					serviceURL, 0).getHost());
-			attribs.put(RemoteOSGiService.PRESENTATION,
-					((Dictionary) attributes.get(serviceURL))
-							.get(RemoteOSGiService.PRESENTATION));
-		} catch (ServiceLocationException sle) {
-			throw new IllegalArgumentException("ServiceURL " + serviceURL
-					+ " is invalid.");
-		}
+		attribs.put(RemoteOSGiServiceImpl.SERVICE_URL, url);
+		attribs.put(RemoteOSGiService.PRESENTATION, getRemoteReference(url)
+				.getProperty(RemoteOSGiService.PRESENTATION));
 		return attribs;
 	}
 
 	/**
 	 * 
-	 * @param serviceURL
+	 * @param url
 	 * @param reg
 	 * @category ChannelEndpoint
 	 */
-	public void trackRegistration(final String serviceURL,
+	public void trackRegistration(final String url,
 			final ServiceRegistration reg) {
-		proxiedServices.put(serviceURL, reg);
+		proxiedServices.put(url, reg);
 	}
 
 	/**
@@ -407,44 +401,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @param serviceURL
 	 * @category ChannelEndpoint
 	 */
-	public void untrackRegistration(final String serviceURL) {
-		proxiedServices.remove(serviceURL);
-	}
-
-	/**
-	 * renew the lease.
-	 * 
-	 * @param updatedServices
-	 *            the (local) services.
-	 * @param updatedTopics
-	 *            the (local) topics.
-	 * @throws RemoteOSGiException
-	 *             if the channel cannot be established.
-	 */
-	void renewLease(final String[] updatedServices, final String[] updatedTopics)
-			throws RemoteOSGiException {
-		final LeaseMessage lease = (LeaseMessage) sendMessage(new LeaseMessage(
-				updatedServices != null ? updatedServices : remoteServices,
-				updatedTopics != null ? updatedTopics : remoteTopics));
-		updateStatements(lease);
-	}
-
-	/**
-	 * get the services of the remote channel endpoint.
-	 * 
-	 * @return the services.
-	 */
-	String[] getRemoteServices() {
-		return remoteServices;
-	}
-
-	/**
-	 * get the remote topics that the remote channel endpoint is interested in.
-	 * 
-	 * @return the topics.
-	 */
-	String[] getRemoteTopics() {
-		return remoteTopics;
+	public void untrackRegistration(final String url) {
+		proxiedServices.remove(url);
 	}
 
 	/**
@@ -458,57 +416,37 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 *             if the installation of the proxy or the migrated bundle
 	 *             fails.
 	 */
-	void fetchService(final ServiceURL service) throws IOException,
+	void fetchService(final RemoteServiceReference ref) throws IOException,
 			BundleException {
+
 		// build the FetchServiceMessage
-		final FetchServiceMessage fetchReq = new FetchServiceMessage(service);
+		final FetchServiceMessage fetchReq = new FetchServiceMessage(ref);
 
 		// send the FetchServiceMessage and get a DeliverServiceMessage in
 		// return
 		final RemoteOSGiMessageImpl msg = sendMessage(fetchReq);
 		if (msg instanceof DeliverServiceMessage) {
 			final DeliverServiceMessage deliv = (DeliverServiceMessage) msg;
-			try {
-				final String urlString = deliv.getServiceURL();
-				final ServiceURL url = new ServiceURL(urlString, 0);
+			final String url = deliv.getURL();
 
-				// set the REMOTE_HOST_PROPERTY
-				final Dictionary attribs = deliv.getAttributes();
-				attribs.put(RemoteOSGiServiceImpl.REMOTE_HOST, service
-						.getHost());
+			// generate a proxy bundle for the service
+			final String bundleLocation = new ProxyGenerator()
+					.generateProxyBundle(url, getID(), deliv);
 
-				// remove the service PID, if set
-				attribs.remove("service.pid");
+			// install the proxy bundle
+			final Bundle bundle = RemoteOSGiServiceImpl.context
+					.installBundle("file:" + bundleLocation);
 
-				// remove the R-OSGi registration property
-				attribs.remove(RemoteOSGiService.R_OSGi_REGISTRATION);
+			// store the bundle for state updates and cleanup
+			proxyBundles.put(url, bundle);
 
-				attributes.put(url.toString(), attribs);
-
-				// generate a proxy bundle for the service
-				// TODO: redesign ProxyGenerator to be static
-				final String bundleLocation = new ProxyGenerator()
-						.generateProxyBundle(url, deliv);
-
-				// install the proxy bundle
-				final Bundle bundle = RemoteOSGiServiceImpl.context
-						.installBundle("file:" + bundleLocation);
-
-				// store the bundle for state updates and cleanup
-				proxies.put(urlString, bundle);
-
-				// start the bundle
-				bundle.start();
-			} catch (ServiceLocationException sle) {
-				throw new RemoteOSGiException("ServiceURL "
-						+ deliv.getServiceURL() + " is not valid.");
-			}
+			// start the bundle
+			bundle.start();
 		} else {
 			final DeliverBundleMessage delivB = (DeliverBundleMessage) msg;
 
-			Bundle bundle = RemoteOSGiServiceImpl.context.installBundle(
-					"r-osgi://" + service.toString(), new ByteArrayInputStream(
-							delivB.getBundle()));
+			Bundle bundle = RemoteOSGiServiceImpl.context.installBundle(ref
+					.getURL(), new ByteArrayInputStream(delivB.getBundle()));
 			bundle.start();
 		}
 	}
@@ -622,57 +560,65 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		return timeOffset;
 	}
 
+	private RemoteServiceReference[] processLease(LeaseMessage lease) {
+		final RemoteServiceReferenceImpl[] refs = lease.getServices(this);
+		for (short i = 0; i < refs.length; i++) {
+			remoteServices.put(refs[i].getURL(), refs[i]);
+			RemoteOSGiServiceImpl
+					.notifyRemoteServiceListeners(new RemoteServiceEvent(
+							RemoteServiceEvent.REGISTERED, refs[i]));
+		}
+		updateTopics(lease.getTopics(), new String[0]);
+		return refs;
+	}
+
 	/**
-	 * update the statements of suppy and demand.
+	 * update the statements of supply and demand.
 	 * 
 	 * @param lease
 	 *            the original lease.
 	 */
-	private void updateStatements(final LeaseMessage lease) {
-		final String[] remoteServices = lease.getServices();
-		if (remoteServices != null) {
-			this.remoteServices = remoteServices;
-		}
+	private void updateTopics(final String[] topicsAdded,
+			final String[] topicsRemoved) {
 
-		final String[] theTopics = lease.getTopics();
-		if (theTopics != null) {
-			remoteTopics = theTopics;
+		if (handlerReg == null) {
+			if (topicsAdded.length > 0) {
+				// register handler
+				final Dictionary properties = new Hashtable();
+				properties.put(EventConstants.EVENT_TOPIC, topicsAdded);
+				properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
+				properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
+						Boolean.TRUE);
+				handlerReg = RemoteOSGiServiceImpl.context.registerService(
+						EventHandler.class.getName(), new EventForwarder(),
+						properties);
+				remoteTopics.addAll(Arrays.asList(topicsAdded));
+			}
+		} else {
+			remoteTopics.removeAll(Arrays.asList(topicsRemoved));
+			remoteTopics.addAll(Arrays.asList(topicsAdded));
 
-			if (handlerReg == null) {
-				if (theTopics.length == 0) {
-					// no change
-				} else {
-					// register handler
-					final Dictionary properties = new Hashtable();
-					properties.put(EventConstants.EVENT_TOPIC, theTopics);
-					properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
-					properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
-							Boolean.TRUE);
-					handlerReg = RemoteOSGiServiceImpl.context.registerService(
-							EventHandler.class.getName(), new EventForwarder(),
-							properties);
-				}
+			if (remoteTopics.size() == 0) {
+				// unregister handler
+				handlerReg.unregister();
+				handlerReg = null;
 			} else {
-				if (theTopics.length == 0) {
-					// unregister handler
-					handlerReg.unregister();
-					handlerReg = null;
-				} else {
-					// update topics
-					final Dictionary properties = new Hashtable();
-					properties.put(EventConstants.EVENT_TOPIC, theTopics);
-					properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
-					properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
-							Boolean.TRUE);
-					handlerReg.setProperties(properties);
-				}
+				// update topics
+				final Dictionary properties = new Hashtable();
+				properties.put(EventConstants.EVENT_TOPIC,
+						(String[]) remoteTopics.toArray(new String[remoteTopics
+								.size()]));
+				properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
+				properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
+						Boolean.TRUE);
+				handlerReg.setProperties(properties);
 			}
 		}
 
 		if (RemoteOSGiServiceImpl.MSG_DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"NEW REMOTE TOPIC SPACE for " + getID() + " is "
-							+ java.util.Arrays.asList(theTopics));
+							+ remoteTopics);
 		}
 	}
 
@@ -692,11 +638,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		// requests
 		case RemoteOSGiMessageImpl.LEASE: {
 			final LeaseMessage lease = (LeaseMessage) msg;
-			updateStatements(lease);
-
-			// if (lease.getXID() == 0) {
-			// return null;
-			// }
+			processLease(lease);
 
 			return lease.replyWith(RemoteOSGiServiceImpl.getServices(),
 					RemoteOSGiServiceImpl.getTopics());
@@ -704,80 +646,101 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		case RemoteOSGiMessageImpl.FETCH_SERVICE: {
 			try {
 				final FetchServiceMessage fetchReq = (FetchServiceMessage) msg;
-				final String urlString = fetchReq.getServiceURL();
-				final ServiceURL url = new ServiceURL(urlString, 0);
+				final String url = fetchReq.getURL();
 
 				final RemoteServiceRegistration reg = RemoteOSGiServiceImpl
-						.getService(url);
+						.getService(fetchReq.getServiceID());
 
 				if (reg == null) {
 					throw new IllegalStateException("Could not get "
-							+ fetchReq.getServiceURL());
+							+ fetchReq.getURL());
 				}
 
 				if (reg instanceof ProxiedServiceRegistration) {
 
-					services.put(urlString, reg);
-					serviceURLs.put(reg.getReference(), urlString);
+					localServices.put(url, reg);
 
-					try {
-						RemoteOSGiServiceImpl.context.addServiceListener(
-								new ServiceObserver(), "("
-										+ Constants.SERVICE_ID + "="
-										+ reg.getServiceID() + ")");
-					} catch (InvalidSyntaxException e) {
-						e.printStackTrace();
-					}
+					RemoteOSGiMessage m = ((ProxiedServiceRegistration) reg)
+							.deliver(fetchReq);
 
-					return ((ProxiedServiceRegistration) reg)
-							.getMessage(fetchReq);
+					return m;
 				} else if (reg instanceof BundledServiceRegistration) {
 					return new DeliverBundleMessage(fetchReq,
 							(BundledServiceRegistration) reg);
 				}
-			} catch (ServiceLocationException sle) {
-				sle.printStackTrace();
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
 			}
 		}
-		case RemoteOSGiMessageImpl.STATE_UPDATE: {
-			StateUpdateMessage suMsg = (StateUpdateMessage) msg;
+		case RemoteOSGiMessageImpl.LEASE_UPDATE: {
+			LeaseUpdateMessage suMsg = (LeaseUpdateMessage) msg;
 
-			final String serviceURL = suMsg.getServiceURL();
-			final short stateUpdate = suMsg.getStateUpdate();
+			final String url = suMsg.getURL();
+			final short stateUpdate = suMsg.getType();
 
-			if (stateUpdate == 0) {
-				// remove the proxy
-				final Bundle bundle = (Bundle) proxies.get(serviceURL);
-				try {
-					bundle.uninstall();
-				} catch (BundleException be) {
-					be.printStackTrace();
-				}
-				proxies.remove(serviceURL);
-				proxiedServices.remove(serviceURL);
+			switch (stateUpdate) {
+			case LeaseUpdateMessage.TOPIC_UPDATE: {
+				updateTopics((String[]) suMsg.getContent()[0], (String[]) suMsg
+						.getContent()[1]);
 				return null;
 			}
+			case LeaseUpdateMessage.SERVICE_ADDED: {
+				final RemoteServiceReferenceImpl ref = new RemoteServiceReferenceImpl(
+						(String[]) suMsg.getContent()[0], url,
+						(Dictionary) suMsg.getContent()[1], this);
+				remoteServices.put(ref.getURL(), ref);
 
-			final Dictionary propertyUpdate = suMsg.getPropertyUpdate();
-			if (propertyUpdate != null) {
-				// get registration and update the properties
-				final ServiceRegistration reg = (ServiceRegistration) proxiedServices
-						.get(serviceURL);
-				reg.setProperties(propertyUpdate);
+				RemoteOSGiServiceImpl
+						.notifyRemoteServiceListeners(new RemoteServiceEvent(
+								RemoteServiceEvent.REGISTERED, ref));
+				return null;
 			}
+			case LeaseUpdateMessage.SERVICE_MODIFIED: {
+				final Dictionary newProps = (Dictionary) suMsg.getContent()[1];
+				final ServiceRegistration reg = (ServiceRegistration) proxiedServices
+						.get(url);
+				if (reg != null) {
+					reg.setProperties(newProps);
+				}
 
-			return null;
+				final RemoteServiceReferenceImpl ref = getRemoteReference(url);
+				ref.setProperties(newProps);
+				RemoteOSGiServiceImpl
+						.notifyRemoteServiceListeners(new RemoteServiceEvent(
+								RemoteServiceEvent.MODIFIED, ref));
+				return null;
+			}
+			case LeaseUpdateMessage.SERVICE_REMOVED: {
+				final Bundle bundle = (Bundle) proxyBundles.remove(url);
+				if (bundle != null) {
+					try {
+						bundle.uninstall();
+					} catch (BundleException be) {
+						be.printStackTrace();
+					}
+					proxiedServices.remove(url);
+				}
+				// TODO: remove debug output
+				System.out.println("URL " + url);
+				System.out.println("REFS " + remoteServices);
+				final RemoteServiceReference ref = (RemoteServiceReference) remoteServices
+						.remove(url);
+				RemoteOSGiServiceImpl
+						.notifyRemoteServiceListeners(new RemoteServiceEvent(
+								RemoteServiceEvent.UNREGISTERING, ref));
+				return null;
+			}
+			}
 		}
 		case RemoteOSGiMessageImpl.INVOKE_METHOD: {
 			final InvokeMethodMessage invMsg = (InvokeMethodMessage) msg;
 			try {
-				final ProxiedServiceRegistration serv = (ProxiedServiceRegistration) services
-						.get(invMsg.getServiceURL());
+				final ProxiedServiceRegistration serv = (ProxiedServiceRegistration) localServices
+						.get(invMsg.getURL());
 				if (serv == null) {
 					throw new IllegalStateException("Could not get "
-							+ invMsg.getServiceURL());
+							+ invMsg.getURL() + ", known services "
+							+ localServices);
 				}
 
 				// get the invokation arguments and the local method
@@ -803,9 +766,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final Event event = eventMsg.getEvent(this);
 
 			// and deliver the event to the local framework
-			if (RemoteOSGiServiceImpl.eventAdmin != null) {
-				RemoteOSGiServiceImpl.eventAdmin.postEvent(event);
+			if (RemoteOSGiServiceImpl.eventAdminTracker.getTrackingCount() > 0) {
+				((EventAdmin) RemoteOSGiServiceImpl.eventAdminTracker
+						.getService()).postEvent(event);
 			} else {
+				// TODO: to log
 				System.err.println("Could not deliver received event: " + event
 						+ ". No EventAdmin available.");
 			}
@@ -838,43 +803,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
-			}
-		}
-	}
-
-	private final class ServiceObserver implements ServiceListener {
-
-		public void serviceChanged(final ServiceEvent event) {
-			final ServiceReference ref = event.getServiceReference();
-
-			try {
-				switch (event.getType()) {
-				case ServiceEvent.MODIFIED:
-					// send the updated properties to the remote peer.
-					// TODO: improvement: make this a "diff" instead of the full
-					// set
-					// of attributes
-					final String[] keys = ref.getPropertyKeys();
-					final Dictionary newAttributes = new Hashtable(keys.length);
-					for (int i = 0; i < keys.length; i++) {
-						newAttributes.put(keys[i], ref.getProperty(keys[i]));
-					}
-					send(new StateUpdateMessage(
-							(String) (serviceURLs.get(ref)), (short) -1,
-							newAttributes));
-					return;
-				case ServiceEvent.UNREGISTERING:
-					// prevent that the service can be accessed any longer. Stop
-					// the remote proxy so that the proxied service is also
-					// unregistered.
-					final String serviceURL = (String) serviceURLs.remove(ref);
-					services.remove(serviceURL);
-					send(new StateUpdateMessage(serviceURL, (short) 0, null));
-					return;
-				}
-			} catch (RemoteOSGiException r) {
-				// TODO: remove proxy since the connection appears to be dead.
-				r.printStackTrace();
 			}
 		}
 	}

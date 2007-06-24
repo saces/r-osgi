@@ -147,7 +147,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 						case RemoteOSGiMessage.LEASE:
 							try {
 
-								response.rewrite(req.isSecure() ? "https"
+								response.rewriteURL(req.isSecure() ? "https"
 										: "http", req.getServerName(), req
 										.getServerPort());
 							} catch (IllegalArgumentException e) {

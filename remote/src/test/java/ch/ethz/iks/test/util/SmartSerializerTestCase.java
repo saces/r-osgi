@@ -7,7 +7,7 @@ import java.io.ObjectOutputStream;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import ch.ethz.iks.r_osgi.BoxedPrimitive;
+import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
 import ch.ethz.iks.util.SmartSerializer;
 import junit.framework.TestCase;
 

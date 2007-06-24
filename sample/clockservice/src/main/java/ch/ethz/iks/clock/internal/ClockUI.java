@@ -34,7 +34,7 @@ import org.osgi.service.event.EventHandler;
 
 import ch.ethz.iks.clock.Alarm;
 import ch.ethz.iks.clock.Clock;
-import ch.ethz.iks.r_osgi.ServiceUIComponent;
+import ch.ethz.iks.r_osgi.types.ServiceUIComponent;
 
 public class ClockUI extends Panel implements ServiceUIComponent {
 

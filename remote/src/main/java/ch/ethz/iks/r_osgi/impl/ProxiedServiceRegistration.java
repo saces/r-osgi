@@ -31,13 +31,12 @@ package ch.ethz.iks.r_osgi.impl;
 import java.lang.reflect.Method;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
+
 import org.objectweb.asm.Type;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
-
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
-import ch.ethz.iks.slp.ServiceLocationException;
-import ch.ethz.iks.slp.ServiceURL;
 
 /**
  * RemoteService encapsulates a service registered for remoting.
@@ -54,7 +53,7 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 
 	private final HashMap methodTable = new HashMap(0);
 
-	private HashMap deliverServiceMessages;
+	private DeliverServiceMessage deliverServiceMessage;
 
 	/**
 	 * creates a new RemoteService object.
@@ -71,8 +70,8 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 	 *             if one of the interface classes cannot be found.
 	 * @throws ServiceLocationException
 	 */
-	ProxiedServiceRegistration(final ServiceReference ref, final ServiceReference service)
-			throws ClassNotFoundException, ServiceLocationException {
+	ProxiedServiceRegistration(final ServiceReference ref,
+			final ServiceReference service) throws ClassNotFoundException {
 
 		super(service);
 
@@ -104,22 +103,12 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 		final CodeAnalyzer inspector = new CodeAnalyzer(bundleLoader,
 				(String) headers.get(Constants.IMPORT_PACKAGE),
 				(String) headers.get(Constants.EXPORT_PACKAGE));
-		deliverServiceMessages = new HashMap(interfaceNames.length);
 		try {
-			for (int i = 0; i < interfaceNames.length; i++) {
-				deliverServiceMessages
-						.put(
-								interfaceNames[i].replace('.', '/'),
-								inspector
-										.analyze(
-												interfaceNames[i],
-												(String) ref
-														.getProperty(RemoteOSGiService.SMART_PROXY),
-												(String[]) ref
-														.getProperty(RemoteOSGiService.INJECTIONS),
-												(String) ref
-														.getProperty(RemoteOSGiServiceImpl.PRESENTATION)));
-			}
+			deliverServiceMessage = inspector.analyze(interfaceNames,
+					(String) ref.getProperty(RemoteOSGiService.SMART_PROXY),
+					(String[]) ref.getProperty(RemoteOSGiService.INJECTIONS),
+					(String) ref
+							.getProperty(RemoteOSGiServiceImpl.PRESENTATION));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -138,13 +127,8 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 		return (Method) methodTable.get(signature);
 	}
 
-	DeliverServiceMessage getMessage(final FetchServiceMessage fetchReq)
-			throws ServiceLocationException {
-		final String serviceURL = fetchReq.getServiceURL();
-		final DeliverServiceMessage msg = (DeliverServiceMessage) deliverServiceMessages
-				.get(new ServiceURL(serviceURL, 0).getServiceType()
-						.getConcreteTypeName());
-		msg.init(fetchReq, getProperties());
-		return msg;
+	DeliverServiceMessage deliver(final FetchServiceMessage fetchReq) {
+		deliverServiceMessage.init(fetchReq);
+		return deliverServiceMessage;
 	}
 }

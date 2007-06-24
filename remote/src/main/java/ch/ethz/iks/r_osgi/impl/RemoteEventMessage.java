@@ -149,22 +149,6 @@ final class RemoteEventMessage extends RemoteOSGiMessageImpl {
 		out.writeUTF(topic);
 		SmartSerializer.serialize(properties, out);
 	}
-	
-	/**
-	 * has no effect for this type.
-	 * 
-	 * @param protocol
-	 *            the protocol.
-	 * @param host
-	 *            the host.
-	 * @param port
-	 *            the port.
-	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#rewrite(java.lang.String,
-	 *      java.lang.String, int)
-	 */
-	public void rewrite(final String protocol, final String host, final int port) {
-
-	}
 
 	/**
 	 * String representation for debug outputs.

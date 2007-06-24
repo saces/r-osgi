@@ -28,7 +28,7 @@
  */
 package ch.ethz.iks.r_osgi.impl;
 
-import ch.ethz.iks.r_osgi.Timestamp;
+import ch.ethz.iks.r_osgi.types.Timestamp;
 import ch.ethz.iks.util.MathUtils;
 
 /**

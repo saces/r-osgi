@@ -32,9 +32,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Dictionary;
 
-import ch.ethz.iks.slp.ServiceLocationException;
-import ch.ethz.iks.slp.ServiceURL;
+import ch.ethz.iks.r_osgi.RemoteOSGiService;
 
 /**
  * Lease message. Is exchanged when a channel is established. Leases are the
@@ -48,7 +48,11 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	/**
 	 * the services that the peer offers.
 	 */
-	private String[] services;
+	private String[][] serviceInterfaces;
+
+	private String[] urls;
+
+	private Dictionary[] serviceProperties;
 
 	/**
 	 * the event topics that the peer is interested in.
@@ -63,9 +67,10 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @param topics
 	 *            the topics the peer is interested in.
 	 */
-	public LeaseMessage(final String[] services, final String[] topics) {
+	public LeaseMessage(final RemoteServiceRegistration[] regs,
+			final String[] topics) {
 		this.funcID = LEASE;
-		this.services = services;
+		parseRegistrations(regs);
 		this.topics = topics;
 	}
 
@@ -78,7 +83,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *          |       R-OSGi header (function = Fetch = 1)                    |
 	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *          |  Array of service strings                                     \
+	 *          |  Array of service information                                 \
 	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *          |  Array of topic strings                                       \
 	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -92,19 +97,30 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 */
 	LeaseMessage(final ObjectInputStream input) throws IOException {
 		funcID = LEASE;
-		final int slen = input.readShort();
-		final String[] services = new String[slen];
-		for (int i = 0; i < slen; i++) {
-			services[i] = input.readUTF();
-		}
-		this.services = services;
+		final int serviceCount = input.readShort();
+		urls = new String[serviceCount];
+		serviceInterfaces = new String[serviceCount][];
+		serviceProperties = new Dictionary[serviceCount];
+		try {
+			for (short i = 0; i < serviceCount; i++) {
+				serviceInterfaces[i] = readStringArray(input);
+				urls[i] = input.readUTF();
+				serviceProperties[i] = (Dictionary) input.readObject();
+				serviceProperties[i].put(RemoteOSGiServiceImpl.SERVICE_URL,
+						urls[i]);
 
-		final int tlen = input.readShort();
-		final String[] topics = new String[tlen];
-		for (int i = 0; i < tlen; i++) {
-			topics[i] = input.readUTF();
+				// remove the service PID, if set
+				serviceProperties[i].remove("service.pid");
+
+				// remove the R-OSGi registration property
+				serviceProperties[i]
+						.remove(RemoteOSGiService.R_OSGi_REGISTRATION);
+
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
 		}
-		this.topics = topics;
+		this.topics = readStringArray(input);
 	}
 
 	/**
@@ -112,8 +128,13 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * 
 	 * @return the services.
 	 */
-	String[] getServices() {
-		return services;
+	RemoteServiceReferenceImpl[] getServices(final ChannelEndpointImpl channel) {
+		final RemoteServiceReferenceImpl[] refs = new RemoteServiceReferenceImpl[urls.length];
+		for (short i = 0; i < urls.length; i++) {
+			refs[i] = new RemoteServiceReferenceImpl(serviceInterfaces[i],
+					urls[i], serviceProperties[i], channel);
+		}
+		return refs;
 	}
 
 	/**
@@ -135,62 +156,32 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 *            the topics of interest of this peer.
 	 * @return the reply lease message.
 	 */
-	LeaseMessage replyWith(final String[] services, final String[] topics) {
-		this.services = services;
+	LeaseMessage replyWith(final RemoteServiceRegistration[] refs,
+			final String[] topics) {
+		parseRegistrations(refs);
 		this.topics = topics;
 		return this;
 	}
 
 	/**
-	 * get the bytes of the message.
+	 * write the bytes of the message.
 	 * 
-	 * @return the bytes.
+	 * @param out
+	 *            the output stream
 	 * @throws IOException
 	 *             in case of IO errors.
 	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		final int slen = services.length;
+		final int slen = serviceInterfaces.length;
 		out.writeShort(slen);
-		for (int i = 0; i < slen; i++) {
-			out.writeUTF(services[i]);
+		for (short i = 0; i < slen; i++) {
+			writeStringArray(out, serviceInterfaces[i]);
+			out.writeUTF(urls[i]);
+			// TODO: smart serializer
+			out.writeObject(serviceProperties[i]);
 		}
-
-		final int tlen = topics.length;
-		out.writeShort(tlen);
-		for (int i = 0; i < tlen; i++) {
-			out.writeUTF(topics[i]);
-		}
-	}
-
-	/**
-	 * restamp the service URL to a new address.
-	 * 
-	 * @param protocol
-	 *            the protocol.
-	 * @param host
-	 *            the host.
-	 * @param port
-	 *            the port.
-	 * @throws ServiceLocationException
-	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#rewrite(java.lang.String,
-	 *      java.lang.String, int)
-	 */
-	public void rewrite(final String protocol, final String host, final int port)
-			throws IllegalArgumentException {
-		try {
-			for (int i = 0; i < services.length; i++) {
-				final ServiceURL original = new ServiceURL(services[i], 0);
-				final ServiceURL restamped = new ServiceURL(original
-						.getServiceType()
-						+ "://"
-						+ (protocol != null ? (protocol + "://") : "")
-						+ host + ":" + port + original.getURLPath(), 0);
-				services[i] = restamped.toString();
-			}
-		} catch (ServiceLocationException sle) {
-			throw new IllegalArgumentException(sle.getMessage());
-		}
+		writeStringArray(out, topics);
 	}
 
 	/**
@@ -203,10 +194,30 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("[LEASE] - XID: ");
 		buffer.append(xid);
-		buffer.append(", urls: ");
-		buffer.append(Arrays.asList(services));
+		buffer.append(", services: ");
+		for (int i = 0; i < serviceInterfaces.length; i++) {
+			buffer.append(serviceInterfaces[i]);
+			buffer.append("-");
+			buffer.append(urls[i]);
+			if (i < serviceInterfaces.length) {
+				buffer.append(", ");
+			}
+		}
 		buffer.append(", topics: ");
 		buffer.append(Arrays.asList(topics));
 		return buffer.toString();
+	}
+
+	private void parseRegistrations(final RemoteServiceRegistration[] regs) {
+		urls = new String[regs.length];
+		serviceInterfaces = new String[regs.length][];
+		serviceProperties = new Dictionary[regs.length];
+		for (short i = 0; i < regs.length; i++) {
+			urls[i] = "r-osgi://" + RemoteOSGiServiceImpl.MY_ADDRESS + "/"
+					+ regs[i].getServiceID() + ":"
+					+ RemoteOSGiServiceImpl.R_OSGI_PORT;
+			serviceInterfaces[i] = regs[i].getInterfaceNames();
+			serviceProperties[i] = regs[i].getProperties();
+		}
 	}
 }

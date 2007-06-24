@@ -38,10 +38,10 @@ import java.net.Socket;
 
 import org.osgi.service.log.LogService;
 
-import ch.ethz.iks.r_osgi.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
-import ch.ethz.iks.r_osgi.NetworkChannel;
-import ch.ethz.iks.r_osgi.NetworkChannelFactory;
+import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
+import ch.ethz.iks.r_osgi.channels.NetworkChannel;
+import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 
 /**
  * channel factory for (persistent) TCP transport. This is the default protocol.
@@ -61,7 +61,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	 * @param protocol
 	 *            ignored.
 	 * @return the transport channel.
-	 * @see ch.ethz.iks.r_osgi.NetworkChannelFactory#getConnection(java.net.InetAddress,
+	 * @see ch.ethz.iks.r_osgi.channels.NetworkChannelFactory#getConnection(java.net.InetAddress,
 	 *      int, java.lang.String)
 	 */
 	public NetworkChannel getConnection(final ChannelEndpoint endpoint,
@@ -197,7 +197,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * 
 		 * @throws IOException
 		 *             if the connection attempt fails.
-		 * @see ch.ethz.iks.r_osgi.NetworkChannel#reconnect()
+		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#reconnect()
 		 */
 		public void reconnect() throws IOException {
 			connected = false;
@@ -217,7 +217,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * get the address of the channel endpoint.
 		 * 
 		 * @return the address of the channel endpoint.
-		 * @see ch.ethz.iks.r_osgi.NetworkChannel#getInetAddress()
+		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getInetAddress()
 		 */
 		public InetAddress getInetAddress() {
 			return host;
@@ -227,7 +227,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * get the port of the channel endpoint.
 		 * 
 		 * @return the port of the channel endpoint.
-		 * @see ch.ethz.iks.r_osgi.NetworkChannel#getPort()
+		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getPort()
 		 */
 		public int getPort() {
 			return port;
@@ -237,7 +237,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * get the protocol that is implemented by the channel.
 		 * 
 		 * @return the protocol.
-		 * @see ch.ethz.iks.r_osgi.NetworkChannel#getProtocol()
+		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getProtocol()
 		 */
 		public String getProtocol() {
 			return "r-osgi";
@@ -247,7 +247,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * get the (unique) ID of the channel.
 		 * 
 		 * @return the ID.
-		 * @see ch.ethz.iks.r_osgi.NetworkChannel#getID()
+		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getID()
 		 */
 		public String getID() {
 			return "r-osgi" + "://" + host.getHostAddress() + ":" + port;
@@ -260,7 +260,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 *            the message.
 		 * @throws IOException
 		 *             in case of IO errors.
-		 * @see ch.ethz.iks.r_osgi.NetworkChannel#sendMessage(ch.ethz.iks.r_osgi.RemoteOSGiMessage)
+		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#sendMessage(ch.ethz.iks.r_osgi.RemoteOSGiMessage)
 		 */
 		public void sendMessage(final RemoteOSGiMessage message)
 				throws IOException {
@@ -295,6 +295,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 						}
 						endpoint.receivedMessage(msg);
 					} catch (Throwable t) {
+						// TODO: remove debug output
 						t.printStackTrace();
 						connected = false;
 						try {

@@ -28,7 +28,7 @@
  */
 package ch.ethz.iks.r_osgi;
 
-import ch.ethz.iks.slp.ServiceURL;
+import java.util.EventListener;
 
 /**
  * <p>
@@ -41,7 +41,7 @@ import ch.ethz.iks.slp.ServiceURL;
  * @author Jan S. Rellermeyer, ETH Zürich
  * @since 0.1
  */
-public interface DiscoveryListener {
+public interface RemoteServiceListener extends EventListener {
 
 	/**
 	 * Name of the property which denotes the service interfaces in which the
@@ -71,7 +71,8 @@ public interface DiscoveryListener {
 
 	/**
 	 * <p>
-	 * notify the application that a service has been discovered.
+	 * notify the application that a remote service matching the constraints has
+	 * been located.
 	 * </p>
 	 * <p>
 	 * As soon as the service has been discovered and this method has been
@@ -82,19 +83,6 @@ public interface DiscoveryListener {
 	 * @param service
 	 *            the <code>ServiceURL</code> of the discovered service.
 	 */
-	void notifyDiscovery(final ServiceURL service);
+	void remoteServiceEvent(final RemoteServiceEvent event);
 
-	/**
-	 * <p>
-	 * notify the application that a service has been lost.
-	 * </p>
-	 * <p>
-	 * As soon as this method has been called, the local service proxy will be
-	 * unregistered. Using bundles will not be able to access the service.
-	 * </p>
-	 * 
-	 * @param service
-	 *            the <code>ServiceURL</code> of the lost service.
-	 */
-	void notifyServiceLost(final ServiceURL service);
 }
