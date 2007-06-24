@@ -42,7 +42,7 @@
 						<bundleDescription>R-OSGi remote bundle</bundleDescription>
 						<bundleVendor>Jan S. Rellermeyer, IKS, ETH Zurich</bundleVendor>
 						<importPackage>org.osgi.framework, org.osgi.util.tracker, org.osgi.service.log, org.osgi.service.event</importPackage>
-						<exportPackage>org.osgi.service.event, ch.ethz.iks.r_osgi, ch.ethz.iks.util, org.objectweb.asm</exportPackage>
+						<exportPackage>org.osgi.service.event, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.channels, ch.ethz.iks.r_osgi.types, ch.ethz.iks.util, org.objectweb.asm</exportPackage>
 						<dynamicImportPackage>*</dynamicImportPackage>
 					</osgiManifest>
 				</configuration>

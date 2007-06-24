@@ -471,6 +471,31 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		return null;
 	}
 
+	public RemoteServiceReference[] getRemoteServiceReferences(
+			final String url, final String clazz, final Filter filter)
+			throws InvalidSyntaxException {
+		final ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
+				.get(url);
+		return channel.getRemoteReferences(context
+				.createFilter(filter != null ? "(&(" + filter + ")("
+						+ Constants.OBJECTCLASS + "=" + clazz.toString() + ")"
+						: "(" + Constants.OBJECTCLASS + "=" + clazz.toString()
+								+ ")"));
+	}
+
+	public RemoteServiceReference[] connect(final String url)
+			throws RemoteOSGiException, UnknownHostException {
+		final int pos1 = url.indexOf("://");
+		final int pos2 = url.lastIndexOf(":");
+		final String protocol = pos1 > -1 ? url.substring(0, pos1) : "r-osgi";
+		final int port = pos2 > -1 ? Integer.parseInt(url.substring(pos2 + 1))
+				: R_OSGI_PORT;
+		final int p1 = pos1 > -1 ? pos1 + 3 : 0;
+		final int p2 = pos2 > -1 ? pos2 : url.length();
+		final String host = url.substring(p1, p2);
+		return connect(InetAddress.getByName(host), port, protocol);
+	}
+
 	/**
 	 * connect to a remote OSGi host.
 	 * 
@@ -517,10 +542,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		}
 	}
 
-	public void disconnect(RemoteServiceReference ref)
-			throws RemoteOSGiException {
-		ChannelEndpointImpl channel = ((RemoteServiceReferenceImpl) ref)
-				.getChannel();
+	public void disconnect(final String url) throws RemoteOSGiException {
+		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels.get(url);
 		channel.dispose();
 	}
 

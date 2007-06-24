@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
@@ -366,6 +367,25 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 	private RemoteServiceReferenceImpl getRemoteReference(final String url) {
 		return (RemoteServiceReferenceImpl) remoteServices.get(url);
+	}
+
+	/**
+	 * 
+	 * @param filter
+	 * @return
+	 */
+	RemoteServiceReference[] getRemoteReferences(final Filter filter) {
+		final List result = new ArrayList();
+		final RemoteServiceReferenceImpl[] refs = (RemoteServiceReferenceImpl[]) remoteServices
+				.keySet().toArray(
+						new RemoteServiceReferenceImpl[remoteServices.size()]);
+		for (int i = 0; i < refs.length; i++) {
+			if (filter.match(refs[i].getProperties())) {
+				result.add(refs);
+			}
+		}
+		return (RemoteServiceReference[]) result
+				.toArray(new RemoteServiceReference[result.size()]);
 	}
 
 	/**

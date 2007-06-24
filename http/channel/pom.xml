@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>ch.ethz.iks.r-osgi</groupId>
 		<artifactId>project</artifactId>
-		<version>0.6.2</version>
+		<version>1.0_RC1</version>
 	</parent>
 	<groupId>ch.ethz.iks.r-osgi.http</groupId>
 	<artifactId>http.channel</artifactId>
@@ -34,7 +34,7 @@
 						<bundleName>R-OSGi Http Channel</bundleName>
 						<bundleSymbolicName>ch.ethz.iks.r_osgi.http</bundleSymbolicName>						
 						<bundleVendor>Jan S. Rellermeyer, IKS, ETH Zurich</bundleVendor>
-						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi</importPackage>
+						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.channels</importPackage>
 						<exportPackage>ch.ethz.iks.r_osgi.http</exportPackage>
 					</osgiManifest>
 				</configuration>

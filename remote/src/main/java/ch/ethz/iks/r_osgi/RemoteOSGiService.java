@@ -29,6 +29,10 @@
 package ch.ethz.iks.r_osgi;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import org.osgi.framework.Filter;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 
 import ch.ethz.iks.r_osgi.types.Timestamp;
@@ -139,8 +143,7 @@ public interface RemoteOSGiService {
 	/**
 	 * property for registration of a service UI component that gived the user a
 	 * presentation of the service. The value of the property in the service
-	 * property dictionary has to be a name of a class
-	 * implementing
+	 * property dictionary has to be a name of a class implementing
 	 * <code>org.service.proposition.remote.ServiceUIComponent</code>. When
 	 * this property is set, the presentation is injected into the bundle and
 	 * the R-OSGi ServiceUI can display the presentation when the service is
@@ -183,16 +186,28 @@ public interface RemoteOSGiService {
 	RemoteServiceReference[] connect(final InetAddress host, final int port,
 			final String protocol) throws RemoteOSGiException;
 
-	
+	/**
+	 * 
+	 * @param url
+	 * @return
+	 * @throws RemoteOSGiException
+	 * @throws UnknownHostException
+	 * @since 0.9
+	 */
+	RemoteServiceReference[] connect(final String url)
+			throws RemoteOSGiException, UnknownHostException;
+
 	/**
 	 * disconnect from a connected host
+	 * 
 	 * @param host
 	 * @param port
 	 * @param protocol
 	 * @throws RemoteOSGiException
 	 */
-	void disconnect(final RemoteServiceReference ref) throws RemoteOSGiException;
-	
+	void disconnect(final String url)
+			throws RemoteOSGiException;
+
 	/**
 	 * fetch the discovered remote service. The service will be fetched from the
 	 * service providing host and a proxy bundle is registered with the local
@@ -204,8 +219,21 @@ public interface RemoteOSGiService {
 	 *             if the fetching fails.
 	 * @since 0.5
 	 */
-	void fetchService(final RemoteServiceReference ref) throws RemoteOSGiException;
+	void fetchService(final RemoteServiceReference ref)
+			throws RemoteOSGiException;
 	
+	/**
+	 * 
+	 * @param url
+	 * @param clazz
+	 * @param filter
+	 * @return
+	 * @throws InvalidSyntaxException
+	 */
+	public RemoteServiceReference[] getRemoteServiceReferences(
+			final String url, final String clazz, final Filter filter)
+			throws InvalidSyntaxException;
+
 	/**
 	 * get the service that has just been fetched. Only works if the service has
 	 * been fetched in form of a proxy.
