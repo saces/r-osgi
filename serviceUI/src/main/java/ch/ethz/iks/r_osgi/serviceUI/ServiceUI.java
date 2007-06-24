@@ -225,10 +225,10 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 															.addActionListener(new ActionListener() {
 																public void actionPerformed(
 																		final ActionEvent e) {
-																		final RemoteServiceReference selected = (RemoteServiceReference) knownServices
-																				.get(list
-																						.getSelectedItem());
-																		fetchService(selected);
+																	final RemoteServiceReference selected = (RemoteServiceReference) knownServices
+																			.get(list
+																					.getSelectedItem());
+																	fetchService(selected);
 																	setVisible(false);
 																}
 															});
@@ -387,22 +387,28 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 		}
 	}
 
-	public void remoteServiceEvent(RemoteServiceEvent event) {
-		// TODO Auto-generated method stub
-		
+	public void remoteServiceEvent(final RemoteServiceEvent event) {
+		final RemoteServiceReference ref = event.getRemoteReference();
+		final String url = event.getRemoteReference().getURL();
+
+		switch (event.getType()) {
+		case RemoteServiceEvent.REGISTERED:
+			knownServices.put(url, ref);
+			statusLine.setText("New " + url);
+			new CleanStatusLineThread();
+			service.add(url);
+			service.invalidate();
+			validate();
+			return;
+		case RemoteServiceEvent.UNREGISTERING:
+			knownServices.remove(url);
+			statusLine.setText("Lost " + url);
+			new CleanStatusLineThread();
+			removePanel(url);
+			service.invalidate();
+			validate();
+			return;
+		}
+
 	}
-
-	/*
-	 * public void notifyDiscovery(ServiceURL url) { String serviceString =
-	 * getServiceString(url); knownServices.put(serviceString, url);
-	 * statusLine.setText("New " + serviceString); new CleanStatusLineThread();
-	 * service.add(serviceString); service.invalidate(); validate(); }
-	 */
-
-	/*
-	 * public void notifyServiceLost(ServiceURL url) { String serviceString =
-	 * getServiceString(url); knownServices.remove(serviceString);
-	 * statusLine.setText("Lost " + serviceString); new CleanStatusLineThread();
-	 * removePanel(serviceString); service.invalidate(); validate(); }
-	 */
 }

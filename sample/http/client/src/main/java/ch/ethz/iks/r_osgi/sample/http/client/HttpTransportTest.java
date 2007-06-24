@@ -11,10 +11,8 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
-
-import ch.ethz.iks.slp.ServiceURL;
-
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
+import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 
 public class HttpTransportTest implements BundleActivator {
@@ -53,7 +51,7 @@ public class HttpTransportTest implements BundleActivator {
 
 		System.out.println("TRYING TO ESTABLISH CONNECTION TO HOST");
 
-		final ServiceURL[] services;
+		final RemoteServiceReference[] services;
 		if (home) {
 			System.out.println("============================================");
 			System.out.println("CONFIGURED FOR TESTS IN THE HOME NETWORK ...");

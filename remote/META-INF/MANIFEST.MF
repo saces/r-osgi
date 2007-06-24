@@ -7,7 +7,7 @@ Bundle-Localization: plugin
 Export-Package: ch.ethz.iks.util,
  ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.channels, org.objectweb.asm
 Bundle-ClassPath: .,
- lib/asm-2.2.jar
+ asm-2.2.jar
 Bundle-Activator: ch.ethz.iks.r_osgi.impl.RemoteOSGiActivator
 DynamicImport-Package: *
 Import-Package: org.osgi.framework, org.osgi.util.tracker, org.osgi.service.event, org.osgi.service.log 
