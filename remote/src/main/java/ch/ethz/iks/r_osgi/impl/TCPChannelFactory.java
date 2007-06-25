@@ -189,7 +189,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @see java.lang.Object#toString()
 		 */
 		public String toString() {
-			return "TCPChannel (" + getURL() + ")";
+			return "TCPChannel (" + getRemoteURL() + ")";
 		}
 
 		/**
@@ -247,9 +247,9 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * get the (unique) ID of the channel.
 		 * 
 		 * @return the ID.
-		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getURL()
+		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getRemoteURL()
 		 */
-		public String getURL() {
+		public String getRemoteURL() {
 			return "r-osgi" + "://" + host.getHostName() + ":" + port;
 		}
 
@@ -280,7 +280,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		private class ReceiverThread extends Thread {
 			private ReceiverThread() {
-				this.setName("TCPChannel:ReceiverThread:" + getURL());
+				this.setName("TCPChannel:ReceiverThread:" + getRemoteURL());
 				this.setDaemon(true);
 			}
 
@@ -307,6 +307,10 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 					}
 				}
 			}
+		}
+
+		public String getLocalURL() {
+			return getProtocol() + "://" + socket.getLocalAddress().getHostName() + ":" + socket.getLocalPort();
 		}
 	}
 }

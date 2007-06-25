@@ -75,7 +75,7 @@ public interface NetworkChannel {
 	 * 
 	 * @return the ID.
 	 */
-	String getURL();
+	String getRemoteURL();
 
 	/**
 	 * reconnect the channel to the endpoint.
@@ -96,5 +96,7 @@ public interface NetworkChannel {
 	 * @since 0.6
 	 */
 	void sendMessage(final RemoteOSGiMessage message) throws IOException;
+
+	String getLocalURL();
 
 }

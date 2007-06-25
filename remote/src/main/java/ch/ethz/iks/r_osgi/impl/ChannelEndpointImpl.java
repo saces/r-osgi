@@ -212,14 +212,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	RemoteServiceReference[] sendLease(
 			final RemoteServiceRegistration[] myServices,
 			final String[] myTopics) {
-		final LeaseMessage lease = (LeaseMessage) sendMessage(new LeaseMessage(getURL(),
-				myServices, myTopics));
+		final LeaseMessage lease = (LeaseMessage) sendMessage(new LeaseMessage(
+				getLocalURL(), myServices, myTopics));
 
 		return processLease(lease);
 	}
 
 	void updateLease(final LeaseUpdateMessage msg) {
-		msg.init(getURL());
+		msg.init(getLocalURL());
 		send(msg);
 	}
 
@@ -231,7 +231,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @category ChannelEndpoint
 	 */
 	public String getURL() {
-		return networkChannel.getURL();
+		return networkChannel.getRemoteURL();
+	}
+
+	String getLocalURL() {
+		return networkChannel.getLocalURL();
 	}
 
 	/**
@@ -661,8 +665,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final LeaseMessage lease = (LeaseMessage) msg;
 			processLease(lease);
 
-			return lease.replyWith(getURL(), RemoteOSGiServiceImpl.getServices(),
-					RemoteOSGiServiceImpl.getTopics());
+			return lease.replyWith(getLocalURL(), RemoteOSGiServiceImpl
+					.getServices(), RemoteOSGiServiceImpl.getTopics());
 		}
 		case RemoteOSGiMessageImpl.FETCH_SERVICE: {
 			try {
