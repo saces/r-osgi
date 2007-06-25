@@ -69,6 +69,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 */
 	public LeaseMessage(final String url, final RemoteServiceRegistration[] regs,
 			final String[] topics) {
+		System.out.println("LEASE MESSAGE CALLED WITH URL " + url);
 		this.url = url;
 		this.funcID = LEASE;
 		parseRegistrations(regs);
@@ -96,8 +97,9 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @throws IOException
 	 *             if something goes wrong.
 	 */
-	LeaseMessage(final ObjectInputStream input) throws IOException {
+	LeaseMessage(final ObjectInputStream input) throws IOException {		
 		funcID = LEASE;
+		url = input.readUTF();
 		final int serviceCount = input.readShort();
 		urls = new String[serviceCount];
 		serviceInterfaces = new String[serviceCount][];
@@ -174,6 +176,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
+		out.writeUTF(url);
 		final int slen = serviceInterfaces.length;
 		out.writeShort(slen);
 		for (short i = 0; i < slen; i++) {
