@@ -212,7 +212,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	RemoteServiceReference[] sendLease(
 			final RemoteServiceRegistration[] myServices,
 			final String[] myTopics) {
-		final LeaseMessage lease = (LeaseMessage) sendMessage(new LeaseMessage(
+		final LeaseMessage lease = (LeaseMessage) sendMessage(new LeaseMessage(getID(),
 				myServices, myTopics));
 
 		return processLease(lease);

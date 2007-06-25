@@ -476,6 +476,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			throws InvalidSyntaxException {
 		final ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
 				.get(url);
+		System.out.println("CHANNEL FOR URL " + url + ": " + channel);
+		System.out.println("CHANNELS " + channels);
 		return channel.getRemoteReferences(context
 				.createFilter(filter != null ? "(&(" + filter + ")("
 						+ Constants.OBJECTCLASS + "=" + clazz.toString() + ")"

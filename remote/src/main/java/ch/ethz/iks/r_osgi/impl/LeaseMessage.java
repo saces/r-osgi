@@ -67,8 +67,9 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @param topics
 	 *            the topics the peer is interested in.
 	 */
-	public LeaseMessage(final RemoteServiceRegistration[] regs,
+	public LeaseMessage(final String url, final RemoteServiceRegistration[] regs,
 			final String[] topics) {
+		this.url = url;
 		this.funcID = LEASE;
 		parseRegistrations(regs);
 		this.topics = topics;
@@ -213,9 +214,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		serviceInterfaces = new String[regs.length][];
 		serviceProperties = new Dictionary[regs.length];
 		for (short i = 0; i < regs.length; i++) {
-			urls[i] = "r-osgi://" + RemoteOSGiServiceImpl.MY_ADDRESS + "/"
-					+ regs[i].getServiceID() + ":"
-					+ RemoteOSGiServiceImpl.R_OSGI_PORT;
+			urls[i] = url + "/" + regs[i].getServiceID();
 			serviceInterfaces[i] = regs[i].getInterfaceNames();
 			serviceProperties[i] = regs[i].getProperties();
 		}
