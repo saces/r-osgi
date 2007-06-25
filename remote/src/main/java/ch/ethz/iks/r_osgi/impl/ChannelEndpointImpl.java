@@ -189,7 +189,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				.getConnection(this, address, port, protocol);
 		if (RemoteOSGiServiceImpl.DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
-					"opening new channel " + getID());
+					"opening new channel " + getURL());
 		}
 		RemoteOSGiServiceImpl.registerChannel(this);
 	}
@@ -212,7 +212,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	RemoteServiceReference[] sendLease(
 			final RemoteServiceRegistration[] myServices,
 			final String[] myTopics) {
-		final LeaseMessage lease = (LeaseMessage) sendMessage(new LeaseMessage(getID(),
+		final LeaseMessage lease = (LeaseMessage) sendMessage(new LeaseMessage(getURL(),
 				myServices, myTopics));
 
 		return processLease(lease);
@@ -226,11 +226,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * get the channel ID.
 	 * 
 	 * @return the channel ID.
-	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#getID() *
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#getURL() *
 	 * @category ChannelEndpoint
 	 */
-	public String getID() {
-		return networkChannel.getID();
+	public String getURL() {
+		return networkChannel.getURL();
 	}
 
 	/**
@@ -245,7 +245,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (msg == null) {
 			if (RemoteOSGiServiceImpl.DEBUG) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_WARNING,
-						"Connection to " + getID()
+						"Connection to " + getURL()
 								+ " broke down. Trying to reconnect ...");
 			}
 			try {
@@ -320,7 +320,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	public void dispose() {
 		if (RemoteOSGiServiceImpl.DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
-					"DISPOSING ENDPOINT " + getID());
+					"DISPOSING ENDPOINT " + getURL());
 		}
 		RemoteOSGiServiceImpl.unregisterChannel(this);
 		if (handlerReg != null) {
@@ -451,7 +451,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 			// generate a proxy bundle for the service
 			final String bundleLocation = new ProxyGenerator()
-					.generateProxyBundle(url, getID(), deliv);
+					.generateProxyBundle(url, getURL(), deliv);
 
 			// install the proxy bundle
 			final Bundle bundle = RemoteOSGiServiceImpl.context
@@ -637,7 +637,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		if (RemoteOSGiServiceImpl.MSG_DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
-					"NEW REMOTE TOPIC SPACE for " + getID() + " is "
+					"NEW REMOTE TOPIC SPACE for " + getURL() + " is "
 							+ remoteTopics);
 		}
 	}
@@ -660,7 +660,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final LeaseMessage lease = (LeaseMessage) msg;
 			processLease(lease);
 
-			return lease.replyWith(getID(), RemoteOSGiServiceImpl.getServices(),
+			return lease.replyWith(getURL(), RemoteOSGiServiceImpl.getServices(),
 					RemoteOSGiServiceImpl.getTopics());
 		}
 		case RemoteOSGiMessageImpl.FETCH_SERVICE: {
@@ -816,7 +816,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		public void handleEvent(final Event event) {
 			try {
-				send(new RemoteEventMessage(event, getID()));
+				send(new RemoteEventMessage(event, getURL()));
 				if (RemoteOSGiServiceImpl.MSG_DEBUG) {
 					RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 							"Forwarding Event " + event);

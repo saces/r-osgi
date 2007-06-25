@@ -118,7 +118,7 @@ public interface ChannelEndpoint {
 	 * 
 	 * @return the channel ID.
 	 */
-	String getID();
+	String getURL();
 
 	/**
 	 * dispose of the channel endpoint.

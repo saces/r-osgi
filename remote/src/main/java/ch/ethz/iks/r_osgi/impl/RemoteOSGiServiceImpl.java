@@ -702,7 +702,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 *            the local endpoint of the channel.
 	 */
 	static void registerChannel(final ChannelEndpoint channel) {
-		channels.put(channel.getID(), channel);
+		channels.put(channel.getURL(), channel);
 	}
 
 	/**
@@ -712,7 +712,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 *            the local endpoint of the channel.
 	 */
 	static void unregisterChannel(final ChannelEndpoint channel) {
-		channels.remove(channel.getID());
+		channels.remove(channel.getURL());
 	}
 
 	/**

@@ -189,7 +189,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @see java.lang.Object#toString()
 		 */
 		public String toString() {
-			return "TCPChannel (" + getID() + ")";
+			return "TCPChannel (" + getURL() + ")";
 		}
 
 		/**
@@ -247,10 +247,10 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * get the (unique) ID of the channel.
 		 * 
 		 * @return the ID.
-		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getID()
+		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getURL()
 		 */
-		public String getID() {
-			return "r-osgi" + "://" + host.getHostAddress() + ":" + port;
+		public String getURL() {
+			return "r-osgi" + "://" + host.getHostName() + ":" + port;
 		}
 
 		/**
@@ -280,7 +280,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		private class ReceiverThread extends Thread {
 			private ReceiverThread() {
-				this.setName("TCPChannel:ReceiverThread:" + getID());
+				this.setName("TCPChannel:ReceiverThread:" + getURL());
 				this.setDaemon(true);
 			}
 

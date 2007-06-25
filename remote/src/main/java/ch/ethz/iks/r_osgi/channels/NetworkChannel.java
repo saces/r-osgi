@@ -75,7 +75,7 @@ public interface NetworkChannel {
 	 * 
 	 * @return the ID.
 	 */
-	String getID();
+	String getURL();
 
 	/**
 	 * reconnect the channel to the endpoint.
