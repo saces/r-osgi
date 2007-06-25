@@ -385,7 +385,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 		}
 		return (RemoteServiceReference[]) result
-				.toArray(new RemoteServiceReference[result.size()]);
+				.toArray(new RemoteServiceReferenceImpl[result.size()]);
 	}
 
 	/**
