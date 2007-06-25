@@ -219,6 +219,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	void updateLease(final LeaseUpdateMessage msg) {
+		msg.init(getURL());
 		send(msg);
 	}
 

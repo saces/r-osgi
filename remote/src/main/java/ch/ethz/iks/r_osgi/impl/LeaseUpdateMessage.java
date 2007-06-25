@@ -31,20 +31,26 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 
 	private Object content2;
 
+	private long serviceID;
+
 	/**
 	 * creates a new LeaseUpdateMessage for service updates.
 	 * 
 	 */
-	LeaseUpdateMessage(final short type, final RemoteServiceRegistration reg) {
+	LeaseUpdateMessage(final short type,
+			final RemoteServiceRegistration reg) {
 		funcID = LEASE_UPDATE;
 		if (reg == null) {
 			throw new IllegalArgumentException("REG IS NULL");
-		}
-		this.url = "r-osgi://" + RemoteOSGiServiceImpl.MY_ADDRESS + "/"
-				+ reg.getServiceID() + ":" + RemoteOSGiServiceImpl.R_OSGI_PORT;
+		}		
 		this.type = type;
+		this.serviceID = reg.getServiceID();
 		this.content1 = reg.getInterfaceNames();
 		this.content2 = reg.getProperties();
+	}
+	
+	void init(String url) {
+		this.url = url + "/" + serviceID;
 	}
 
 	/**
