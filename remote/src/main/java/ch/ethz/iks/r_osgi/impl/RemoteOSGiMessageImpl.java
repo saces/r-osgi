@@ -212,16 +212,17 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 			out.writeUTF(strings[i]);
 		}
 	}
-	
-	protected static String[] readStringArray(final ObjectInputStream in) throws IOException {
+
+	protected static String[] readStringArray(final ObjectInputStream in)
+			throws IOException {
 		final short length = in.readShort();
 		final String[] result = new String[length];
-		for (short i=0; i<length; i++) {
+		for (short i = 0; i < length; i++) {
 			result[i] = in.readUTF();
 		}
 		return result;
 	}
-	
+
 	/**
 	 * get the service url of the service.
 	 * 
@@ -253,6 +254,9 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	}
 
 	final Long getServiceID() {
+		if (url == null) {
+			throw new IllegalStateException("URL is null");
+		}
 		final int d2 = url.lastIndexOf("/");
 		final int d3 = url.lastIndexOf(":");
 		final String serviceID = url.substring(d2 + 1, d3);

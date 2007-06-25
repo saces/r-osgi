@@ -381,7 +381,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						new RemoteServiceReferenceImpl[remoteServices.size()]);
 		for (int i = 0; i < refs.length; i++) {
 			if (filter.match(refs[i].getProperties())) {
-				result.add(refs);
+				result.add(refs[i]);
 			}
 		}
 		return (RemoteServiceReference[]) result
