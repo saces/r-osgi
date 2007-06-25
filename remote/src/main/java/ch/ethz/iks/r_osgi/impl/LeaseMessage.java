@@ -72,7 +72,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		this.funcID = LEASE;
 		this.url = url;		
 		parseRegistrations(regs);
-		this.topics = topics;
+		this.topics = topics == null ? new String[0] : topics;
 	}
 
 	/**
