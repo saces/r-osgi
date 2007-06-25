@@ -69,9 +69,8 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 */
 	public LeaseMessage(final String url, final RemoteServiceRegistration[] regs,
 			final String[] topics) {
-		System.out.println("LEASE MESSAGE CALLED WITH URL " + url);
-		this.url = url;
 		this.funcID = LEASE;
+		this.url = url;		
 		parseRegistrations(regs);
 		this.topics = topics;
 	}
