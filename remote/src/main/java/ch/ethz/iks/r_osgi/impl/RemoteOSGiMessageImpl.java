@@ -257,12 +257,8 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 		if (url == null) {
 			throw new IllegalStateException("URL is null");
 		}
-		System.out.println("URL is " + url);
 		final int d2 = url.lastIndexOf("/");
-		System.out.println("last '/': " + d2);
-		final int d3 = url.lastIndexOf(":");
-		System.out.println("last ':':" + d3);
-		final String serviceID = url.substring(d3 + 1, d2);
+		final String serviceID = url.substring(d2+1);
 		return Long.valueOf(serviceID);
 	}
 
