@@ -159,8 +159,9 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 *            the topics of interest of this peer.
 	 * @return the reply lease message.
 	 */
-	LeaseMessage replyWith(final RemoteServiceRegistration[] refs,
+	LeaseMessage replyWith(final String url, final RemoteServiceRegistration[] refs,
 			final String[] topics) {
+		this.url = url;
 		parseRegistrations(refs);
 		this.topics = topics;
 		return this;

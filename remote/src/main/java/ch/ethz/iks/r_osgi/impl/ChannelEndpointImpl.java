@@ -660,7 +660,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final LeaseMessage lease = (LeaseMessage) msg;
 			processLease(lease);
 
-			return lease.replyWith(RemoteOSGiServiceImpl.getServices(),
+			return lease.replyWith(getID(), RemoteOSGiServiceImpl.getServices(),
 					RemoteOSGiServiceImpl.getTopics());
 		}
 		case RemoteOSGiMessageImpl.FETCH_SERVICE: {
