@@ -745,9 +745,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					}
 					proxiedServices.remove(url);
 				}
-				// TODO: remove debug output
-				System.out.println("URL " + url);
-				System.out.println("REFS " + remoteServices);
 				final RemoteServiceReference ref = (RemoteServiceReference) remoteServices
 						.remove(url);
 				RemoteOSGiServiceImpl

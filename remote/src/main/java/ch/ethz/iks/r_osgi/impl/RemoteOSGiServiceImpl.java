@@ -476,8 +476,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			throws InvalidSyntaxException {
 		final ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
 				.get(url);
-		System.out.println("CHANNEL FOR URL " + url + ": " + channel);
-		System.out.println("CHANNELS " + channels);
 		return channel.getRemoteReferences(context
 				.createFilter(filter != null ? "(&(" + filter + ")("
 						+ Constants.OBJECTCLASS + "=" + clazz.toString() + ")"
@@ -567,8 +565,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		try {
 
 			ChannelEndpointImpl channel;
-			System.out.println("going to get channel for " + ref);
-			System.out.println("channels: " + channels);
 			channel = ((RemoteServiceReferenceImpl) ref).getChannel();
 			channel.fetchService(ref);
 		} catch (UnknownHostException e) {
@@ -577,15 +573,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		} catch (IOException ioe) {
 			throw new RemoteOSGiException("Proxy generation error", ioe);
 		} catch (BundleException e) {
-			System.err.println("Nested Exception:");
-			Throwable nested = e.getNestedException();
-			if (nested != null) {
-				nested.printStackTrace();
-			} else {
-				e.printStackTrace();
-			}
+			final Throwable nested = e.getNestedException() == null ? e : e
+					.getNestedException();
 			throw new RemoteOSGiException(
-					"Could not install the generated bundle ");
+					"Could not install the generated bundle ", nested);
 		}
 	}
 
