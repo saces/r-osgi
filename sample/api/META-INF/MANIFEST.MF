@@ -5,4 +5,4 @@ Bundle-SymbolicName: ch.ethz.iks.r_osgi.service.api
 Bundle-Version: 0.9.91
 Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
 Bundle-Localization: plugin
-Export-Package: ch.ethz.iks.r_osgi.sample.api
+Export-Package: ch.ethz.iks.r_osgi.sample.api;version="0.9.91"

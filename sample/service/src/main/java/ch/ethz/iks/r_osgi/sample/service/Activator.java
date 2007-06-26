@@ -13,7 +13,7 @@ import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.SurrogateRegistration;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 
-public class Activator implements BundleActivator {
+public class Activator implements BundleActivator, SurrogateRegistration {
 
 	public void start(BundleContext context) throws Exception {
 
