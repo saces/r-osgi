@@ -230,7 +230,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 * @return the ID.
 		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getID()
 		 */
-		public String getID() {
+		public String getRemoteURL() {
 			return protocol + "://" + host.getHostAddress() + ":" + port;
 		}
 
@@ -275,13 +275,18 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			endpoint.receivedMessage(msg);
 		}
 
+		public String getLocalURL() {
+			return url.toString();
+		}
+
+		
 		private class CallbackThread extends Thread {
 			private ObjectInputStream input;
 
 			private CallbackThread(final ObjectInputStream in) {
 				this.input = in;
 				this.setDaemon(true);
-				this.setName("HTTPChannel:CallbackThread:" + getID());
+				this.setName("HTTPChannel:CallbackThread:" + getRemoteURL());
 			}
 
 			public void run() {
@@ -299,5 +304,7 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 				}
 			}
 		}
+
+
 	}
 }
