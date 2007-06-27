@@ -306,7 +306,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 						public void removedService(ServiceReference reference,
 								Object oldTopics) {
-							final String[] removedTopics = (String[]) oldTopics;
+							final List oldTopicsList = (List) oldTopics;
+							final String[] removedTopics = (String[]) oldTopicsList.toArray(new String[oldTopicsList.size()]);
 							updateLeases(new LeaseUpdateMessage(null,
 									removedTopics));
 						}
