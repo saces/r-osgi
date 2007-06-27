@@ -33,6 +33,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.jar.Attributes;
@@ -108,6 +109,12 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * set to determine if a method has already been implemented
 	 */
 	private Set implemented;
+
+	/**
+	 * a list of super interfaces describing the whole interface hierarchy of
+	 * the service interface
+	 */
+	private List superInterfaces;
 
 	/**
 	 * the constants.
@@ -272,6 +279,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			final ClassReader reader = new ClassReader(interfaceClass);
 			writer = new ClassWriter(true);
 			reader.accept(this, null, false);
+			recurseInterfaceHierarchy();
 			interfaceClassNames = null;
 			final byte[] bytes = writer.toByteArray();
 			return bytes;
@@ -303,9 +311,32 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		ClassReader reader = new ClassReader(proxyClass);
 		writer = new ClassWriter(false);
 		reader.accept(this, null, false);
+		recurseInterfaceHierarchy();
 		interfaceClassNames = null;
 		byte[] bytes = writer.toByteArray();
 		return bytes;
+	}
+
+	private void recurseInterfaceHierarchy() throws IOException {
+		// recurse over interface inheritance tree
+		try {
+			while (!superInterfaces.isEmpty()) {
+				final String superIface = (String) superInterfaces.remove(0);
+				byte[] bytes = (byte[]) injections.get(superIface + ".class");
+				ClassReader reader;
+				if (bytes == null) {
+					reader = new ClassReader(Class.forName(
+							superIface.replace('/', '.')).getClassLoader()
+							.getResourceAsStream(superIface + ".class"));
+				} else {
+					reader = new ClassReader(bytes);
+				}
+
+				reader.accept(this, null, false);
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -514,12 +545,10 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitEnd();
 			}
 		}
-		// recurse over superinterfaces
-		for (int i = 0; i < interfaces.length; i++) {
-			ClassReader reader = new ClassReader((byte[]) injections
-					.get(interfaces[i] + ".class"));
-			reader.accept(this, null, false);
 
+		// add the interfaces to the list to be visited later
+		for (int i = 0; i < interfaces.length; i++) {
+			superInterfaces.add(interfaces[i]);
 		}
 	}
 

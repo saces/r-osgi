@@ -198,8 +198,7 @@ final class CodeAnalyzer implements ClassVisitor {
 		final StringBuffer exportDeclaration = new StringBuffer();
 		final String[] pi = (String[]) proxyImports
 				.toArray(new String[proxyImports.size()]);
-		for (int i = 0; i < pi.length; i++) {
-			importDeclaration.append(pi[i]);			
+		for (int i = 0; i < pi.length; i++) {			
 			final String v = (String) importsMap.get(pi[i]);
 			if (v != null) {
 				importDeclaration.append(v);
