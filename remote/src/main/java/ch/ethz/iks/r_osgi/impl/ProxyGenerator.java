@@ -116,6 +116,10 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 */
 	private List superInterfaces;
 
+	private String smartProxyClassNameDashed;
+
+	private boolean isSmartProxyFromInterface;
+
 	/**
 	 * the constants.
 	 */
@@ -308,6 +312,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			final byte[] proxyClass) throws IOException {
 		interfaceClassNames = interfaceNames;
 		smartProxyClassName = proxyName;
+		smartProxyClassNameDashed = smartProxyClassName.replace('.', '/');
 		ClassReader reader = new ClassReader(proxyClass);
 		writer = new ClassWriter(false);
 		reader.accept(this, null, false);
@@ -378,6 +383,10 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			if ((access & ACC_INTERFACE) == 0) {
 				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
 						"java/lang/Object", serviceInterfaces);
+				if (java.util.Arrays.asList(interfaces).contains(
+						"ch/ethz/iks/r_osgi/SmartProxy")) {
+					isSmartProxyFromInterface = true;
+				}
 			} else {
 				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
 						"java/lang/Object", serviceInterfaces);
@@ -521,6 +530,12 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 								"(Ljava/lang/String;Ljava/lang/Object;Ljava/util/Dictionary;)Lorg/osgi/framework/ServiceRegistration;");
 				method.visitInsn(POP);
 				method.visitLabel(l0);
+				method.visitVarInsn(ALOAD, 0);
+				method.visitVarInsn(ALOAD, 1);
+				if (isSmartProxyFromInterface) {
+					method.visitMethodInsn(INVOKEVIRTUAL, implName, "started",
+							"(Lorg/osgi/framework/BundleContext;)V");
+				}
 				method.visitInsn(RETURN);
 				method.visitMaxs(7, 5);
 				method.visitEnd();
@@ -540,6 +555,12 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitInsn(ACONST_NULL);
 				method.visitFieldInsn(PUTFIELD, implName, "endpoint", "L"
 						+ ENDPOINT_I + ";");
+				if (isSmartProxyFromInterface) {
+					method.visitVarInsn(ALOAD, 0);
+					method.visitVarInsn(ALOAD, 1);
+					method.visitMethodInsn(INVOKEVIRTUAL, implName, "stopped",
+							"(Lorg/osgi/framework/BundleContext;)V");
+				}
 				method.visitInsn(RETURN);
 				method.visitMaxs(2, 2);
 				method.visitEnd();
@@ -916,7 +937,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		 */
 		public void visitFieldInsn(final int opcode, final String owner,
 				final String name, final String desc) {
-			methodWriter.visitFieldInsn(opcode, owner, name, desc);
+			if (owner.equals(smartProxyClassNameDashed)) {
+				methodWriter.visitFieldInsn(opcode, implName, name, desc);
+			} else {
+				methodWriter.visitFieldInsn(opcode, owner, name, desc);
+			}
 		}
 
 		/**

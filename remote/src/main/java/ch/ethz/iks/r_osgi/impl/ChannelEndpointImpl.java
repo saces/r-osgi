@@ -212,8 +212,21 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	RemoteServiceReference[] sendLease(
 			final RemoteServiceRegistration[] myServices,
 			final String[] myTopics) {
-		final LeaseMessage lease = (LeaseMessage) sendMessage(new LeaseMessage(
-				getLocalURL(), myServices, myTopics));
+		final LeaseMessage l = new LeaseMessage(
+				getLocalURL(), myServices, myTopics);
+		System.out.println("SENDING  " + l);
+		
+		try {
+		final java.io.PipedInputStream in = new java.io.PipedInputStream();
+		final java.io.PipedOutputStream out = new java.io.PipedOutputStream(in);
+		final java.io.ObjectOutputStream oout = new java.io.ObjectOutputStream(out);
+		final java.io.ObjectInputStream oin = new java.io.ObjectInputStream(in);
+		l.send(oout);
+		System.out.println("SANITY CHECK : " + RemoteOSGiMessage.parse(oin));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		final LeaseMessage lease = (LeaseMessage) sendMessage(l);
 
 		return processLease(lease);
 	}
