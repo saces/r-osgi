@@ -193,26 +193,43 @@ final class CodeAnalyzer implements ClassVisitor {
 		while (!closure.isEmpty()) {
 			visit((String) closure.remove(0));
 		}
-
+		
+		for (int i=0; i<ifaces.length; i++) {
+			proxyImports.add(packageOf(ifaces[i]));
+			proxyExports.add(packageOf(ifaces[i]));
+		}
+		proxyImports.add("org.osgi.framework");
+		proxyImports.add("ch.ethz.iks.r_osgi");
+		proxyImports.add("ch.ethz.iks.r_osgi.channels");
+		
 		final StringBuffer importDeclaration = new StringBuffer();
 		final StringBuffer exportDeclaration = new StringBuffer();
 		final String[] pi = (String[]) proxyImports
 				.toArray(new String[proxyImports.size()]);
+		System.out.println("IMPORT MAP " + importsMap);
 		for (int i = 0; i < pi.length; i++) {			
 			final String v = (String) importsMap.get(pi[i]);
+			importDeclaration.append(pi[i]);
+			// TODO: re-enabled this section
+			// was just uncommented for equinox
 			if (v != null) {
+				importDeclaration.append(";");
 				importDeclaration.append(v);
 			}
 			if (i < pi.length - 1) {
 				importDeclaration.append(", ");
 			}
 		}
+		
+		System.out.println("IMPORT DECL. " + importDeclaration.toString());
+		
 		final String[] pe = (String[]) proxyExports
 				.toArray(new String[proxyExports.size()]);
 		for (int i = 0; i < pe.length; i++) {
 			exportDeclaration.append(pe[i]);
 			final String v = (String) exportsMap.get(pe[i]);
 			if (v != null) {
+				exportDeclaration.append(";");
 				exportDeclaration.append(v);
 			}
 			if (i < pe.length - 1) {
@@ -220,6 +237,8 @@ final class CodeAnalyzer implements ClassVisitor {
 			}
 		}
 
+		System.out.println("EXPORT DECL. " + exportDeclaration.toString());
+		
 		DeliverServiceMessage message = new DeliverServiceMessage(ifaces,
 				smartProxy, (HashMap) injections.clone(), importDeclaration
 						.toString(), exportDeclaration.toString());

@@ -31,6 +31,7 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -114,7 +115,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * a list of super interfaces describing the whole interface hierarchy of
 	 * the service interface
 	 */
-	private List superInterfaces;
+	private List superInterfaces = new ArrayList();
 
 	private String smartProxyClassNameDashed;
 
@@ -205,17 +206,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		// generate Jar
 		Manifest mf = new Manifest();
 		Attributes attr = mf.getMainAttributes();
-		final String imports = deliv.getImports();
 		attr.putValue("Manifest-Version", "1.0");
 		attr.putValue("Created-By", "R-OSGi Proxy Generator");
 		attr.putValue("Bundle-Activator", className);
 		attr.putValue("Bundle-Classpath", ".");
-		attr
-				.putValue(
-						"Import-Package",
-						"".equals(imports) ? "org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.channels"
-								: "org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.channels, "
-										+ imports);
+		attr.putValue("Import-Package", deliv.getImports());
 		if (!"".equals(deliv.getExports())) {
 			attr.putValue("Export-Package", deliv.getExports());
 		}
@@ -283,7 +278,6 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			final ClassReader reader = new ClassReader(interfaceClass);
 			writer = new ClassWriter(true);
 			reader.accept(this, null, false);
-			recurseInterfaceHierarchy();
 			interfaceClassNames = null;
 			final byte[] bytes = writer.toByteArray();
 			return bytes;
