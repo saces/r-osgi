@@ -148,10 +148,8 @@ public abstract class RemoteOSGiMessage {
 	 *            the host name/address.
 	 * @param port
 	 *            the port.
-	 * @throws IllegalArgumentException
-	 *             if the result is an invalid SLP serviceURL.
 	 */
 	public abstract void rewriteURL(final String protocol, final String host,
-			final int port) throws IllegalArgumentException;
+			final String port);
 
 }

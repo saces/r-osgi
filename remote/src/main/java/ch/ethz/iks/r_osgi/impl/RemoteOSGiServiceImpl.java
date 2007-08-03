@@ -62,6 +62,7 @@ import ch.ethz.iks.r_osgi.RemoteServiceListener;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.SurrogateRegistration;
 import ch.ethz.iks.r_osgi.Remoting;
+import ch.ethz.iks.r_osgi.URL;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryListener;
@@ -307,7 +308,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 						public void removedService(ServiceReference reference,
 								Object oldTopics) {
 							final List oldTopicsList = (List) oldTopics;
-							final String[] removedTopics = (String[]) oldTopicsList.toArray(new String[oldTopicsList.size()]);
+							final String[] removedTopics = (String[]) oldTopicsList
+									.toArray(new String[oldTopicsList.size()]);
 							updateLeases(new LeaseUpdateMessage(null,
 									removedTopics));
 						}
@@ -477,6 +479,13 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			throws InvalidSyntaxException {
 		final ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
 				.get(url);
+		if (channel == null) {
+			throw new IllegalStateException("NO CHANNEL TO " + url
+					+ ", known channels " + channels);
+		}
+		if (clazz == null) {
+			return channel.getRemoteReferences(null);
+		}
 		return channel.getRemoteReferences(context
 				.createFilter(filter != null ? "(&(" + filter + ")("
 						+ Constants.OBJECTCLASS + "=" + clazz.toString() + ")"
@@ -486,15 +495,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 	public RemoteServiceReference[] connect(final String url)
 			throws RemoteOSGiException, UnknownHostException {
-		final int pos1 = url.indexOf("://");
-		final int pos2 = url.lastIndexOf(":");
-		final String protocol = pos1 > -1 ? url.substring(0, pos1) : "r-osgi";
-		final int port = pos2 > -1 ? Integer.parseInt(url.substring(pos2 + 1))
-				: R_OSGI_PORT;
-		final int p1 = pos1 > -1 ? pos1 + 3 : 0;
-		final int p2 = pos2 > -1 ? pos2 : url.length();
-		final String host = url.substring(p1, p2);
-		return connect(InetAddress.getByName(host), port, protocol);
+		return connect(InetAddress.getByName(URL.getHost(url)), URL
+				.getPort(url), URL.getProtocol(url));
 	}
 
 	/**
@@ -513,6 +515,17 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 */
 	public RemoteServiceReference[] connect(final InetAddress host,
 			final int port, final String protocol) throws RemoteOSGiException {
+		final ChannelEndpointImpl test = (ChannelEndpointImpl) channels
+				.get(URL.getURL(protocol, host, port));
+		if (test != null) {
+			return test.getRemoteReferences(null);
+		} else {
+			// TODO: remove debug output
+			System.out.println("REQUESTED CONNECTION TO "
+					+ URL.getURL(protocol, host, port));
+			System.out.println("KNOWN CHANNELS " + channels);
+		}
+
 		try {
 			final ChannelEndpointImpl channel;
 			if ("r-osgi".equals(protocol) || protocol == null) {
@@ -534,8 +547,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			return channel.sendLease(getServices(), getTopics());
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
-			throw new RemoteOSGiException("Connection to " + protocol + "://"
-					+ host + ":" + port + " failed", ioe);
+			throw new RemoteOSGiException("Connection to "
+					+ URL.getURL(protocol, host, port) + " failed", ioe);
 		} catch (InvalidSyntaxException e) {
 			// does not happen
 			e.printStackTrace();
@@ -564,7 +577,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	public void fetchService(final RemoteServiceReference ref)
 			throws RemoteOSGiException {
 		try {
-
 			ChannelEndpointImpl channel;
 			channel = ((RemoteServiceReferenceImpl) ref).getChannel();
 			channel.fetchService(ref);

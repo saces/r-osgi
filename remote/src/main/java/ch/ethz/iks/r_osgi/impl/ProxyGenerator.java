@@ -360,7 +360,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		MethodVisitor method;
 		FieldVisitor field;
 
-		if (interfaceClassNames[0].replace(".", "/").equals(name)) {
+		if (interfaceClassNames[0].replace('.', '/').equals(name)) {
 			implName = "proxy/" + sourceID + "/" + name + "Impl";
 
 			if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
@@ -713,11 +713,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					method.visitInsn(DUP);
 					method.visitInsn(ICONST[i]);
 					method.visitTypeInsn(NEW,
-							"ch/ethz/iks/r_osgi/BoxedPrimitive");
+							"ch/ethz/iks/r_osgi/types/BoxedPrimitive");
 					method.visitInsn(DUP);
 					method.visitVarInsn(args[i].getOpcode(ILOAD), slot);
 					method.visitMethodInsn(INVOKESPECIAL,
-							"ch/ethz/iks/r_osgi/BoxedPrimitive", "<init>", "("
+							"ch/ethz/iks/r_osgi/types/BoxedPrimitive", "<init>", "("
 									+ args[i].getDescriptor() + ")V");
 					method.visitInsn(AASTORE);
 					slot += args[i].getSize();
@@ -737,11 +737,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					method.visitInsn(DUP);
 					method.visitIntInsn(BIPUSH, i);
 					method.visitTypeInsn(NEW,
-							"ch/ethz/iks/r_osgi/BoxedPrimitive");
+							"ch/ethz/iks/r_osgi/types/BoxedPrimitive");
 					method.visitInsn(DUP);
 					method.visitVarInsn(args[i].getOpcode(ILOAD), slot);
 					method.visitMethodInsn(INVOKESPECIAL,
-							"ch/ethz/iks/r_osgi/BoxedPrimitive", "<init>", "("
+							"ch/ethz/iks/r_osgi/types/BoxedPrimitive", "<init>", "("
 									+ args[i].getDescriptor() + ")V");
 					method.visitInsn(AASTORE);
 					slot += args[i].getSize();

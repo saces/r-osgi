@@ -380,6 +380,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @category ChannelEndpoint
 	 */
 	public Dictionary getProperties(final String url) {
+		// TODO: remove debug output
+		System.out.println("requested properties for " + url);
+		System.out.println("having references " + remoteServices);
 		return getRemoteReference(url).getProperties();
 	}
 
@@ -398,7 +401,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				.values().toArray(
 						new RemoteServiceReferenceImpl[remoteServices.size()]);
 		for (int i = 0; i < refs.length; i++) {
-			if (filter.match(refs[i].getProperties())) {
+			if (filter == null || filter.match(refs[i].getProperties())) {
 				result.add(refs[i]);
 			}
 		}

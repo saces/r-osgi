@@ -39,6 +39,7 @@ import java.net.Socket;
 import org.osgi.service.log.LogService;
 
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
+import ch.ethz.iks.r_osgi.URL;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
@@ -50,6 +51,8 @@ import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
  * @since 0.6
  */
 final class TCPChannelFactory implements NetworkChannelFactory {
+
+	private static final String PROTOCOL = "r-osgi";
 
 	/**
 	 * get a new connection.
@@ -240,7 +243,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getProtocol()
 		 */
 		public String getProtocol() {
-			return "r-osgi";
+			return PROTOCOL;
 		}
 
 		/**
@@ -250,7 +253,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getRemoteURL()
 		 */
 		public String getRemoteURL() {
-			return "r-osgi" + "://" + host.getHostName() + ":" + port;
+			return URL.getURL(PROTOCOL, host, port);
 		}
 
 		/**
@@ -310,7 +313,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		}
 
 		public String getLocalURL() {
-			return getProtocol() + "://" + socket.getLocalAddress().getHostName() + ":" + socket.getLocalPort();
+			return URL.getURL(PROTOCOL, socket.getLocalAddress(), socket
+					.getLocalPort());
 		}
 	}
 }

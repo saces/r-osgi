@@ -6,6 +6,7 @@ Bundle-Version: 0.9.91
 Bundle-Localization: plugin
 Export-Package: ch.ethz.iks.r_osgi;version="0.9.91",
  ch.ethz.iks.r_osgi.channels;version="0.9.91",
+ ch.ethz.iks.r_osgi.types,
  ch.ethz.iks.util;version="0.9.91",
  org.objectweb.asm;version="2.2.0"
 Bundle-ClassPath: .,

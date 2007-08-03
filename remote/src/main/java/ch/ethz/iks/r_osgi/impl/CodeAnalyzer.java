@@ -29,6 +29,7 @@
 package ch.ethz.iks.r_osgi.impl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -133,7 +134,7 @@ final class CodeAnalyzer implements ClassVisitor {
 					importsMap.put(tokens[i].substring(0, pos), tokens[i]
 							.substring(pos + 1, tokens[i].length()));
 				} else {
-					importsMap.put(tokens[i], "");
+					importsMap.put(tokens[i], null);
 				}
 			}
 		} else {
@@ -149,7 +150,7 @@ final class CodeAnalyzer implements ClassVisitor {
 					exportsMap.put(tokens[i].substring(0, pos), tokens[i]
 							.substring(pos + 1, tokens[i].length()));
 				} else {
-					exportsMap.put(tokens[i], "");
+					exportsMap.put(tokens[i], null);
 				}
 			}
 		} else {
@@ -193,43 +194,39 @@ final class CodeAnalyzer implements ClassVisitor {
 		while (!closure.isEmpty()) {
 			visit((String) closure.remove(0));
 		}
-		
-		for (int i=0; i<ifaces.length; i++) {
+
+		for (int i = 0; i < ifaces.length; i++) {
 			proxyImports.add(packageOf(ifaces[i]));
 			proxyExports.add(packageOf(ifaces[i]));
 		}
 		proxyImports.add("org.osgi.framework");
 		proxyImports.add("ch.ethz.iks.r_osgi");
+		proxyImports.add("ch.ethz.iks.r_osgi.types");
 		proxyImports.add("ch.ethz.iks.r_osgi.channels");
-		
+
 		final StringBuffer importDeclaration = new StringBuffer();
 		final StringBuffer exportDeclaration = new StringBuffer();
 		final String[] pi = (String[]) proxyImports
 				.toArray(new String[proxyImports.size()]);
-		System.out.println("IMPORT MAP " + importsMap);
-		for (int i = 0; i < pi.length; i++) {			
-			final String v = (String) importsMap.get(pi[i]);
+		for (int i = 0; i < pi.length; i++) {
 			importDeclaration.append(pi[i]);
-			// TODO: re-enabled this section
-			// was just uncommented for equinox
+			final Object v = importsMap.get(pi[i]);
 			if (v != null) {
-				importDeclaration.append(";");
+				importDeclaration.append("; ");
 				importDeclaration.append(v);
 			}
 			if (i < pi.length - 1) {
 				importDeclaration.append(", ");
 			}
 		}
-		
-		System.out.println("IMPORT DECL. " + importDeclaration.toString());
-		
+
 		final String[] pe = (String[]) proxyExports
 				.toArray(new String[proxyExports.size()]);
 		for (int i = 0; i < pe.length; i++) {
 			exportDeclaration.append(pe[i]);
-			final String v = (String) exportsMap.get(pe[i]);
+			final Object v = exportsMap.get(pe[i]);
 			if (v != null) {
-				exportDeclaration.append(";");
+				exportDeclaration.append("; ");
 				exportDeclaration.append(v);
 			}
 			if (i < pe.length - 1) {
@@ -237,8 +234,6 @@ final class CodeAnalyzer implements ClassVisitor {
 			}
 		}
 
-		System.out.println("EXPORT DECL. " + exportDeclaration.toString());
-		
 		DeliverServiceMessage message = new DeliverServiceMessage(ifaces,
 				smartProxy, (HashMap) injections.clone(), importDeclaration
 						.toString(), exportDeclaration.toString());
@@ -258,23 +253,25 @@ final class CodeAnalyzer implements ClassVisitor {
 	 * @throws IOException
 	 *             if the classes bytecode cannot be found and accessed.
 	 */
-	private void visit(final String className) throws ClassNotFoundException,
-			IOException {
+	private void visit(final String className) throws ClassNotFoundException {
 		final String classFile = className.replace('.', '/') + ".class";
 
-		if (importsMap.containsKey(packageOf(className))) {
-			proxyExports.add(packageOf(className));
-		}
-		final ClassReader reader = new ClassReader(loader
-				.getResourceAsStream(classFile));
-
-		injections.put(classFile, reader.b);
-
 		final String pkg = packageOf(className);
-		if (exportsMap.containsKey(pkg)) {
+		if (importsMap.containsKey(pkg)) {
 			proxyExports.add(pkg);
 		}
-		reader.accept(this, true);
+		try {
+			final ClassReader reader = new ClassReader(loader
+					.getResourceAsStream(classFile));
+
+			injections.put(classFile, reader.b);
+			if (exportsMap.containsKey(pkg)) {
+				proxyExports.add(pkg);
+			}
+			reader.accept(this, true);
+		} catch (IOException ioe) {
+			throw new ClassNotFoundException(className);
+		}
 	}
 
 	/**

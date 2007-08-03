@@ -59,8 +59,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		//System.out.println();
-		//System.out.println("Servlet called");
+		// System.out.println();
+		// System.out.println("Servlet called");
 		super.service(req, resp);
 	}
 
@@ -80,8 +80,9 @@ public class HttpAcceptorServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		final String host = req.getProtocol() + req.getRemoteAddr() + req.getHeader("channel");		
-		//System.out.println("getting " + host);
+		final String host = req.getProtocol() + req.getRemoteAddr()
+				+ req.getHeader("channel");
+		// System.out.println("getting " + host);
 
 		ChannelBridge bridge = (ChannelBridge) bridges.get(host);
 		if (bridge == null) {
@@ -102,7 +103,7 @@ public class HttpAcceptorServlet extends HttpServlet {
 		private static final Object WAITING = new Object();
 
 		private boolean firstLease = true;
-		
+
 		private ChannelBridge() throws IOException {
 			socket = new Socket("localhost", R_OSGi_PORT);
 			localIn = new ObjectInputStream(socket.getInputStream());
@@ -116,10 +117,10 @@ public class HttpAcceptorServlet extends HttpServlet {
 					.getInputStream());
 
 			final RemoteOSGiMessage msg = RemoteOSGiMessage.parse(remoteIn);
-			//System.out.println("{REMOTE -> LOCAL}: " + msg);
+			// System.out.println("{REMOTE -> LOCAL}: " + msg);
 
 			final Integer xid = new Integer(msg.getXID());
-			
+
 			synchronized (waitMap) {
 				waitMap.put(xid, WAITING);
 			}
@@ -142,20 +143,21 @@ public class HttpAcceptorServlet extends HttpServlet {
 					while (!Thread.interrupted()) {
 						RemoteOSGiMessage response = RemoteOSGiMessage
 								.parse(localIn);
-						//System.out.println("{Servlet Bridge} received " + response);
+						// System.out.println("{Servlet Bridge} received " +
+						// response);
 						switch (response.getFuncID()) {
 						case RemoteOSGiMessage.LEASE:
 							try {
 
 								response.rewriteURL(req.isSecure() ? "https"
-										: "http", req.getServerName(), req
-										.getServerPort());
+										: "http", req.getServerName(), String
+										.valueOf(req.getServerPort()));
 							} catch (IllegalArgumentException e) {
 								e.printStackTrace();
 							}
 						case RemoteOSGiMessage.REMOTE_EVENT:
-							//System.out.println("{LOCAL -> REMOTE (ASYNC)}: "
-							//		+ response);
+							// System.out.println("{LOCAL -> REMOTE (ASYNC)}: "
+							// + response);
 
 							// deliver remote event as response of the lease
 							// request
@@ -192,8 +194,8 @@ public class HttpAcceptorServlet extends HttpServlet {
 				ObjectOutputStream remoteOut = new ObjectOutputStream(resp
 						.getOutputStream());
 
-				//System.out.println("{LOCAL -> REMOTE}: " + msg);
-				//((RemoteOSGiMessage) response).send(remoteOut);
+				// System.out.println("{LOCAL -> REMOTE}: " + msg);
+				// ((RemoteOSGiMessage) response).send(remoteOut);
 			}
 		}
 	}

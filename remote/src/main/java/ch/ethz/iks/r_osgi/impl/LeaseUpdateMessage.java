@@ -3,6 +3,8 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+
+import ch.ethz.iks.r_osgi.URL;
 import ch.ethz.iks.util.SmartSerializer;
 
 /**
@@ -49,7 +51,8 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 	}
 
 	void init(String url) {
-		this.url = url + "/" + serviceID;
+		this.url = URL
+				.rewrite(url, null, null, null, String.valueOf(serviceID));
 	}
 
 	/**

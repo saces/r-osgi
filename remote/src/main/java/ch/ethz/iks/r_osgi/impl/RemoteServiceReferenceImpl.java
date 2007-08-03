@@ -1,6 +1,7 @@
 package ch.ethz.iks.r_osgi.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
@@ -59,5 +60,9 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 
 	void setProperties(Dictionary newProps) {
 		properties = newProps;
+	}
+
+	public String toString() {
+		return "RemoteServiceReference{" + url + "-" + Arrays.asList(serviceInterfaces) + "}";
 	}
 }

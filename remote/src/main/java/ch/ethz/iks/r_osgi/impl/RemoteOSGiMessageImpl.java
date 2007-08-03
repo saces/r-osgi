@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.net.SocketException;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
+import ch.ethz.iks.r_osgi.URL;
 
 /**
  * <p>
@@ -241,25 +242,19 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	 *            the host name/address.
 	 * @param port
 	 *            the port.
-	 * @throws IllegalArgumentException
-	 *             if the result is an invalid SLP serviceURL.
 	 */
 	public final void rewriteURL(final String protocol, final String host,
-			final int port) throws IllegalArgumentException {
+			final String port) {
 		if (url == null) {
-			throw new IllegalArgumentException(
-					"Message does not contain an URL");
+			return;
 		}
-		url = protocol + "://" + host + "/" + getServiceID() + ":" + port;
+		url = URL.rewrite(url, protocol, host, port, null);
 	}
 
 	final Long getServiceID() {
-		if (url == null) {
-			throw new IllegalStateException("URL is null");
-		}
-		final int d2 = url.lastIndexOf("/");
-		final String serviceID = url.substring(d2+1);
-		return Long.valueOf(serviceID);
+		if (url == null)
+			return null;
+		return URL.getServiceID(url);
 	}
 
 }
