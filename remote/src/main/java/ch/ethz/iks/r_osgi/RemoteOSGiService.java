@@ -30,11 +30,9 @@ package ch.ethz.iks.r_osgi;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
-
 import ch.ethz.iks.r_osgi.types.Timestamp;
 
 /**
@@ -205,8 +203,7 @@ public interface RemoteOSGiService {
 	 * @param protocol
 	 * @throws RemoteOSGiException
 	 */
-	void disconnect(final String url)
-			throws RemoteOSGiException;
+	void disconnect(final String url) throws RemoteOSGiException;
 
 	/**
 	 * fetch the discovered remote service. The service will be fetched from the
@@ -221,7 +218,7 @@ public interface RemoteOSGiService {
 	 */
 	void fetchService(final RemoteServiceReference ref)
 			throws RemoteOSGiException;
-	
+
 	/**
 	 * 
 	 * @param url
@@ -269,5 +266,11 @@ public interface RemoteOSGiService {
 	 */
 	Timestamp transformTimestamp(RemoteServiceReference ref, Timestamp timestamp)
 			throws RemoteOSGiException;
+
+	public void addRedundantEndpoint(String service, String redundant);
+
+	public void removeRedundantEndpoint(String service, String redundant);
+
+	public void setEndpointPolicy(String service, int policy);
 
 }

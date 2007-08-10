@@ -205,6 +205,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	private static Map channels = new HashMap(0);
 
 	/**
+	 * Channel ID --> EndpointMultiplexer
+	 */
+	private static Map multiplexers = new HashMap(0);
+
+	/**
 	 * creates a new RemoteOSGiServiceImpl instance.
 	 * 
 	 * @throws IOException
@@ -458,16 +463,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 					+ ref.getURL() + ")");
 			if (refs != null) {
 				return refs[0];
-			} else {
-				// might be a bundle_transfer service
-				// TODO: should keep track of serviceURL -> bundle and return
-				// the correct service, if present ...
-				final ServiceReference[] refs2 = context.getServiceReferences(
-						ref.getServiceInterfaces()[0], null);
-				if (refs2 != null) {
-					return refs2[0];
-				}
-			}
+			} 
 		} catch (InvalidSyntaxException doesNotHappen) {
 			doesNotHappen.printStackTrace();
 		}
@@ -515,8 +511,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 */
 	public RemoteServiceReference[] connect(final InetAddress host,
 			final int port, final String protocol) throws RemoteOSGiException {
-		final ChannelEndpointImpl test = (ChannelEndpointImpl) channels
-				.get(URL.getURL(protocol, host, port));
+		final ChannelEndpointImpl test = (ChannelEndpointImpl) channels.get(URL
+				.getURL(protocol, host, port));
 		if (test != null) {
 			return test.getRemoteReferences(null);
 		} else {
@@ -585,12 +581,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 					"Cannot resolve host " + ref.getURL(), e);
 		} catch (IOException ioe) {
 			throw new RemoteOSGiException("Proxy generation error", ioe);
-		} catch (BundleException e) {
-			final Throwable nested = e.getNestedException() == null ? e : e
-					.getNestedException();
-			throw new RemoteOSGiException(
-					"Could not install the generated bundle ", nested);
-		}
+		} 
 	}
 
 	/**
@@ -620,8 +611,40 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * @see ch.ethz.iks.r_osgi.Remoting#getEndpoint(java.lang.String)
 	 * @category Remoting
 	 */
-	public ChannelEndpoint getEndpoint(String channelID) {
-		return (ChannelEndpoint) channels.get(channelID);
+	public ChannelEndpoint getEndpoint(String url) {
+		System.out.println("REQUESTED ENDPOINT FOR " + url);
+		System.out.println("MULTIPLEXER " + multiplexers);
+		System.out.println("CHANNELS " + channels);
+		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
+				.get(url);
+		if (multiplexer == null) {
+			final String channelID = URL.getBaseURL(url);
+			multiplexer = new EndpointMultiplexer((ChannelEndpoint) channels
+					.get(channelID));
+			multiplexers.put(url, multiplexer);
+		}
+		return multiplexer;
+	}
+
+	public void addRedundantEndpoint(String service, String redundant) {
+		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
+				.get(service);
+		multiplexer.addEndpoint((ChannelEndpoint) channels.get(URL
+				.getBaseURL(redundant)));
+	}
+
+	public void removeRedundantEndpoint(String service, String redundant) {
+		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
+				.get(service);
+		multiplexer.removeEndpoint((ChannelEndpoint) channels.get(URL
+				.getBaseURL(redundant)));
+	}
+
+	public void setEndpointPolicy(String service, int policy) {
+		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
+				.get(service);
+		multiplexer.setPolicy(policy);
+
 	}
 
 	/**
@@ -677,11 +700,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * @return the topics.
 	 */
 	static String[] getTopics() {
-		final List[] topicLists = (List[]) eventHandlerTracker.getServices();
+		final Object[] topicLists = (Object[]) eventHandlerTracker
+				.getServices();
 		final List topics = new ArrayList();
 		if (topicLists != null) {
 			for (int i = 0; i < topicLists.length; i++) {
-				topics.addAll(topicLists[i]);
+				topics.addAll((List) topicLists[i]);
 			}
 		}
 		return (String[]) topics.toArray(new String[topics.size()]);

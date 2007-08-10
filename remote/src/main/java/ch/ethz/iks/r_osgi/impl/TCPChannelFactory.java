@@ -253,7 +253,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getRemoteURL()
 		 */
 		public String getRemoteURL() {
-			return URL.getURL(PROTOCOL, host, port);
+			return URL.getURL(PROTOCOL, host.getHostName(), port);
 		}
 
 		/**
@@ -313,8 +313,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		}
 
 		public String getLocalURL() {
-			return URL.getURL(PROTOCOL, socket.getLocalAddress(), socket
-					.getLocalPort());
+			return URL.getURL(PROTOCOL, socket.getLocalAddress().getHostName(),
+					socket.getLocalPort());
 		}
 	}
 }

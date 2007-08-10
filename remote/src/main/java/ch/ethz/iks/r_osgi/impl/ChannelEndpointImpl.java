@@ -44,6 +44,8 @@ import java.util.Map;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Filter;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
@@ -55,6 +57,7 @@ import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceEvent;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
+import ch.ethz.iks.r_osgi.URL;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
@@ -132,10 +135,15 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private final HashMap proxiedServices = new HashMap(0);
 
 	/**
-	 * map service url -> proxy bundle. If the endpoint is closed, the proxies
-	 * are unregistered.
+	 * map of service url -> proxy bundle. If the endpoint is closed, the
+	 * proxies are unregistered.
 	 */
 	private final HashMap proxyBundles = new HashMap(0);
+
+	/**
+	 * map of service url -> proxy class
+	 */
+	private final HashMap proxies = new HashMap(0);
 
 	/**
 	 * the handler registration, if the remote topic space is not empty.
@@ -212,22 +220,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	RemoteServiceReference[] sendLease(
 			final RemoteServiceRegistration[] myServices,
 			final String[] myTopics) {
-		final LeaseMessage l = new LeaseMessage(
-				getLocalURL(), myServices, myTopics);
-		System.out.println("SENDING  " + l);
-		
-		try {
-		final java.io.PipedInputStream in = new java.io.PipedInputStream();
-		final java.io.PipedOutputStream out = new java.io.PipedOutputStream(in);
-		final java.io.ObjectOutputStream oout = new java.io.ObjectOutputStream(out);
-		final java.io.ObjectInputStream oin = new java.io.ObjectInputStream(in);
-		l.send(oout);
-		System.out.println("SANITY CHECK : " + RemoteOSGiMessage.parse(oin));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		final LeaseMessage l = new LeaseMessage(getLocalURL(), getURL(),
+				myServices, myTopics);
 		final LeaseMessage lease = (LeaseMessage) sendMessage(l);
-
 		return processLease(lease);
 	}
 
@@ -381,8 +376,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	public Dictionary getProperties(final String url) {
 		// TODO: remove debug output
-		System.out.println("requested properties for " + url);
-		System.out.println("having references " + remoteServices);
+		// System.out.println("requested properties for " + url);
+		// System.out.println("having references " + remoteServices);
 		return getRemoteReference(url).getProperties();
 	}
 
@@ -458,7 +453,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 *             fails.
 	 */
 	void fetchService(final RemoteServiceReference ref) throws IOException,
-			BundleException {
+			RemoteOSGiException {
 
 		// build the FetchServiceMessage
 		final FetchServiceMessage fetchReq = new FetchServiceMessage(ref);
@@ -466,30 +461,44 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		// send the FetchServiceMessage and get a DeliverServiceMessage in
 		// return
 		final RemoteOSGiMessageImpl msg = sendMessage(fetchReq);
-		if (msg instanceof DeliverServiceMessage) {
-			final DeliverServiceMessage deliv = (DeliverServiceMessage) msg;
-			final String url = deliv.getURL();
+		String bundleLocation = null;
+		try {
+			if (msg instanceof DeliverServiceMessage) {
+				final DeliverServiceMessage deliv = (DeliverServiceMessage) msg;
+				final String url = deliv.getURL();
 
-			// generate a proxy bundle for the service
-			final String bundleLocation = new ProxyGenerator()
-					.generateProxyBundle(url, getURL(), deliv);
+				// generate a proxy bundle for the service
+				bundleLocation = new ProxyGenerator().generateProxyBundle(url,
+						deliv);
+				// install the proxy bundle
+				final Bundle bundle = RemoteOSGiServiceImpl.context
+						.installBundle("file:" + bundleLocation);
 
-			// install the proxy bundle
-			final Bundle bundle = RemoteOSGiServiceImpl.context
-					.installBundle("file:" + bundleLocation);
+				// store the bundle for state updates and cleanup
+				proxyBundles.put(url, bundle);
 
-			// store the bundle for state updates and cleanup
-			proxyBundles.put(url, bundle);
+				// start the bundle
+				bundle.start();
 
-			// start the bundle
-			bundle.start();
-		} else {
-			final DeliverBundleMessage delivB = (DeliverBundleMessage) msg;
-
-			Bundle bundle = RemoteOSGiServiceImpl.context.installBundle(ref
-					.getURL(), new ByteArrayInputStream(delivB.getBundle()));
-			bundle.start();
+				// delay until the services are available
+				// TODO: use service tracker
+			} else {
+				final DeliverBundleMessage delivB = (DeliverBundleMessage) msg;
+				bundleLocation = "streamed";
+				Bundle bundle = RemoteOSGiServiceImpl.context
+						.installBundle(ref.getURL(), new ByteArrayInputStream(
+								delivB.getBundle()));
+				bundle.start();
+			}
+		} catch (BundleException e) {
+			final Throwable nested = e.getNestedException() == null ? e : e
+					.getNestedException();
+			nested.printStackTrace();
+			throw new RemoteOSGiException(
+					"Could not install the generated bundle " + bundleLocation,
+					nested);
 		}
+
 	}
 
 	private void send(final RemoteOSGiMessageImpl msg) {
@@ -681,8 +690,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final LeaseMessage lease = (LeaseMessage) msg;
 			processLease(lease);
 
-			return lease.replyWith(getLocalURL(), RemoteOSGiServiceImpl
-					.getServices(), RemoteOSGiServiceImpl.getTopics());
+			return lease.replyWith(lease.getURL(), getURL(),
+					RemoteOSGiServiceImpl.getServices(), RemoteOSGiServiceImpl
+							.getTopics());
 		}
 		case RemoteOSGiMessageImpl.FETCH_SERVICE: {
 			try {

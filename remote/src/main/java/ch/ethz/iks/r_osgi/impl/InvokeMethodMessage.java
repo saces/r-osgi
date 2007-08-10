@@ -152,10 +152,10 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("[INVOKE_METHOD] - XID: ");
 		buffer.append(xid);
-		buffer.append(", url ");
+		buffer.append(", url: ");
 		buffer.append(url);
-		buffer.append(", methodName ");
-		buffer.append("methodName");
+		buffer.append(", methodName: ");
+		buffer.append(methodSignature);
 		buffer.append(", params: ");
 		buffer.append(Arrays.asList(getArgs()));
 		return buffer.toString();

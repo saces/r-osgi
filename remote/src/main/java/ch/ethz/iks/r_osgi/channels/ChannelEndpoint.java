@@ -43,7 +43,7 @@ import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 public interface ChannelEndpoint {
 
 	/**
-	 * callback for TransportChannels.
+	 * callback for NetworkChannels.
 	 * 
 	 * @param msg
 	 *            the message.
@@ -111,6 +111,7 @@ public interface ChannelEndpoint {
 	 *            the service registration object.
 	 */	
 	void untrackRegistration(final String serviceURL);
+	
 	/**
 	 * get the ID of the channel endpoint. This is some kind of URL consisting
 	 * of the protocol, the host address to where the channel is connected, and

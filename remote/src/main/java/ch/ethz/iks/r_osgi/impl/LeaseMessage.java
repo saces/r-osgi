@@ -67,11 +67,11 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @param topics
 	 *            the topics the peer is interested in.
 	 */
-	public LeaseMessage(final String url, final RemoteServiceRegistration[] regs,
+	public LeaseMessage(final String myURL, final String otherURL, final RemoteServiceRegistration[] regs,
 			final String[] topics) {
 		this.funcID = LEASE;
-		this.url = url;		
-		parseRegistrations(regs);
+		this.url = otherURL;		
+		parseRegistrations(myURL, regs);
 		this.topics = topics == null ? new String[0] : topics;
 	}
 
@@ -158,10 +158,10 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 *            the topics of interest of this peer.
 	 * @return the reply lease message.
 	 */
-	LeaseMessage replyWith(final String url, final RemoteServiceRegistration[] refs,
+	LeaseMessage replyWith(final String myURL, final String otherURL, final RemoteServiceRegistration[] refs,
 			final String[] topics) {
-		this.url = url;
-		parseRegistrations(refs);
+		this.url = otherURL;
+		parseRegistrations(myURL, refs);
 		this.topics = topics;
 		return this;
 	}
@@ -212,12 +212,12 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		return buffer.toString();
 	}
 
-	private void parseRegistrations(final RemoteServiceRegistration[] regs) {
+	private void parseRegistrations(final String myURL, final RemoteServiceRegistration[] regs) {
 		urls = new String[regs.length];
 		serviceInterfaces = new String[regs.length][];
 		serviceProperties = new Dictionary[regs.length];
 		for (short i = 0; i < regs.length; i++) {
-			urls[i] = url + "/" + regs[i].getServiceID();
+			urls[i] = myURL + "/" + regs[i].getServiceID();
 			serviceInterfaces[i] = regs[i].getInterfaceNames();
 			serviceProperties[i] = regs[i].getProperties();
 		}

@@ -92,11 +92,6 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	private String url;
 
 	/**
-	 * 
-	 */
-	private String channelID;
-
-	/**
 	 * the ASM class writer.
 	 */
 	private ClassWriter writer;
@@ -183,12 +178,10 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * @throws IOException
 	 *             in case of proxy generation error
 	 */
-	protected String generateProxyBundle(final String url,
-			final String channelID, final DeliverServiceMessage deliv)
+	protected String generateProxyBundle(final String url, final DeliverServiceMessage deliv)
 			throws IOException {
 
 		this.url = url;
-		this.channelID = channelID;
 		sourceID = generateSourceID(url);
 		implemented = new HashSet();
 		injections = deliv.getInjections();
@@ -428,7 +421,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitVarInsn(ASTORE, 2);
 				method.visitVarInsn(ALOAD, 0);
 				method.visitVarInsn(ALOAD, 2);
-				method.visitLdcInsn(channelID);
+				method.visitLdcInsn(url);
 				method.visitMethodInsn(INVOKEINTERFACE, REMOTING_I,
 						"getEndpoint", "(Ljava/lang/String;)L" + ENDPOINT_I
 								+ ";");
@@ -777,19 +770,21 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			case Type.ARRAY:
 
 				final StringBuffer a = new StringBuffer();
-				for (int i = 0; i < returnType.getDimensions(); i++) {
-					a.append("[");
-				}
 
 				final int esort = returnType.getElementType().getSort();
 				if (esort < Type.ARRAY) {
+					for (int i = 0; i < returnType.getDimensions(); i++) {
+						a.append("[");
+					}
 					// primitive array
 					method.visitTypeInsn(CHECKCAST, a.toString()
-							+ returnType.getElementType().toString());
+							+ returnType.getElementType().toString());					
 				} else {
 					// object array
+					a.append("[");
 					method.visitTypeInsn(CHECKCAST, a.toString()
 							+ returnType.getInternalName() + ";");
+					System.out.println("INTERNAL NAME " + returnType.getInternalName().toString());
 				}
 				method.visitInsn(ARETURN);
 				break;
@@ -1155,8 +1150,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 */
 	private static String generateSourceID(final String id) {
 		final int pos1 = id.indexOf("://");
-		final int pos3 = id.lastIndexOf(":");
-		char[] chars = id.substring(pos1 + 3, pos3).replace('/', '_')
+		char[] chars = id.substring(pos1 + 3).replace('/', '_').replace(':', '_')
 				.toCharArray();
 		StringBuffer buffer = new StringBuffer();
 		for (int i = 0; i < chars.length; i++) {

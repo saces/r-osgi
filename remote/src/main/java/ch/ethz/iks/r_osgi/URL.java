@@ -1,6 +1,7 @@
 package ch.ethz.iks.r_osgi;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public final class URL {
 
@@ -56,6 +57,24 @@ public final class URL {
 		return id == null ? null : Long.decode(id);
 	}
 
+	public static String getBaseURL(final String url) {
+		final String[] parts = parse(url);
+		return get(parts[0], parts[1], parts[2], null);
+	}
+	
+	public static String toAddr(final String url) {
+		final String[] parts = parse(url);
+		InetAddress addr;
+		try {
+			addr = InetAddress.getByName(parts[1]);
+			return get(parts[0], addr.getHostAddress(), parts[2], parts[3]);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			return url;
+		}
+		
+	}
+	
 	public static String rewrite(final String url, final String protocol,
 			final String host, final String port, final String serviceID) {
 		final String[] result = parse(url);
