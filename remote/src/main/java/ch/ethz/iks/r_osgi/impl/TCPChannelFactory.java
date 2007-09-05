@@ -36,12 +36,8 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URI;
-import java.net.URISyntaxException;
-
 import org.osgi.service.log.LogService;
-
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
-import ch.ethz.iks.r_osgi.URL;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
@@ -165,13 +161,9 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		public TCPChannel(final ChannelEndpoint endpoint, final Socket socket)
 				throws IOException {
 			this.endpoint = endpoint;
-			try {
-				this.remoteEndpoint = new URI(getProtocol() + "://"
-						+ socket.getInetAddress().getHostName() + ":"
-						+ socket.getPort());
-			} catch (URISyntaxException e) {
-				throw new IOException(e);
-			}
+			this.remoteEndpoint = URI.create(getProtocol() + "://"
+					+ socket.getInetAddress().getHostName() + ":"
+					+ socket.getPort());
 			open(socket);
 		}
 
@@ -185,13 +177,9 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		private void open(final Socket socket) throws IOException {
 			this.socket = socket;
-			try {
-				this.localEndpoint = new URI(getProtocol() + "://"
-						+ socket.getLocalAddress().getHostName() + ":"
-						+ socket.getLocalPort());
-			} catch (URISyntaxException e) {
-				throw new IOException(e);
-			}
+			this.localEndpoint = URI.create(getProtocol() + "://"
+					+ socket.getLocalAddress().getHostName() + ":"
+					+ socket.getLocalPort());
 			this.socket.setKeepAlive(true);
 			this.output = new ObjectOutputStream(new BufferedOutputStream(
 					socket.getOutputStream()));

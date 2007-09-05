@@ -43,9 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
@@ -63,7 +61,6 @@ import ch.ethz.iks.r_osgi.RemoteServiceListener;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.SurrogateRegistration;
 import ch.ethz.iks.r_osgi.Remoting;
-import ch.ethz.iks.r_osgi.URL;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryListener;
@@ -607,33 +604,37 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * @see ch.ethz.iks.r_osgi.Remoting#getEndpoint(java.lang.String)
 	 * @category Remoting
 	 */
-	public ChannelEndpoint getEndpoint(String url) {
-		System.out.println("REQUESTED ENDPOINT FOR " + url);
+	public ChannelEndpoint getEndpoint(String uri) {
+		System.out.println("REQUESTED ENDPOINT FOR " + uri);
 		System.out.println("MULTIPLEXER " + multiplexers);
 		System.out.println("CHANNELS " + channels);
 		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
-				.get(url);
+				.get(uri);
 		if (multiplexer == null) {
-			final String channelID = URL.getBaseURL(url);
 			multiplexer = new EndpointMultiplexer((ChannelEndpoint) channels
-					.get(channelID));
-			multiplexers.put(url, multiplexer);
+					.get(getChannelURI(uri)));
+			multiplexers.put(uri, multiplexer);
 		}
 		return multiplexer;
+	}
+
+	private String getChannelURI(String serviceURI) {
+		final int pos = serviceURI.indexOf("#");
+		return pos < -1 ? serviceURI : serviceURI.substring(0, pos);
 	}
 
 	public void addRedundantEndpoint(String service, String redundant) {
 		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
 				.get(service);
-		multiplexer.addEndpoint((ChannelEndpoint) channels.get(URL
-				.getBaseURL(redundant)));
+		multiplexer.addEndpoint((ChannelEndpoint) channels
+				.get(getChannelURI(redundant)));
 	}
 
 	public void removeRedundantEndpoint(String service, String redundant) {
 		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
 				.get(service);
-		multiplexer.removeEndpoint((ChannelEndpoint) channels.get(URL
-				.getBaseURL(redundant)));
+		multiplexer.removeEndpoint((ChannelEndpoint) channels
+				.get(getChannelURI(redundant)));
 	}
 
 	public void setEndpointPolicy(String service, int policy) {

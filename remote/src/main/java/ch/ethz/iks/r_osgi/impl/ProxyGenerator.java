@@ -1163,6 +1163,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				buffer.append(CHAR_TABLE[chars[i] - 48]);
 				continue;
 			}
+			if (chars[i] == '#') {
+				continue;
+			}
 			buffer.append(chars[i]);
 		}
 		return buffer.toString();
