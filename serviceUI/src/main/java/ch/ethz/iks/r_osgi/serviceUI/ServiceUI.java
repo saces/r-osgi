@@ -53,6 +53,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.ItemListener;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -187,28 +189,11 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 							final Button c = new Button("Connect");
 							c.addActionListener(new ActionListener() {
 								public void actionPerformed(final ActionEvent e) {
-									String haddress = hostaddress.getText();
-									String hostString = null;
-									String protocol = null;
-									int port = 9278;
-									int pos = haddress.indexOf("://");
-									if (pos > -1) {
-										protocol = haddress.substring(0, pos);
-										haddress = haddress.substring(pos + 3);
-									}
-									pos = haddress.indexOf(":");
-									if (pos > -1) {
-										hostString = haddress.substring(0, pos);
-										port = Integer.parseInt(haddress
-												.substring(pos + 1));
-									} else {
-										hostString = haddress;
-									}
 									try {
+										URI endpoint = new URI(hostaddress
+												.getText());
 										final RemoteServiceReference[] refs = ServiceUIActivator.remote
-												.connect(InetAddress
-														.getByName(hostString),
-														port, protocol);
+												.connect(endpoint);
 										new Dialog(new Frame(),
 												"R-OSGi ServiceUI") {
 											public void setVisible(
@@ -218,7 +203,8 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 													final List list = new List();
 													for (int i = 0; i < refs.length; i++) {
 														list.add(refs[i]
-																.getURL());
+																.getURI()
+																.toString());
 
 													}
 													list
@@ -255,7 +241,7 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 
 									} catch (RemoteOSGiException e1) {
 										e1.printStackTrace();
-									} catch (UnknownHostException e1) {
+									} catch (URISyntaxException e1) {
 										e1.printStackTrace();
 									}
 									setVisible(false);
@@ -305,9 +291,9 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 
 					StringBuffer buffer = new StringBuffer();
 					buffer.append("(&(");
-					buffer.append(RemoteOSGiService.SERVICE_URL);
+					buffer.append(RemoteOSGiService.SERVICE_URI);
 					buffer.append('=');
-					buffer.append(ref.getURL());
+					buffer.append(ref.getURI().toString());
 					buffer.append(")(");
 					buffer.append(RemoteOSGiService.PRESENTATION);
 					buffer.append('=');
@@ -320,7 +306,7 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 					if (presRefs != null) {
 						ServiceUIComponent comp = (ServiceUIComponent) ServiceUIActivator.context
 								.getService(presRefs[0]);
-						addPanel(ref.getURL(), comp.getPanel());
+						addPanel(ref.getURI().toString(), comp.getPanel());
 					} else {
 						System.err.println("No registration matches "
 								+ buffer.toString());
@@ -389,7 +375,7 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 
 	public void remoteServiceEvent(final RemoteServiceEvent event) {
 		final RemoteServiceReference ref = event.getRemoteReference();
-		final String url = event.getRemoteReference().getURL();
+		final String url = event.getRemoteReference().getURI().toString();
 
 		switch (event.getType()) {
 		case RemoteServiceEvent.REGISTERED:

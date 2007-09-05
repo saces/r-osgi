@@ -29,6 +29,7 @@
 package ch.ethz.iks.r_osgi;
 
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
@@ -159,41 +160,23 @@ public interface RemoteOSGiService {
 	 * 
 	 * @since 1.0
 	 */
-	String SERVICE_URL = "service.url";
+	String SERVICE_URI = "service.uri";
 
 	/**
 	 * connect to a remote OSGi framework. Has to be called prior to any service
 	 * access. Causes the frameworks to exchange leases and start the transport
 	 * of remote events.
 	 * 
-	 * @param host
-	 *            the address of the remote framework host.
-	 * @param port
-	 *            the port of the remote framework host. Typically the R-OSGi
-	 *            standard port 9278 but can also be something different if a
-	 *            special TransportChannelFactory is used.
-	 * @param protocol
-	 *            the protocol string that maps to a protocol property of a
-	 *            registered TransportChannelFactory. If <code>null</code>,
-	 *            the default TCPChannel is used.
-	 * @return the array of ServiceURLs that the remote frameworks offers.
+	 * @param endpoint
+	 *            the endpoint to connect to.
+	 * @return the array of remote service references of the services that the
+	 *         remote frameworks offers.
 	 * @throws RemoteOSGiException
 	 *             in case of connection errors.
 	 * @since 0.6
 	 */
-	RemoteServiceReference[] connect(final InetAddress host, final int port,
-			final String protocol) throws RemoteOSGiException;
-
-	/**
-	 * 
-	 * @param url
-	 * @return
-	 * @throws RemoteOSGiException
-	 * @throws UnknownHostException
-	 * @since 0.9
-	 */
-	RemoteServiceReference[] connect(final String url)
-			throws RemoteOSGiException, UnknownHostException;
+	RemoteServiceReference[] connect(final URI endpoint)
+			throws RemoteOSGiException;
 
 	/**
 	 * disconnect from a connected host
@@ -203,7 +186,7 @@ public interface RemoteOSGiService {
 	 * @param protocol
 	 * @throws RemoteOSGiException
 	 */
-	void disconnect(final String url) throws RemoteOSGiException;
+	void disconnect(final URI endpoint) throws RemoteOSGiException;
 
 	/**
 	 * fetch the discovered remote service. The service will be fetched from the

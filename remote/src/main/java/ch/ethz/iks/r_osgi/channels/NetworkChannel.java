@@ -30,6 +30,7 @@ package ch.ethz.iks.r_osgi.channels;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URI;
 
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 
@@ -60,7 +61,7 @@ public interface NetworkChannel {
 	 * @return the address.
 	 * @since 0.6
 	 */
-	InetAddress getInetAddress();
+//	InetAddress getInetAddress();
 
 	/**
 	 * get the port that the channel is connected to.
@@ -68,17 +69,25 @@ public interface NetworkChannel {
 	 * @return the port.
 	 * @since 0.6
 	 */
-	int getPort();
+//	int getPort();
 
 	/**
-	 * get the (unique) ID of the channel.
+	 * get the URI of the remote endpoint.
 	 * 
 	 * @return the ID.
 	 */
-	String getRemoteURL();
+	URI getRemoteEndpoint();
 
 	/**
-	 * reconnect the channel to the endpoint.
+	 * get the URI of the local endpoint.
+	 * 
+	 * @return the ID.
+	 */
+	URI getLocalEndpoint();
+	
+	
+	/**
+	 * reconnect the channel to the remote endpoint.
 	 * 
 	 * @throws IOException
 	 *             if the channel cannot be reconnected.
@@ -97,6 +106,6 @@ public interface NetworkChannel {
 	 */
 	void sendMessage(final RemoteOSGiMessage message) throws IOException;
 
-	String getLocalURL();
+
 
 }

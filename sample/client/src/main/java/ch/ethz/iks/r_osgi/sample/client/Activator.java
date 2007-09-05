@@ -44,7 +44,7 @@ public class Activator implements BundleActivator {
 				switch (event.getType()) {
 				case RemoteServiceEvent.REGISTERED:
 					System.out.println("found service "
-							+ event.getRemoteReference().getURL());
+							+ event.getRemoteReference().getURI());
 					try {
 						// fetch the service
 						remote.fetchService(event.getRemoteReference());
@@ -98,7 +98,7 @@ public class Activator implements BundleActivator {
 					return;
 				case RemoteServiceEvent.UNREGISTERING:
 					System.out.println("lost service "
-							+ event.getRemoteReference().getURL());
+							+ event.getRemoteReference().getURI());
 					usingThread.interrupt();
 					return;
 				}

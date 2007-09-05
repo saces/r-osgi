@@ -1,5 +1,6 @@
 package ch.ethz.iks.r_osgi.impl;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
@@ -17,15 +18,14 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 
 	private Dictionary properties;
 
-	private String url;
+	private URI uri;
 
 	private transient ChannelEndpointImpl channel;
 
-	RemoteServiceReferenceImpl(final String[] serviceInterfaces,
-			final String url, final Dictionary properties,
-			final ChannelEndpointImpl channel) {
+	RemoteServiceReferenceImpl(final String[] serviceInterfaces, final URI uri,
+			final Dictionary properties, final ChannelEndpointImpl channel) {
 		this.serviceInterfaces = serviceInterfaces;
-		this.url = url;
+		this.uri = uri;
 		this.properties = properties;
 		this.channel = channel;
 	}
@@ -54,8 +54,8 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 		return properties;
 	}
 
-	public String getURL() {
-		return url;
+	public URI getURI() {
+		return uri;
 	}
 
 	void setProperties(Dictionary newProps) {
@@ -63,6 +63,7 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 	}
 
 	public String toString() {
-		return "RemoteServiceReference{" + url + "-" + Arrays.asList(serviceInterfaces) + "}";
+		return "RemoteServiceReference{" + uri + "-"
+				+ Arrays.asList(serviceInterfaces) + "}";
 	}
 }

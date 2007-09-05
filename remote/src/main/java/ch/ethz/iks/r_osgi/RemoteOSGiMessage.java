@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
+import java.net.URI;
+
 import ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl;
 
 /**
@@ -92,7 +94,7 @@ public abstract class RemoteOSGiMessage {
 	 */
 	protected short funcID;
 
-	protected String url;
+	protected URI uri;
 
 	/**
 	 * Get the function ID (type code) of the message.
@@ -149,7 +151,7 @@ public abstract class RemoteOSGiMessage {
 	 * @param port
 	 *            the port.
 	 */
-	public abstract void rewriteURL(final String protocol, final String host,
+	public abstract void rewriteURI(final String protocol, final String host,
 			final String port);
 
 }

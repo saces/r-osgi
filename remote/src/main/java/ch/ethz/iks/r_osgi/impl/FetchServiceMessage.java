@@ -31,6 +31,8 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
+import java.net.URI;
+
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
 
 
@@ -55,11 +57,11 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 * creates a new FetchServiceMessage from <code>ServiceURL</code>.
 	 * 
 	 * @param service
-	 *            the service url of the service that is fetched.
+	 *            the URI service of the service that is fetched.
 	 */
 	FetchServiceMessage(final RemoteServiceReference ref) {
 		funcID = FETCH_SERVICE;
-		url = ref.getURL();
+		uri = ref.getURI();
 	}
 
 	/**
@@ -82,7 +84,7 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 *             if something goes wrong.
 	 */
 	FetchServiceMessage(final ObjectInputStream input) throws IOException {
-		url = input.readUTF();
+		uri = URI.create(input.readUTF());
 	}
 
 	/**
@@ -95,7 +97,7 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		out.writeUTF(url);
+		out.writeUTF(uri.toString());
 	}
 
 	/**
@@ -110,7 +112,7 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 		buffer.append("- XID: ");
 		buffer.append(xid);
 		buffer.append(", URL: ");
-		buffer.append(url);
+		buffer.append(uri);
 		return buffer.toString();
 	}
 }

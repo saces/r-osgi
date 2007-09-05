@@ -31,6 +31,7 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Dictionary;
 
@@ -50,7 +51,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 */
 	private String[][] serviceInterfaces;
 
-	private String[] urls;
+	private URI[] URIs;
 
 	private Dictionary[] serviceProperties;
 
@@ -67,11 +68,11 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @param topics
 	 *            the topics the peer is interested in.
 	 */
-	public LeaseMessage(final String myURL, final String otherURL, final RemoteServiceRegistration[] regs,
-			final String[] topics) {
+	public LeaseMessage(final URI localEndpoint, final URI remoteEndpoint,
+			final RemoteServiceRegistration[] regs, final String[] topics) {
 		this.funcID = LEASE;
-		this.url = otherURL;		
-		parseRegistrations(myURL, regs);
+		this.uri = remoteEndpoint;
+		parseRegistrations(localEndpoint, regs);
 		this.topics = topics == null ? new String[0] : topics;
 	}
 
@@ -96,20 +97,20 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @throws IOException
 	 *             if something goes wrong.
 	 */
-	LeaseMessage(final ObjectInputStream input) throws IOException {		
+	LeaseMessage(final ObjectInputStream input) throws IOException {
 		funcID = LEASE;
-		url = input.readUTF();
+		uri = URI.create(input.readUTF());
 		final int serviceCount = input.readShort();
-		urls = new String[serviceCount];
+		URIs = new URI[serviceCount];
 		serviceInterfaces = new String[serviceCount][];
 		serviceProperties = new Dictionary[serviceCount];
 		try {
 			for (short i = 0; i < serviceCount; i++) {
 				serviceInterfaces[i] = readStringArray(input);
-				urls[i] = input.readUTF();
+				URIs[i] = URI.create(input.readUTF());
 				serviceProperties[i] = (Dictionary) input.readObject();
-				serviceProperties[i].put(RemoteOSGiServiceImpl.SERVICE_URL,
-						urls[i]);
+				serviceProperties[i].put(RemoteOSGiServiceImpl.SERVICE_URI,
+						URIs[i].toString());
 
 				// remove the service PID, if set
 				serviceProperties[i].remove("service.pid");
@@ -131,10 +132,10 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @return the services.
 	 */
 	RemoteServiceReferenceImpl[] getServices(final ChannelEndpointImpl channel) {
-		final RemoteServiceReferenceImpl[] refs = new RemoteServiceReferenceImpl[urls.length];
-		for (short i = 0; i < urls.length; i++) {
+		final RemoteServiceReferenceImpl[] refs = new RemoteServiceReferenceImpl[URIs.length];
+		for (short i = 0; i < URIs.length; i++) {
 			refs[i] = new RemoteServiceReferenceImpl(serviceInterfaces[i],
-					urls[i], serviceProperties[i], channel);
+					URIs[i], serviceProperties[i], channel);
 		}
 		return refs;
 	}
@@ -158,10 +159,10 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 *            the topics of interest of this peer.
 	 * @return the reply lease message.
 	 */
-	LeaseMessage replyWith(final String myURL, final String otherURL, final RemoteServiceRegistration[] refs,
-			final String[] topics) {
-		this.url = otherURL;
-		parseRegistrations(myURL, refs);
+	LeaseMessage replyWith(final URI localEndpoint, final URI remoteEndpoint,
+			final RemoteServiceRegistration[] refs, final String[] topics) {
+		this.uri = remoteEndpoint;
+		parseRegistrations(localEndpoint, refs);
 		this.topics = topics;
 		return this;
 	}
@@ -176,12 +177,12 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		out.writeUTF(url);
+		out.writeUTF(uri.toString());
 		final int slen = serviceInterfaces.length;
 		out.writeShort(slen);
 		for (short i = 0; i < slen; i++) {
 			writeStringArray(out, serviceInterfaces[i]);
-			out.writeUTF(urls[i]);
+			out.writeUTF(URIs[i].toString());
 			// TODO: smart serializer
 			out.writeObject(serviceProperties[i]);
 		}
@@ -202,7 +203,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		for (int i = 0; i < serviceInterfaces.length; i++) {
 			buffer.append(serviceInterfaces[i]);
 			buffer.append("-");
-			buffer.append(urls[i]);
+			buffer.append(URIs[i]);
 			if (i < serviceInterfaces.length) {
 				buffer.append(", ");
 			}
@@ -212,12 +213,14 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		return buffer.toString();
 	}
 
-	private void parseRegistrations(final String myURL, final RemoteServiceRegistration[] regs) {
-		urls = new String[regs.length];
+	private void parseRegistrations(final URI localEndpoint,
+			final RemoteServiceRegistration[] regs) {
+		URIs = new URI[regs.length];
 		serviceInterfaces = new String[regs.length][];
 		serviceProperties = new Dictionary[regs.length];
+		final String baseURI = localEndpoint.toString();
 		for (short i = 0; i < regs.length; i++) {
-			urls[i] = myURL + "/" + regs[i].getServiceID();
+			URIs[i] = URI.create(baseURI + "#" + regs[i].getServiceID());
 			serviceInterfaces[i] = regs[i].getInterfaceNames();
 			serviceProperties[i] = regs[i].getProperties();
 		}

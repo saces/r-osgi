@@ -32,6 +32,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.net.SocketException;
+import java.net.URI;
+
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.URL;
@@ -225,12 +227,12 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	}
 
 	/**
-	 * get the service url of the service.
+	 * get the URI of the service or the channel involved.
 	 * 
-	 * @return the service url as string.
+	 * @return the URI of the service or channel.
 	 */
-	final String getURL() {
-		return url;
+	final URI getURI() {
+		return uri;
 	}
 
 	/**
@@ -243,18 +245,25 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	 * @param port
 	 *            the port.
 	 */
-	public final void rewriteURL(final String protocol, final String host,
+	public final void rewriteURI(final String protocol, final String host,
 			final String port) {
-		if (url == null) {
+		if (uri == null) {
 			return;
 		}
-		url = URL.rewrite(url, protocol, host, port, null);
+		String newURI = protocol == null ? uri.getScheme() : protocol + "://"
+				+ host == null ? uri.getHost()
+				: host + ":" + port == null ? String.valueOf(uri.getPort())
+						: port;
+		if (uri.getFragment() != null) {
+			newURI = newURI + "#" + uri.getFragment();
+		}
+		uri = URI.create(newURI);
 	}
 
 	final Long getServiceID() {
-		if (url == null)
+		if (uri == null)
 			return null;
-		return URL.getServiceID(url);
+		return Long.decode(uri.getFragment());
 	}
 
 }

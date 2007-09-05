@@ -29,8 +29,7 @@
 package ch.ethz.iks.r_osgi.channels;
 
 import java.io.IOException;
-import java.net.InetAddress;
-
+import java.net.URI;
 
 /**
  * Interface for services that create transport channel implementations. Must
@@ -54,20 +53,14 @@ public interface NetworkChannelFactory {
 	 * 
 	 * @param endpoint
 	 *            the channel endpoint.
-	 * @param address
-	 *            the address to connect to.
-	 * @param port
-	 *            the port to connect to.
-	 * @param protocol
-	 *            the protocol if the factory is registered for multiple
-	 *            protocols.
+	 * @param endpointURI
+	 *            the endpoint to connect to.
 	 * @return a new transport channel that is typically already connected to
 	 *         the endpoint and ready to send messages.
 	 * @throws IOException
 	 *             in case of connection errors.
 	 */
 	NetworkChannel getConnection(final ChannelEndpoint endpoint,
-			final InetAddress address, final int port, final String protocol)
-			throws IOException;
+			final URI endpointURI) throws IOException;
 
 }

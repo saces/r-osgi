@@ -31,6 +31,7 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import ch.ethz.iks.util.SmartSerializer;
 
@@ -58,16 +59,16 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 * creates a new InvokeMethodMessage.
 	 * 
 	 * @param service
-	 *            the serviceURL of the service.
+	 *            the URI of the service.
 	 * @param methodSignature
 	 *            the method signature.
 	 * @param params
 	 *            the parameter that are passed to the method.
 	 */
-	InvokeMethodMessage(final String url, final String methodSignature,
+	InvokeMethodMessage(final URI service, final String methodSignature,
 			final Object[] params) {
 		funcID = INVOKE_METHOD;
-		this.url = url;
+		this.uri = service;
 		this.methodSignature = methodSignature;
 		this.arguments = params;
 	}
@@ -97,7 +98,7 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 */
 	InvokeMethodMessage(final ObjectInputStream input) throws IOException {
 		funcID = INVOKE_METHOD;
-		url = input.readUTF();
+		uri = URI.create(input.readUTF());
 		methodSignature = input.readUTF();
 		final short argLength = input.readShort();
 		arguments = new Object[argLength];
@@ -116,7 +117,7 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		out.writeUTF(url);
+		out.writeUTF(uri.toString());
 		out.writeUTF(methodSignature);
 		out.writeShort(arguments.length);
 		for (short i = 0; i < arguments.length; i++) {
@@ -153,7 +154,7 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 		buffer.append("[INVOKE_METHOD] - XID: ");
 		buffer.append(xid);
 		buffer.append(", url: ");
-		buffer.append(url);
+		buffer.append(uri);
 		buffer.append(", methodName: ");
 		buffer.append(methodSignature);
 		buffer.append(", params: ");

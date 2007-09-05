@@ -35,6 +35,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.osgi.service.log.LogService;
 
@@ -68,9 +70,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	 *      int, java.lang.String)
 	 */
 	public NetworkChannel getConnection(final ChannelEndpoint endpoint,
-			final InetAddress host, final int port, final String protocol)
-			throws IOException {
-		return new TCPChannel(endpoint, host, port);
+			final URI endpointURI) throws IOException {
+		return new TCPChannel(endpoint, endpointURI);
 	}
 
 	/**
@@ -101,14 +102,14 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		private Socket socket;
 
 		/**
-		 * the host address.
+		 * the remote endpoint
 		 */
-		private InetAddress host;
+		private URI remoteEndpoint;
 
 		/**
-		 * the port.
+		 * the local endpoint
 		 */
-		private int port;
+		private URI localEndpoint;
 
 		/**
 		 * the input stream.
@@ -142,12 +143,15 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @throws IOException
 		 *             in case of IO errors.
 		 */
-		TCPChannel(final ChannelEndpoint endpoint, final InetAddress host,
-				final int port) throws IOException {
-			this.host = host;
-			this.port = port;
+		TCPChannel(final ChannelEndpoint endpoint, final URI endpointURI)
+				throws IOException {
+			int port = endpointURI.getPort();
+			if (port == -1) {
+				port = 9278;
+			}
 			this.endpoint = endpoint;
-			open(new Socket(host, port));
+			this.remoteEndpoint = endpointURI;
+			open(new Socket(InetAddress.getByName(endpointURI.getHost()), port));
 		}
 
 		/**
@@ -160,9 +164,14 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		public TCPChannel(final ChannelEndpoint endpoint, final Socket socket)
 				throws IOException {
-			this.host = socket.getInetAddress();
-			this.port = socket.getPort();
 			this.endpoint = endpoint;
+			try {
+				this.remoteEndpoint = new URI(getProtocol() + "://"
+						+ socket.getInetAddress().getHostName() + ":"
+						+ socket.getPort());
+			} catch (URISyntaxException e) {
+				throw new IOException(e);
+			}
 			open(socket);
 		}
 
@@ -176,6 +185,13 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		private void open(final Socket socket) throws IOException {
 			this.socket = socket;
+			try {
+				this.localEndpoint = new URI(getProtocol() + "://"
+						+ socket.getLocalAddress().getHostName() + ":"
+						+ socket.getLocalPort());
+			} catch (URISyntaxException e) {
+				throw new IOException(e);
+			}
 			this.socket.setKeepAlive(true);
 			this.output = new ObjectOutputStream(new BufferedOutputStream(
 					socket.getOutputStream()));
@@ -192,7 +208,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @see java.lang.Object#toString()
 		 */
 		public String toString() {
-			return "TCPChannel (" + getRemoteURL() + ")";
+			return "TCPChannel (" + getRemoteEndpoint() + ")";
 		}
 
 		/**
@@ -204,6 +220,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		public void reconnect() throws IOException {
 			connected = false;
+			final InetAddress host = socket.getInetAddress();
+			final int port = socket.getPort();
 			try {
 				if (socket != null) {
 					socket.close();
@@ -214,26 +232,6 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			open(new Socket(host, port));
 			this.connected = true;
 			new ReceiverThread().start();
-		}
-
-		/**
-		 * get the address of the channel endpoint.
-		 * 
-		 * @return the address of the channel endpoint.
-		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getInetAddress()
-		 */
-		public InetAddress getInetAddress() {
-			return host;
-		}
-
-		/**
-		 * get the port of the channel endpoint.
-		 * 
-		 * @return the port of the channel endpoint.
-		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getPort()
-		 */
-		public int getPort() {
-			return port;
 		}
 
 		/**
@@ -252,8 +250,12 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @return the ID.
 		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getRemoteURL()
 		 */
-		public String getRemoteURL() {
-			return URL.getURL(PROTOCOL, host.getHostName(), port);
+		public URI getRemoteEndpoint() {
+			return remoteEndpoint;
+		}
+
+		public URI getLocalEndpoint() {
+			return localEndpoint;
 		}
 
 		/**
@@ -283,7 +285,9 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		private class ReceiverThread extends Thread {
 			private ReceiverThread() {
-				this.setName("TCPChannel:ReceiverThread:" + getRemoteURL());
+				this
+						.setName("TCPChannel:ReceiverThread:"
+								+ getRemoteEndpoint());
 				this.setDaemon(true);
 			}
 
@@ -310,11 +314,6 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 					}
 				}
 			}
-		}
-
-		public String getLocalURL() {
-			return URL.getURL(PROTOCOL, socket.getLocalAddress().getHostName(),
-					socket.getLocalPort());
 		}
 	}
 }

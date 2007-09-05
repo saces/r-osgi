@@ -28,6 +28,7 @@
  */
 package ch.ethz.iks.r_osgi.channels;
 
+import java.net.URI;
 import java.util.Dictionary;
 
 import org.osgi.framework.ServiceRegistration;
@@ -67,7 +68,7 @@ public interface ChannelEndpoint {
 	 *             on the original service method.
 	 * @since 0.6
 	 */
-	Object invokeMethod(final String serviceURL, final String methodSignature,
+	Object invokeMethod(final String service, final String methodSignature,
 			final Object[] args) throws Throwable;
 
 	/**
@@ -79,7 +80,7 @@ public interface ChannelEndpoint {
 	 * @return the service attributes.
 	 * @since 0.6
 	 */
-	Dictionary getProperties(final String serviceURL);
+	Dictionary getProperties(final String service);
 
 	/**
 	 * get the attributes for the presentation of the service. This function is
@@ -90,36 +91,34 @@ public interface ChannelEndpoint {
 	 * @return the attributes for the presentation.
 	 * @since 0.6
 	 */
-	Dictionary getPresentationProperties(final String serviceURL);
+	Dictionary getPresentationProperties(final String service);
 
 	/**
 	 * register a proxied service registration to allow updates of the properties.
 	 * 
-	 * @param serviceURL
-	 *            the service url.
+	 * @param service
+	 *            the URI of the service.
 	 * @param reg
 	 *            the service registration object.
 	 */
-	void trackRegistration(final String serviceURL, final ServiceRegistration reg);
+	void trackRegistration(final String service, final ServiceRegistration reg);
 
 	/**
 	 * unregister a proxied service registration.
 	 * 
 	 * @param serviceURL
-	 *            the service url.
+	 *            the URI of the service.
 	 * @param reg
 	 *            the service registration object.
 	 */	
-	void untrackRegistration(final String serviceURL);
+	void untrackRegistration(final String service);
 	
 	/**
-	 * get the ID of the channel endpoint. This is some kind of URL consisting
-	 * of the protocol, the host address to where the channel is connected, and
-	 * the port.
+	 * get the URI of the remote channel endpoint. 
 	 * 
 	 * @return the channel ID.
 	 */
-	String getURL();
+	URI getRemoteEndpoint();
 
 	/**
 	 * dispose of the channel endpoint.

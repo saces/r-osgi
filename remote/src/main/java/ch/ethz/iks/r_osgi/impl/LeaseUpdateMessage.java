@@ -3,6 +3,7 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URI;
 
 import ch.ethz.iks.r_osgi.URL;
 import ch.ethz.iks.util.SmartSerializer;
@@ -50,9 +51,8 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 		this.content2 = reg.getProperties();
 	}
 
-	void init(String url) {
-		this.url = URL
-				.rewrite(url, null, null, null, String.valueOf(serviceID));
+	void init(URI uri) {
+		this.uri = URI.create(uri + "#" + String.valueOf(serviceID));
 	}
 
 	/**
@@ -64,7 +64,6 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 	LeaseUpdateMessage(final String[] addedTopics, final String[] removedTopics) {
 		funcID = LEASE_UPDATE;
 		this.type = TOPIC_UPDATE;
-		this.url = "";
 		this.content1 = addedTopics == null ? new String[0] : addedTopics;
 		this.content2 = removedTopics == null ? new String[0] : removedTopics;
 	}
@@ -93,7 +92,7 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 	LeaseUpdateMessage(final ObjectInputStream input) throws IOException {
 		funcID = LEASE_UPDATE;
 		type = input.readShort();
-		url = input.readUTF();
+		uri = URI.create(input.readUTF());
 		content1 = SmartSerializer.deserialize(input);
 		content2 = SmartSerializer.deserialize(input);
 	}
@@ -109,7 +108,7 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		out.writeShort(type);
-		out.writeUTF(url);
+		out.writeUTF(uri.toString());
 		SmartSerializer.serialize(content1, out);
 		SmartSerializer.serialize(content2, out);
 	}
@@ -133,7 +132,7 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 		buffer.append("[STATE_UPDATE] - XID: ");
 		buffer.append(xid);
 		buffer.append(", url ");
-		buffer.append(url);
+		buffer.append(uri);
 		buffer.append(", type ");
 		buffer.append(type);
 		buffer.append(", content ");

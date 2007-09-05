@@ -31,6 +31,7 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -121,7 +122,7 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * @param attributes
 	 */
 	void init(final FetchServiceMessage fetchReq) {
-		this.url = fetchReq.getURL();
+		this.uri = fetchReq.getURI();
 		this.xid = fetchReq.xid;
 	}
 
@@ -155,8 +156,8 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 *             in case of parse errors.
 	 */
 	DeliverServiceMessage(final ObjectInputStream input) throws IOException {
-		// the url
-		url = input.readUTF();
+		// the uri
+		uri = URI.create(input.readUTF());
 		// imports
 		imports = input.readUTF();
 		// exports
@@ -183,11 +184,11 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 *             in case of parse errors.
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		if (url == null) {
+		if (uri == null) {
 			throw new IllegalStateException(
 					"DeliverServiceMessage not initialized");
 		}
-		out.writeUTF(url);
+		out.writeUTF(uri.toString());
 		out.writeUTF(imports);
 		out.writeUTF(exports);
 		writeStringArray(out, serviceInterfaceNames);

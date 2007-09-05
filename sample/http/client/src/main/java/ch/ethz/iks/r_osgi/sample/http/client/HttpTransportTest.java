@@ -1,6 +1,7 @@
 package ch.ethz.iks.r_osgi.sample.http.client;
 
 import java.net.InetAddress;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -56,16 +57,14 @@ public class HttpTransportTest implements BundleActivator {
 			System.out.println("============================================");
 			System.out.println("CONFIGURED FOR TESTS IN THE HOME NETWORK ...");
 			System.out.println("============================================");
-			services = remote.connect(InetAddress.getByName("10.1.9.204"),
-					8080, "http");
+			services = remote.connect(new URI("http://10.1.9.204:8080"));
 			System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 					+ Arrays.asList(services));
 		} else {
 			System.out.println("============================================");
 			System.out.println("CONFIGURED FOR TESTS IN THE ETH NETWORK ... ");
 			System.out.println("============================================");
-			services = remote.connect(InetAddress
-					.getByName("flowsgi.inf.ethz.ch"), 8443, "https");
+			services = remote.connect(new URI("https://flowsgi.inf.ethz.ch:8443"));
 			System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 					+ Arrays.asList(services));
 		}

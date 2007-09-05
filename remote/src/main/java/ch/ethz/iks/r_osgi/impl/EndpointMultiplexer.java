@@ -1,5 +1,6 @@
 package ch.ethz.iks.r_osgi.impl;
 
+import java.net.URI;
 import java.util.Dictionary;
 import java.util.List;
 
@@ -24,15 +25,15 @@ class EndpointMultiplexer implements ChannelEndpoint {
 	private int policy;
 
 	private List endpoints;
-	
-	private String myURL;
+
+	private URI myURI;
 
 	private ServiceRegistration reg;
 
 	EndpointMultiplexer(final ChannelEndpoint primary) {
 		this.primary = primary;
 		this.policy = NONE;
-		myURL = primary.getURL();
+		myURI = primary.getRemoteEndpoint();
 	}
 
 	public void setPolicy(int policy) {
@@ -60,8 +61,8 @@ class EndpointMultiplexer implements ChannelEndpoint {
 		return primary.getProperties(serviceURL);
 	}
 
-	public String getURL() {
-		return myURL;
+	public URI getRemoteEndpoint() {
+		return myURI;
 	}
 
 	public Object invokeMethod(String serviceURL, String methodSignature,
@@ -75,9 +76,9 @@ class EndpointMultiplexer implements ChannelEndpoint {
 			} catch (RemoteOSGiException e) {
 				if (policy == FAILOVER_REDUNDANCY && !endpoints.isEmpty()) {
 					// do the failover
-					primary.untrackRegistration(myURL);
+					primary.untrackRegistration(myURI.toString());
 					primary = (ChannelEndpoint) endpoints.remove(0);
-					primary.trackRegistration(myURL, reg);
+					primary.trackRegistration(myURI.toString(), reg);
 					return invokeMethod(serviceURL, methodSignature, args);
 				} else {
 					throw e;
@@ -92,13 +93,14 @@ class EndpointMultiplexer implements ChannelEndpoint {
 				"Not supported through endpoint multiplexer");
 	}
 
-	public void trackRegistration(String serviceURL, ServiceRegistration reg) {
+	public void trackRegistration(final String service,
+			final ServiceRegistration reg) {
 		this.reg = reg;
-		primary.trackRegistration(serviceURL, reg);
+		primary.trackRegistration(service, reg);
 	}
 
-	public void untrackRegistration(String serviceURL) {
-		primary.untrackRegistration(serviceURL);
+	public void untrackRegistration(final String service) {
+		primary.untrackRegistration(service);
 	}
 
 }

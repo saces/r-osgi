@@ -31,6 +31,7 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import org.osgi.service.event.Event;
@@ -70,7 +71,7 @@ final class RemoteEventMessage extends RemoteOSGiMessageImpl {
 	 *             if the destination address of the event cannot be resolved or
 	 *             if marshalling of the event fails.
 	 */
-	RemoteEventMessage(final Event event, final String channelID)
+	RemoteEventMessage(final Event event, final URI localEndpoint)
 			throws Exception {
 		funcID = REMOTE_EVENT;
 		String[] propertyNames = event.getPropertyNames();
@@ -78,7 +79,7 @@ final class RemoteEventMessage extends RemoteOSGiMessageImpl {
 		for (int i = 0; i < propertyNames.length; i++) {
 			props.put(propertyNames[i], event.getProperty(propertyNames[i]));
 		}
-		props.put(RemoteOSGiServiceImpl.EVENT_SENDER_URL, channelID);
+		props.put(RemoteOSGiServiceImpl.EVENT_SENDER_URI, localEndpoint);
 		topic = event.getTopic();
 		properties = props;
 	}
@@ -134,7 +135,7 @@ final class RemoteEventMessage extends RemoteOSGiMessageImpl {
 	 * @return the sender URL as string.
 	 */
 	String getSender() {
-		return (String) properties.get(RemoteOSGiServiceImpl.EVENT_SENDER_URL);
+		return (String) properties.get(RemoteOSGiServiceImpl.EVENT_SENDER_URI);
 	}
 
 	/**

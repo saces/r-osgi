@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -114,9 +115,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	static final String DISCOVERY_INTERVAL_PROPERTY = "ch.ethz.iks.r_osgi.remote.discoveryInterval";
 
 	/**
-	 * the event property contains the sender's url.
+	 * the event property contains the sender's uri.
 	 */
-	static final String EVENT_SENDER_URL = "sender.url";
+	static final String EVENT_SENDER_URI = "sender.uri";
 
 	/**
 	 * marker for channel-registered event handlers so that they don't
@@ -430,7 +431,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * get the service that has been fetched under a certain
 	 * <code>ServiceURL</code>.
 	 * 
-	 * @param url
+	 * @param uri
 	 *            the <code>ServiceURL</code>.
 	 * @return the service object or <code>null</code> if the service is not
 	 *         (yet) present.
@@ -447,8 +448,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * get the service reference for the service that has been fetched under a
 	 * certain <code>ServiceURL</code>.
 	 * 
-	 * @param url
-	 *            the <code>ServiceURL</code>.
+	 * @param ref
+	 *            the <code>RemoteServiceReference</code> to the service.
 	 * @return the service reference of the service (or service proxy) or
 	 *         <code>null</code> if the service is not (yet) present.
 	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getFetchedServiceReference(ch.ethz.iks.slp.ServiceURL)
@@ -459,11 +460,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			final RemoteServiceReference ref) {
 		try {
 			final ServiceReference[] refs = context.getServiceReferences(ref
-					.getServiceInterfaces()[0], "(" + SERVICE_URL + "="
-					+ ref.getURL() + ")");
+					.getServiceInterfaces()[0], "(" + SERVICE_URI + "="
+					+ ref.getURI() + ")");
 			if (refs != null) {
 				return refs[0];
-			} 
+			}
 		} catch (InvalidSyntaxException doesNotHappen) {
 			doesNotHappen.printStackTrace();
 		}
@@ -489,12 +490,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 								+ ")"));
 	}
 
-	public RemoteServiceReference[] connect(final String url)
-			throws RemoteOSGiException, UnknownHostException {
-		return connect(InetAddress.getByName(URL.getHost(url)), URL
-				.getPort(url), URL.getProtocol(url));
-	}
-
 	/**
 	 * connect to a remote OSGi host.
 	 * 
@@ -509,23 +504,23 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 *             in case of errors.
 	 * @since 0.6
 	 */
-	public RemoteServiceReference[] connect(final InetAddress host,
-			final int port, final String protocol) throws RemoteOSGiException {
-		final ChannelEndpointImpl test = (ChannelEndpointImpl) channels.get(URL
-				.getURL(protocol, host, port));
+	public RemoteServiceReference[] connect(final URI endpoint)
+			throws RemoteOSGiException {
+		final ChannelEndpointImpl test = (ChannelEndpointImpl) channels
+				.get(endpoint.toString());
 		if (test != null) {
 			return test.getRemoteReferences(null);
 		} else {
 			// TODO: remove debug output
-			System.out.println("REQUESTED CONNECTION TO "
-					+ URL.getURL(protocol, host, port));
+			System.out.println("REQUESTED CONNECTION TO " + endpoint);
 			System.out.println("KNOWN CHANNELS " + channels);
 		}
 
 		try {
 			final ChannelEndpointImpl channel;
+			final String protocol = endpoint.getScheme();
 			if ("r-osgi".equals(protocol) || protocol == null) {
-				channel = new ChannelEndpointImpl(null, host, port, protocol);
+				channel = new ChannelEndpointImpl(null, endpoint);
 			} else {
 				final ServiceReference[] refs = context.getServiceReferences(
 						NetworkChannelFactory.class.getName(), "("
@@ -533,7 +528,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 								+ protocol + ")");
 				NetworkChannelFactory factory = (NetworkChannelFactory) context
 						.getService(refs[0]);
-				channel = new ChannelEndpointImpl(factory, host, port, protocol);
+				channel = new ChannelEndpointImpl(factory, endpoint);
 				if (refs == null) {
 					throw new RemoteOSGiException(
 							"No NetworkChannelFactory for " + protocol
@@ -543,8 +538,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			return channel.sendLease(getServices(), getTopics());
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
-			throw new RemoteOSGiException("Connection to "
-					+ URL.getURL(protocol, host, port) + " failed", ioe);
+			throw new RemoteOSGiException("Connection to " + endpoint
+					+ " failed", ioe);
 		} catch (InvalidSyntaxException e) {
 			// does not happen
 			e.printStackTrace();
@@ -552,8 +547,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		}
 	}
 
-	public void disconnect(final String url) throws RemoteOSGiException {
-		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels.get(url);
+	public void disconnect(final URI endpoint) throws RemoteOSGiException {
+		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
+				.get(endpoint.toString());
 		channel.dispose();
 	}
 
@@ -578,10 +574,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			channel.fetchService(ref);
 		} catch (UnknownHostException e) {
 			throw new RemoteOSGiException(
-					"Cannot resolve host " + ref.getURL(), e);
+					"Cannot resolve host " + ref.getURI(), e);
 		} catch (IOException ioe) {
 			throw new RemoteOSGiException("Proxy generation error", ioe);
-		} 
+		}
 	}
 
 	/**
@@ -730,7 +726,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 *            the local endpoint of the channel.
 	 */
 	static void registerChannel(final ChannelEndpoint channel) {
-		channels.put(channel.getURL(), channel);
+		channels.put(channel.getRemoteEndpoint().toString(), channel);
 	}
 
 	/**
@@ -740,7 +736,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 *            the local endpoint of the channel.
 	 */
 	static void unregisterChannel(final ChannelEndpoint channel) {
-		channels.remove(channel.getURL());
+		channels.remove(channel.getRemoteEndpoint().toString());
 	}
 
 	/**

@@ -31,6 +31,7 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -89,7 +90,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	/**
 	 * the service url.
 	 */
-	private String url;
+	private String uri;
 
 	/**
 	 * the ASM class writer.
@@ -178,11 +179,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * @throws IOException
 	 *             in case of proxy generation error
 	 */
-	protected String generateProxyBundle(final String url, final DeliverServiceMessage deliv)
+	protected String generateProxyBundle(final URI service, final DeliverServiceMessage deliv)
 			throws IOException {
 
-		this.url = url;
-		sourceID = generateSourceID(url);
+		this.uri = service.toString();
+		sourceID = generateSourceID(uri);
 		implemented = new HashSet();
 		injections = deliv.getInjections();
 		byte[] bytes = deliv.getProxyName() == null ? generateProxyClass(deliv
@@ -421,7 +422,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitVarInsn(ASTORE, 2);
 				method.visitVarInsn(ALOAD, 0);
 				method.visitVarInsn(ALOAD, 2);
-				method.visitLdcInsn(url);
+				method.visitLdcInsn(uri);
 				method.visitMethodInsn(INVOKEINTERFACE, REMOTING_I,
 						"getEndpoint", "(Ljava/lang/String;)L" + ENDPOINT_I
 								+ ";");
@@ -430,7 +431,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitVarInsn(ALOAD, 0);
 				method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
 						+ ENDPOINT_I + ";");
-				method.visitLdcInsn(url);
+				method.visitLdcInsn(uri);
 				method.visitVarInsn(ALOAD, 1);
 
 				final int len = interfaceClassNames.length;
@@ -456,7 +457,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitVarInsn(ALOAD, 0);
 				method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
 						+ ENDPOINT_I + ";");
-				method.visitLdcInsn(url);
+				method.visitLdcInsn(uri);
 				method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
 						"getProperties",
 						"(Ljava/lang/String;)Ljava/util/Dictionary;");
@@ -473,7 +474,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitVarInsn(ALOAD, 0);
 				method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
 						+ ENDPOINT_I + ";");
-				method.visitLdcInsn(url);
+				method.visitLdcInsn(uri);
 				method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
 						"getProperties",
 						"(Ljava/lang/String;)Ljava/util/Dictionary;");
@@ -505,7 +506,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitVarInsn(ALOAD, 0);
 				method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
 						+ ENDPOINT_I + ";");
-				method.visitLdcInsn(url);
+				method.visitLdcInsn(uri);
 				method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
 						"getPresentationProperties",
 						"(Ljava/lang/String;)Ljava/util/Dictionary;");
@@ -535,7 +536,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitVarInsn(ALOAD, 0);
 				method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
 						+ ENDPOINT_I + ";");
-				method.visitLdcInsn(url);
+				method.visitLdcInsn(uri);
 				method.visitMethodInsn(INVOKEINTERFACE, ENDPOINT_I,
 						"untrackRegistration", "(Ljava/lang/String;)V");
 				method.visitVarInsn(ALOAD, 0);
@@ -683,7 +684,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			method.visitVarInsn(ALOAD, 0);
 			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
 					+ ENDPOINT_I + ";");
-			method.visitLdcInsn(url);
+			method.visitLdcInsn(uri);
 			method.visitLdcInsn(name + desc);
 			if (args.length < 5) {
 				method.visitInsn(ICONST[args.length]);
