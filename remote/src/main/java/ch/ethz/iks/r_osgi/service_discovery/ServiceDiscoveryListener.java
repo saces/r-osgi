@@ -4,9 +4,9 @@ import java.util.Dictionary;
 
 public interface ServiceDiscoveryListener {
 
-	void announceService(final String serviceInterface, final String url,
+	void announceService(final String serviceInterface, final String uri,
 			final Dictionary properties);
 
-	void discardService(final String serviceInterface, final String url);
+	void discardService(final String serviceInterface, final String uri);
 
 }

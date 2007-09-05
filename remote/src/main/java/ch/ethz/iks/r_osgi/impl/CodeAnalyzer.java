@@ -298,7 +298,7 @@ final class CodeAnalyzer implements ClassVisitor {
 			visited.add(t.getClassName());
 			return;
 		}
-		if (t.getSort() == 9) {
+		if (t.getSort() == Type.ARRAY) {
 			visitType(t.getElementType());
 			return;
 		}
