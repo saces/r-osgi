@@ -56,22 +56,6 @@ public interface NetworkChannel {
 	String getProtocol();
 
 	/**
-	 * get the address that the channel is connected to.
-	 * 
-	 * @return the address.
-	 * @since 0.6
-	 */
-//	InetAddress getInetAddress();
-
-	/**
-	 * get the port that the channel is connected to.
-	 * 
-	 * @return the port.
-	 * @since 0.6
-	 */
-//	int getPort();
-
-	/**
 	 * get the URI of the remote endpoint.
 	 * 
 	 * @return the ID.
@@ -85,6 +69,8 @@ public interface NetworkChannel {
 	 */
 	URI getLocalEndpoint();
 	
+	
+	void bind(ChannelEndpoint endpoint);
 	
 	/**
 	 * reconnect the channel to the remote endpoint.

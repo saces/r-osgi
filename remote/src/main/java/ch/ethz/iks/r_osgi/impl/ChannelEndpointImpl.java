@@ -32,7 +32,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.Socket;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -167,11 +166,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			+ RemoteOSGiServiceImpl.EVENT_SENDER_URI + "=*))";
 
 	/**
-	 * the TCPChannel factory.
-	 */
-	private static final TCPChannelFactory TCP_FACTORY = new TCPChannelFactory();
-
-	/**
 	 * create a new channel endpoint.
 	 * 
 	 * @param factory
@@ -189,28 +183,26 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	ChannelEndpointImpl(final NetworkChannelFactory factory,
 			final URI endpointURI) throws RemoteOSGiException, IOException {
-		this.networkChannel = (factory == null ? TCP_FACTORY : factory)
-				.getConnection(this, endpointURI);
+		factory.getConnection(this, endpointURI);
 		if (RemoteOSGiServiceImpl.DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"opening new channel " + getRemoteEndpoint());
 		}
-		RemoteOSGiServiceImpl.registerChannel(this);
+		RemoteOSGiServiceImpl.registerChannelEndpoint(this);
 	}
 
 	/**
-	 * create a new channel endpoint from an incoming connection. Incoming
-	 * connections are always TCP connections, either directly by the remote
-	 * peer or over localloop by a bridge.
+	 * create a new channel endpoint from an incoming connection.
 	 * 
 	 * @param socket
 	 *            the socket on which the incoming connection was accepted.
 	 * @throws IOException
 	 *             if something goes wrong on the network layer.
 	 */
-	ChannelEndpointImpl(final Socket socket) throws IOException {
-		this.networkChannel = TCP_FACTORY.bind(this, socket);
-		RemoteOSGiServiceImpl.registerChannel(this);
+	ChannelEndpointImpl(final NetworkChannel channel) {
+		this.networkChannel = channel;
+		channel.bind(this);
+		RemoteOSGiServiceImpl.registerChannelEndpoint(this);
 	}
 
 	RemoteServiceReference[] sendLease(

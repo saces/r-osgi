@@ -211,7 +211,7 @@ public interface RemoteOSGiService {
 	 * @throws InvalidSyntaxException
 	 */
 	public RemoteServiceReference[] getRemoteServiceReferences(
-			final String url, final String clazz, final Filter filter)
+			final URI uri, final String clazz, final Filter filter)
 			throws InvalidSyntaxException;
 
 	/**

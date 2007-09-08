@@ -29,6 +29,7 @@
 package ch.ethz.iks.r_osgi;
 
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
+import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.types.Timestamp;
 
 /**
@@ -50,6 +51,13 @@ public interface Remoting {
 	 * @since 0.6
 	 */
 	ChannelEndpoint getEndpoint(final String url);
+	
+	/**
+	 * 
+	 * @param channel
+	 * @return
+	 */
+	void createEndpoint(final NetworkChannel channel);
 
 	/**
 	 * transform a timestamp into the peer's local time.

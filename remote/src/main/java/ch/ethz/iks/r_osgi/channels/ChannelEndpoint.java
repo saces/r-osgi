@@ -42,7 +42,7 @@ import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
  * @since 0.6
  */
 public interface ChannelEndpoint {
-
+	
 	/**
 	 * callback for NetworkChannels.
 	 * 

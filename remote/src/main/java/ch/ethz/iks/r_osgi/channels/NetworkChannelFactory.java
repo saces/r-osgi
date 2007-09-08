@@ -31,6 +31,8 @@ package ch.ethz.iks.r_osgi.channels;
 import java.io.IOException;
 import java.net.URI;
 
+import ch.ethz.iks.r_osgi.Remoting;
+
 /**
  * Interface for services that create transport channel implementations. Must
  * not necessarily be an OSGi service factory, since this service is only used
@@ -62,5 +64,9 @@ public interface NetworkChannelFactory {
 	 */
 	NetworkChannel getConnection(final ChannelEndpoint endpoint,
 			final URI endpointURI) throws IOException;
+
+	void activate(final Remoting remoting) throws IOException;
+	
+	void deactivate(final Remoting remoting) throws IOException;
 
 }

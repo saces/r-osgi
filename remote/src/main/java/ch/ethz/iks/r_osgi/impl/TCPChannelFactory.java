@@ -34,10 +34,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import org.osgi.service.log.LogService;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
+import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
@@ -50,7 +52,9 @@ import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
  */
 final class TCPChannelFactory implements NetworkChannelFactory {
 
-	private static final String PROTOCOL = "r-osgi";
+	static final String PROTOCOL = "r-osgi";
+	private Remoting remoting;
+	private Thread thread;
 
 	/**
 	 * get a new connection.
@@ -71,8 +75,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	}
 
 	/**
-	 * bind an existing socket into a channel. Used to create a channel from an
-	 * accepted socket connection.
+	 * bind the factory to the R-OSGi Remoting instance
 	 * 
 	 * @param socket
 	 *            the socket.
@@ -80,9 +83,15 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	 * @throws IOException
 	 *             in case of IO errors.
 	 */
-	public NetworkChannel bind(final ChannelEndpoint endpoint,
-			final Socket socket) throws IOException {
-		return new TCPChannel(endpoint, socket);
+	public void activate(final Remoting remoting) throws IOException {
+		this.remoting = remoting;
+		thread = new TCPThread();
+		thread.start();
+	}
+	
+	public void deactivate(final Remoting remoting) throws IOException {
+		thread.interrupt();
+		this.remoting = null;
 	}
 
 	/**
@@ -158,13 +167,15 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @throws IOException
 		 *             in case of IO errors.
 		 */
-		public TCPChannel(final ChannelEndpoint endpoint, final Socket socket)
-				throws IOException {
-			this.endpoint = endpoint;
+		public TCPChannel(final Socket socket) throws IOException {
 			this.remoteEndpoint = URI.create(getProtocol() + "://"
 					+ socket.getInetAddress().getHostName() + ":"
 					+ socket.getPort());
 			open(socket);
+		}
+
+		public void bind(ChannelEndpoint endpoint) {
+			this.endpoint = endpoint;
 		}
 
 		/**
@@ -304,4 +315,42 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			}
 		}
 	}
+
+	/**
+	 * TCPThread, handles incoming tcp messages.
+	 */
+	private final class TCPThread extends Thread {
+		/**
+		 * the socket.
+		 */
+		private final ServerSocket socket;
+
+		/**
+		 * creates and starts a new TCPThread.
+		 * 
+		 * @throws IOException
+		 *             if the server socket cannot be opened.
+		 */
+		private TCPThread() throws IOException {
+			socket = new ServerSocket(RemoteOSGiServiceImpl.R_OSGI_PORT);
+		}
+
+		/**
+		 * thread loop.
+		 * 
+		 * @see java.lang.Thread#run()
+		 */
+		public void run() {
+			while (!isInterrupted()) {
+				try {
+					// accept incoming connections and build channel endpoints
+					// for them
+					remoting.createEndpoint(new TCPChannel(socket.accept()));
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+				}
+			}
+		}
+	}
+
 }

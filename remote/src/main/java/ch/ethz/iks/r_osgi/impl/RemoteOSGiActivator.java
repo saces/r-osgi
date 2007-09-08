@@ -28,12 +28,16 @@
  */
 package ch.ethz.iks.r_osgi.impl;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
+
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.Remoting;
+import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 
 /**
  * the OSGi BundleActivator.
@@ -66,6 +70,14 @@ public final class RemoteOSGiActivator implements BundleActivator {
 		if (logRef != null) {
 			RemoteOSGiServiceImpl.log = (LogService) context.getService(logRef);
 		}
+
+		// TODO: make this configurable if the TCP channel should be registered
+		// at all...
+		Dictionary properties = new Hashtable();
+		properties.put(NetworkChannelFactory.PROTOCOL_PROPERTY,
+				TCPChannelFactory.PROTOCOL);
+		context.registerService(NetworkChannelFactory.class.getName(),
+				new TCPChannelFactory(), properties);
 
 		if (remoting == null) {
 			// get the instance of RemoteOSGiServiceImpl

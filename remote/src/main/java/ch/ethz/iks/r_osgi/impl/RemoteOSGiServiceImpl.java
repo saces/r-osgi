@@ -31,7 +31,6 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -62,6 +61,7 @@ import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.SurrogateRegistration;
 import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
+import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryListener;
 import ch.ethz.iks.r_osgi.types.Timestamp;
@@ -187,6 +187,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 */
 	private static ServiceTracker remoteServiceListenerTracker;
 
+	private static ServiceTracker networkChannelFactoryTracker;
+
 	/**
 	 * the bundle context.
 	 */
@@ -254,9 +256,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 		// initialize the transactionID with a random value
 		nextXid = (short) Math.round(Math.random() * Short.MAX_VALUE);
-
-		// start the TCP thread
-		new TCPThread().start();
 
 		// get private storage
 		final File dir = context.getDataFile("storage");
@@ -414,6 +413,34 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			remoteServiceListenerTracker = new ServiceTracker(context,
 					RemoteServiceListener.class.getName(), null);
 			remoteServiceListenerTracker.open();
+
+			networkChannelFactoryTracker = new ServiceTracker(context, context
+					.createFilter("(" + Constants.OBJECTCLASS + "="
+							+ NetworkChannelFactory.class.getName() + ")"),
+					new ServiceTrackerCustomizer() {
+
+						public Object addingService(ServiceReference reference) {
+							final NetworkChannelFactory factory = (NetworkChannelFactory) context
+									.getService(reference);
+							try {
+								factory.activate(RemoteOSGiServiceImpl.this);
+							} catch (IOException ioe) {
+								// TODO: to log
+								ioe.printStackTrace();
+							}
+							return factory;
+						}
+
+						public void modifiedService(ServiceReference reference,
+								Object factory) {
+						}
+
+						public void removedService(ServiceReference reference,
+								Object factory) {
+						}
+					});
+			eventHandlerTracker.open();
+
 		} catch (InvalidSyntaxException ise) {
 			ise.printStackTrace();
 		}
@@ -469,12 +496,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	}
 
 	public RemoteServiceReference[] getRemoteServiceReferences(
-			final String url, final String clazz, final Filter filter)
+			final URI uri, final String clazz, final Filter filter)
 			throws InvalidSyntaxException {
 		final ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
-				.get(url);
+				.get(uri.toString());
 		if (channel == null) {
-			throw new IllegalStateException("NO CHANNEL TO " + url
+			throw new IllegalStateException("NO CHANNEL TO " + uri
 					+ ", known channels " + channels);
 		}
 		if (clazz == null) {
@@ -518,21 +545,24 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 			final String protocol = endpoint.getScheme();
 			if ("r-osgi".equals(protocol) || protocol == null) {
 				channel = new ChannelEndpointImpl(null, endpoint);
+				return channel.sendLease(getServices(), getTopics());
 			} else {
-				final ServiceReference[] refs = context.getServiceReferences(
-						NetworkChannelFactory.class.getName(), "("
-								+ NetworkChannelFactory.PROTOCOL_PROPERTY + "="
-								+ protocol + ")");
-				NetworkChannelFactory factory = (NetworkChannelFactory) context
-						.getService(refs[0]);
-				channel = new ChannelEndpointImpl(factory, endpoint);
-				if (refs == null) {
-					throw new RemoteOSGiException(
-							"No NetworkChannelFactory for " + protocol
-									+ " found.");
+				final Filter filter = context.createFilter("("
+						+ NetworkChannelFactory.PROTOCOL_PROPERTY + "="
+						+ protocol + ")");
+				final ServiceReference[] refs = networkChannelFactoryTracker
+						.getServiceReferences();
+				for (int i = 0; i < refs.length; i++) {
+					if (filter.match(refs[i])) {
+						final NetworkChannelFactory factory = (NetworkChannelFactory) networkChannelFactoryTracker
+								.getService(refs[i]);
+						channel = new ChannelEndpointImpl(factory, endpoint);
+						return channel.sendLease(getServices(), getTopics());
+					}
 				}
 			}
-			return channel.sendLease(getServices(), getTopics());
+			throw new RemoteOSGiException("No NetworkChannelFactory for "
+					+ protocol + " found.");
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			throw new RemoteOSGiException("Connection to " + endpoint
@@ -605,6 +635,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * @category Remoting
 	 */
 	public ChannelEndpoint getEndpoint(String uri) {
+		// TODO: remove debug output
 		System.out.println("REQUESTED ENDPOINT FOR " + uri);
 		System.out.println("MULTIPLEXER " + multiplexers);
 		System.out.println("CHANNELS " + channels);
@@ -655,6 +686,20 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		for (int i = 0; i < c.length; i++) {
 			c[i].dispose();
 		}
+		final Object[] factories = networkChannelFactoryTracker.getServices();
+		for (int i = 0; i < factories.length; i++) {
+			try {
+				((NetworkChannelFactory) factories[i]).deactivate(this);
+			} catch (IOException ioe) {
+				// TODO: to log
+				ioe.printStackTrace();
+			}
+		}
+		eventAdminTracker.close();
+		remoteServiceTracker.close();
+		serviceDiscoveryTracker.close();
+		remoteServiceListenerTracker.close();
+		networkChannelFactoryTracker.close();
 	}
 
 	/**
@@ -726,7 +771,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 * @param channel
 	 *            the local endpoint of the channel.
 	 */
-	static void registerChannel(final ChannelEndpoint channel) {
+	static void registerChannelEndpoint(final ChannelEndpoint channel) {
 		channels.put(channel.getRemoteEndpoint().toString(), channel);
 	}
 
@@ -788,48 +833,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		}
 	}
 
-	/*
-	 * ----- private methods ------
-	 */
-	/*
-	 * Threads
-	 */
-
-	/**
-	 * TCPThread, handles incoming tcp messages.
-	 */
-	private final class TCPThread extends Thread {
-		/**
-		 * the socket.
-		 */
-		private final ServerSocket socket;
-
-		/**
-		 * creates and starts a new TCPThread.
-		 * 
-		 * @throws IOException
-		 *             if the server socket cannot be opened.
-		 */
-		private TCPThread() throws IOException {
-			socket = new ServerSocket(R_OSGI_PORT);
-		}
-
-		/**
-		 * thread loop.
-		 * 
-		 * @see java.lang.Thread#run()
-		 */
-		public void run() {
-			while (running) {
-				try {
-					// accept incoming connections and build channel endpoints
-					// for them
-					new ChannelEndpointImpl(socket.accept());
-				} catch (IOException ioe) {
-					ioe.printStackTrace();
-				}
-			}
-		}
+	public void createEndpoint(final NetworkChannel channel) {
+		new ChannelEndpointImpl(channel);
 	}
 
 	public void announceService(String serviceInterface, String url,

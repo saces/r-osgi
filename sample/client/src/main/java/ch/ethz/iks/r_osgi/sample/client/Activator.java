@@ -1,5 +1,6 @@
 package ch.ethz.iks.r_osgi.sample.client;
 
+import java.net.URI;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import org.osgi.framework.BundleActivator;
@@ -13,6 +14,7 @@ import ch.ethz.iks.r_osgi.RemoteServiceEvent;
 import ch.ethz.iks.r_osgi.RemoteServiceListener;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
+import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 
 public class Activator implements BundleActivator {
@@ -39,6 +41,12 @@ public class Activator implements BundleActivator {
 			throw new BundleException("OSGi remote service is not present.");
 		}
 
+		final URI uri = new URI("r-osgi://localhost:9278");
+		remote.connect(uri);
+		final RemoteServiceReference ref = remote.getRemoteServiceReferences(uri, ServiceInterface.class.getName(), null)[0];
+		service = (ServiceInterface) remote.getFetchedService(ref);
+		
+		/*
 		listener = new RemoteServiceListener() {
 			public void remoteServiceEvent(RemoteServiceEvent event) {
 				switch (event.getType()) {
@@ -50,9 +58,11 @@ public class Activator implements BundleActivator {
 						remote.fetchService(event.getRemoteReference());
 						service = (ServiceInterface) remote
 								.getFetchedService(event.getRemoteReference());
+		*/
 
 						// and create a thread that makes use of the service
-						usingThread = new Thread() {
+		try {
+			usingThread = new Thread() {
 							public void run() {
 								setName("SampleClientThread");
 								try {
@@ -95,6 +105,7 @@ public class Activator implements BundleActivator {
 						e.printStackTrace();
 					}
 
+					/*
 					return;
 				case RemoteServiceEvent.UNREGISTERING:
 					System.out.println("lost service "
@@ -122,6 +133,7 @@ public class Activator implements BundleActivator {
 					}
 
 				}, properties);
+				*/
 	}
 
 	public void stop(final BundleContext context) throws Exception {
