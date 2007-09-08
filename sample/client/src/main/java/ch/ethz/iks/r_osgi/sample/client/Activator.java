@@ -43,7 +43,9 @@ public class Activator implements BundleActivator {
 				throw new BundleException("OSGi remote service is not present.");
 			}
 
-			final URI uri = new URI("r-osgi://localhost:9278");
+			//final URI uri = new URI("r-osgi://localhost:9278");
+			//final URI uri = new URI("r-osgi://84.73.219.12:9278");
+			final URI uri = new URI("btspp://0010DCE96CB8:1");
 			remote.connect(uri);
 			final RemoteServiceReference ref = remote
 					.getRemoteServiceReferences(uri, ServiceInterface.class
