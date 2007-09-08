@@ -183,7 +183,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	ChannelEndpointImpl(final NetworkChannelFactory factory,
 			final URI endpointURI) throws RemoteOSGiException, IOException {
-		factory.getConnection(this, endpointURI);
+		this.networkChannel = factory.getConnection(this, endpointURI);
 		if (RemoteOSGiServiceImpl.DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"opening new channel " + getRemoteEndpoint());
@@ -458,6 +458,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				// generate a proxy bundle for the service
 				bundleLocation = new ProxyGenerator().generateProxyBundle(
 						service, deliv);
+				
+				// TODO: remove debug output
+				System.out.println(bundleLocation);
+				
 				// install the proxy bundle
 				final Bundle bundle = RemoteOSGiServiceImpl.context
 						.installBundle("file:" + bundleLocation);

@@ -268,6 +268,10 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	private byte[] generateProxyClass(final String[] interfaceNames,
 			final byte[] interfaceClass) throws IOException {
 		interfaceClassNames = interfaceNames;
+		implName = "proxy/" + sourceID + "/" + interfaceNames[0].replace('.', '/') + "Impl";
+		// TODO: remove debug output
+		System.out.println("IMPL NAME IS " + implName);
+
 		try {
 			final ClassReader reader = new ClassReader(interfaceClass);
 			writer = new ClassWriter(true);
@@ -299,6 +303,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			final byte[] interfaceClass, final String proxyName,
 			final byte[] proxyClass) throws IOException {
 		interfaceClassNames = interfaceNames;
+		implName = "proxy/" + sourceID + "/" + proxyName.replace('.', '/') + "Impl";
 		smartProxyClassName = proxyName;
 		smartProxyClassNameDashed = smartProxyClassName.replace('.', '/');
 		ClassReader reader = new ClassReader(proxyClass);
@@ -353,10 +358,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			final String[] interfaces) {
 		MethodVisitor method;
 		FieldVisitor field;
-
+		
 		if (interfaceClassNames[0].replace('.', '/').equals(name)) {
-			implName = "proxy/" + sourceID + "/" + name + "Impl";
-
+			
 			if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 						"creating proxy class " + implName);

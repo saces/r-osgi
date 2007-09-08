@@ -423,6 +423,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 							final NetworkChannelFactory factory = (NetworkChannelFactory) context
 									.getService(reference);
 							try {
+								// TODO: remove debug output
+								System.out.println("REGISTERING " + factory);
 								factory.activate(RemoteOSGiServiceImpl.this);
 							} catch (IOException ioe) {
 								// TODO: to log
@@ -439,7 +441,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 								Object factory) {
 						}
 					});
-			eventHandlerTracker.open();
+			networkChannelFactoryTracker.open();
 
 		} catch (InvalidSyntaxException ise) {
 			ise.printStackTrace();
@@ -465,6 +467,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	 */
 	public Object getFetchedService(final RemoteServiceReference ref) {
 		final ServiceReference sref = getFetchedServiceReference(ref);
+		if (sref == null) {
+			throw new IllegalStateException("SREF IS NULL");
+		}
 		return ref == null ? null : context.getService(sref);
 	}
 
@@ -495,8 +500,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		return null;
 	}
 
-	public RemoteServiceReference[] getRemoteServiceReferences(
-			final URI uri, final String clazz, final Filter filter)
+	public RemoteServiceReference[] getRemoteServiceReferences(final URI uri,
+			final String clazz, final Filter filter)
 			throws InvalidSyntaxException {
 		final ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
 				.get(uri.toString());
@@ -543,15 +548,13 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 		try {
 			final ChannelEndpointImpl channel;
 			final String protocol = endpoint.getScheme();
-			if ("r-osgi".equals(protocol) || protocol == null) {
-				channel = new ChannelEndpointImpl(null, endpoint);
-				return channel.sendLease(getServices(), getTopics());
-			} else {
-				final Filter filter = context.createFilter("("
-						+ NetworkChannelFactory.PROTOCOL_PROPERTY + "="
-						+ protocol + ")");
-				final ServiceReference[] refs = networkChannelFactoryTracker
-						.getServiceReferences();
+
+			final Filter filter = context.createFilter("("
+					+ NetworkChannelFactory.PROTOCOL_PROPERTY + "=" + protocol
+					+ ")");
+			final ServiceReference[] refs = networkChannelFactoryTracker
+					.getServiceReferences();
+			if (refs != null) {
 				for (int i = 0; i < refs.length; i++) {
 					if (filter.match(refs[i])) {
 						final NetworkChannelFactory factory = (NetworkChannelFactory) networkChannelFactoryTracker
