@@ -250,10 +250,10 @@ public interface RemoteOSGiService {
 	Timestamp transformTimestamp(RemoteServiceReference ref, Timestamp timestamp)
 			throws RemoteOSGiException;
 
-	public void addRedundantEndpoint(String service, String redundant);
+	public void addRedundantEndpoint(URI service, URI redundant);
 
-	public void removeRedundantEndpoint(String service, String redundant);
+	public void removeRedundantEndpoint(URI service, URI redundant);
 
-	public void setEndpointPolicy(String service, int policy);
+	public void setEndpointPolicy(URI service, int policy);
 
 }

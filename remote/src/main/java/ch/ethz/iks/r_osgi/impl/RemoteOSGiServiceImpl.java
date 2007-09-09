@@ -646,34 +646,33 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 				.get(uri);
 		if (multiplexer == null) {
 			multiplexer = new EndpointMultiplexer((ChannelEndpoint) channels
-					.get(getChannelURI(uri)));
+					.get(getChannelURI(URI.create(uri))));
 			multiplexers.put(uri, multiplexer);
 		}
 		return multiplexer;
 	}
 
-	private String getChannelURI(String serviceURI) {
-		final int pos = serviceURI.indexOf("#");
-		return pos < -1 ? serviceURI : serviceURI.substring(0, pos);
+	private String getChannelURI(URI serviceURI) {
+		return URI.create(serviceURI.getScheme() + "://" + serviceURI.getHost() + ":" + serviceURI.getPort()).toString();
 	}
 
-	public void addRedundantEndpoint(String service, String redundant) {
+	public void addRedundantEndpoint(URI service, URI redundant) {
 		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
-				.get(service);
+				.get(service.toString());
 		multiplexer.addEndpoint((ChannelEndpoint) channels
 				.get(getChannelURI(redundant)));
 	}
 
-	public void removeRedundantEndpoint(String service, String redundant) {
+	public void removeRedundantEndpoint(URI service, URI redundant) {
 		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
-				.get(service);
+				.get(service.toString());
 		multiplexer.removeEndpoint((ChannelEndpoint) channels
 				.get(getChannelURI(redundant)));
 	}
 
-	public void setEndpointPolicy(String service, int policy) {
+	public void setEndpointPolicy(URI service, int policy) {
 		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
-				.get(service);
+				.get(service.toString());
 		multiplexer.setPolicy(policy);
 
 	}
