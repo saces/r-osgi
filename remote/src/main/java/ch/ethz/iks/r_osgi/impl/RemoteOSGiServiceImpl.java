@@ -373,8 +373,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 						}
 
 					});
-			serviceDiscoveryHandlerTracker.open();			
-			
+			serviceDiscoveryHandlerTracker.open();
+
 			remoteServiceTracker = new ServiceTracker(context, context
 					.createFilter("(" + RemoteOSGiService.R_OSGi_REGISTRATION
 							+ "=*)"), new ServiceTrackerCustomizer() {
@@ -431,8 +431,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 						final Object[] handler = serviceDiscoveryHandlerTracker
 								.getServices();
 
-						
-						
 						if (handler != null) {
 							for (int i = 0; i < handler.length; i++) {
 								((ServiceDiscoveryHandler) handler[i])
@@ -520,7 +518,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 					});
 			networkChannelFactoryTracker.open();
 
-
 		} catch (InvalidSyntaxException ise) {
 			ise.printStackTrace();
 		}
@@ -578,11 +575,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		return null;
 	}
 
-	public RemoteServiceReference[] getRemoteServiceReferences(final URI uri,
+	public RemoteServiceReference[] getRemoteServiceReferences(URI service,
 			final String clazz, final Filter filter)
 			throws InvalidSyntaxException {
+		String uri = getChannelURI(service);
 		final ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
-				.get(uri.toString());
+				.get(uri);
 		if (channel == null) {
 			throw new IllegalStateException("NO CHANNEL TO " + uri
 					+ ", known channels " + channels);
@@ -611,8 +609,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 *             in case of errors.
 	 * @since 0.6
 	 */
-	public RemoteServiceReference[] connect(final URI endpoint)
+	public RemoteServiceReference[] connect(final URI uri)
 			throws RemoteOSGiException {
+		URI endpoint = URI.create(getChannelURI(uri));
 		final ChannelEndpointImpl test = (ChannelEndpointImpl) channels
 				.get(endpoint.toString());
 		if (test != null) {

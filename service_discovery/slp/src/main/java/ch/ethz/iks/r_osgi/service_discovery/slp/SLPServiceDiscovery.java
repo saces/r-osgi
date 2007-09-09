@@ -175,6 +175,10 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
 		for (int i = 0; i < refs.length; i++) {
 			final String[] interfaces = (String[]) refs[i]
 					.getProperty(ServiceDiscoveryListener.SERVICE_INTERFACES_PROPERTY);
+			if (interfaces == null) {
+				hitList.add(refs[i]);
+				break;				
+			}
 			for (int j = 0; j < interfaces.length; j++) {
 				if (interfaces[j].equals(serviceInterfaceName)) {
 					hitList.add(refs[i]);
@@ -201,7 +205,7 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
 			// TODO: check the filter...
 			final URI uri = URI.create(service.getProtocol() + "://"
 					+ service.getHost() + ":" + service.getPort() + "#"
-					+ service.getURLPath());
+					+ service.getURLPath().substring(1));
 			final ServiceReference[] hits = (ServiceReference[]) hitList
 					.toArray(new ServiceReference[hitList.size()]);
 			for (int i = 0; i < hits.length; i++) {
