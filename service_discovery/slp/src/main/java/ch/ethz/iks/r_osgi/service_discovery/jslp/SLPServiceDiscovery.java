@@ -35,6 +35,15 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler, ScheduleLis
 	 */
 	private static int DEFAULT_SLP_LIFETIME;
 	
+	
+	public SLPServiceDiscovery() {
+		if (DISCOVERY_INTERVAL > 0) {
+			new DiscoveryThread().start();
+		}
+		
+		// prop = context.getProperty(DEFAULT_SLP_LIFETIME_PROPERTY);
+		// DEFAULT_SLP_LIFETIME = prop != null ? Integer.parseInt(prop) : 90;
+	}
 	/*
 	public SLPServiceDiscovery() {
 		// start the discovery thread
@@ -125,6 +134,43 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler, ScheduleLis
 		}
 	}
 	
+	
+	public void due(final Scheduler scheduler, final long timestamp,
+			final Object object) {
+		final RemoteServiceRegistration reg = (RemoteServiceRegistration) object;
+
+		try {
+			final ServiceURL[] urls = reg.getURLs();
+			final Dictionary properties = reg.getProperties();
+
+			for (int i = 0; i < urls.length; i++) {
+				advertiser.register(urls[i], properties);
+			}
+			final long next = System.currentTimeMillis()
+					+ ((DEFAULT_SLP_LIFETIME - 1) * 1000);
+			scheduler.reschedule(reg, next);
+		} catch (ServiceLocationException sle) {
+			sle.printStackTrace();
+		}
+	}
+
+	*/
+
+	public void registerForDiscovery(ServiceDiscoveryListener listener, String serviceInterface, String filter) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void unregisterForDiscovery(ServiceDiscoveryListener listener, String serviceInterface, String filter) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void due(Scheduler scheduler, long timestamp, Object object) {
+		// TODO Auto-generated method stub
+		
+	}
+
 	private final class DiscoveryThread extends Thread {
 
 		public void run() {
@@ -198,42 +244,6 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler, ScheduleLis
 				ie.printStackTrace();
 			}
 		}
-	}
-	
-	public void due(final Scheduler scheduler, final long timestamp,
-			final Object object) {
-		final RemoteServiceRegistration reg = (RemoteServiceRegistration) object;
-
-		try {
-			final ServiceURL[] urls = reg.getURLs();
-			final Dictionary properties = reg.getProperties();
-
-			for (int i = 0; i < urls.length; i++) {
-				advertiser.register(urls[i], properties);
-			}
-			final long next = System.currentTimeMillis()
-					+ ((DEFAULT_SLP_LIFETIME - 1) * 1000);
-			scheduler.reschedule(reg, next);
-		} catch (ServiceLocationException sle) {
-			sle.printStackTrace();
-		}
-	}
-
-	*/
-
-	public void registerForDiscovery(ServiceDiscoveryListener listener, String serviceInterface, String filter) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void unregisterForDiscovery(ServiceDiscoveryListener listener, String serviceInterface, String filter) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void due(Scheduler scheduler, long timestamp, Object object) {
-		// TODO Auto-generated method stub
-		
 	}
 
 
