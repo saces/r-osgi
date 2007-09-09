@@ -135,7 +135,7 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
 		try {
 			final SLPServiceRegistration reg = new SLPServiceRegistration(ref,
 					properties, uri);
-			registrations.put(ref, ref);
+			registrations.put(ref, reg);
 			reg.register(advertiser);
 			reregistration.schedule(reg, System.currentTimeMillis()
 					+ (SLPServiceDiscovery.DEFAULT_SLP_LIFETIME - 1) * 1000);

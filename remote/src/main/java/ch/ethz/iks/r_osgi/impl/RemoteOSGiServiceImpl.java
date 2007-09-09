@@ -324,11 +324,60 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 						+ getTopics());
 			}
 
+			remoteServiceListenerTracker = new ServiceTracker(context,
+					RemoteServiceListener.class.getName(),
+					new ServiceTrackerCustomizer() {
+
+						public Object addingService(ServiceReference reference) {
+							// register all known services for discovery
+							final ServiceDiscoveryHandler handler = (ServiceDiscoveryHandler) context
+									.getService(reference);
+
+							final RemoteServiceRegistration[] regs = (RemoteServiceRegistration[]) serviceRegistrations
+									.values()
+									.toArray(
+											new RemoteServiceRegistration[serviceRegistrations
+													.size()]);
+
+							for (int i = 0; i < regs.length; i++) {
+								handler
+										.registerService(
+												regs[i].getReference(),
+												regs[i].getProperties(),
+												URI
+														.create("r-osgi://"
+																+ RemoteOSGiServiceImpl.MY_ADDRESS
+																+ ":"
+																+ RemoteOSGiServiceImpl.R_OSGI_PORT
+																+ "#"
+																+ regs[i]
+																		.getServiceID()));
+							}
+							return handler;
+						}
+
+						public void modifiedService(ServiceReference reference,
+								Object service) {
+							// TODO Auto-generated method stub
+
+						}
+
+						public void removedService(ServiceReference reference,
+								Object service) {
+							// TODO Auto-generated method stub
+
+						}
+
+					});
+			remoteServiceListenerTracker.open();
+
 			remoteServiceTracker = new ServiceTracker(context, context
 					.createFilter("(" + RemoteOSGiService.R_OSGi_REGISTRATION
 							+ "=*)"), new ServiceTrackerCustomizer() {
 
 				public Object addingService(final ServiceReference reference) {
+					System.out.println("adding " + reference);
+
 					final ServiceReference service = Arrays.asList(
 							(String[]) reference
 									.getProperty(Constants.OBJECTCLASS))
@@ -377,19 +426,22 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 						final Dictionary props = reg.getProperties();
 						final Object[] handler = serviceDiscoveryHandlerTracker
 								.getServices();
-						for (int i = 0; i < handler.length; i++) {
-							((ServiceDiscoveryHandler) handler[i])
-									.registerService(
-											reference,
-											props,
-											URI
-													.create("r-osgi://"
-															+ RemoteOSGiServiceImpl.MY_ADDRESS
-															+ ":"
-															+ RemoteOSGiServiceImpl.R_OSGI_PORT
-															+ "#"
-															+ reg
-																	.getServiceID()));
+
+						if (handler != null) {
+							for (int i = 0; i < handler.length; i++) {
+								((ServiceDiscoveryHandler) handler[i])
+										.registerService(
+												service,
+												props,
+												URI
+														.create("r-osgi://"
+																+ RemoteOSGiServiceImpl.MY_ADDRESS
+																+ ":"
+																+ RemoteOSGiServiceImpl.R_OSGI_PORT
+																+ "#"
+																+ reg
+																		.getServiceID()));
+							}
 						}
 
 						updateLeases(new LeaseUpdateMessage(
@@ -432,10 +484,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 			});
 			remoteServiceTracker.open();
-
-			remoteServiceListenerTracker = new ServiceTracker(context,
-					RemoteServiceListener.class.getName(), null);
-			remoteServiceListenerTracker.open();
 
 			networkChannelFactoryTracker = new ServiceTracker(context, context
 					.createFilter("(" + Constants.OBJECTCLASS + "="
