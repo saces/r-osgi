@@ -325,7 +325,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			}
 
 			remoteServiceListenerTracker = new ServiceTracker(context,
-					RemoteServiceListener.class.getName(),
+					RemoteServiceListener.class.getName(), null);
+			remoteServiceListenerTracker.open();
+
+			serviceDiscoveryHandlerTracker = new ServiceTracker(context,
+					ServiceDiscoveryHandler.class.getName(),
 					new ServiceTrackerCustomizer() {
 
 						public Object addingService(ServiceReference reference) {
@@ -369,8 +373,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 						}
 
 					});
-			remoteServiceListenerTracker.open();
-
+			serviceDiscoveryHandlerTracker.open();			
+			
 			remoteServiceTracker = new ServiceTracker(context, context
 					.createFilter("(" + RemoteOSGiService.R_OSGi_REGISTRATION
 							+ "=*)"), new ServiceTrackerCustomizer() {
@@ -427,6 +431,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 						final Object[] handler = serviceDiscoveryHandlerTracker
 								.getServices();
 
+						
+						
 						if (handler != null) {
 							for (int i = 0; i < handler.length; i++) {
 								((ServiceDiscoveryHandler) handler[i])
@@ -514,9 +520,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 					});
 			networkChannelFactoryTracker.open();
 
-			serviceDiscoveryHandlerTracker = new ServiceTracker(context,
-					ServiceDiscoveryHandler.class.getName(), null);
-			networkChannelFactoryTracker.open();
 
 		} catch (InvalidSyntaxException ise) {
 			ise.printStackTrace();
