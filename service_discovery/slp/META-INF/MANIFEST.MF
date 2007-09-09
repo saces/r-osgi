@@ -4,3 +4,6 @@ Bundle-Name: SLP Service Discovery
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.service_discovery.slp
 Bundle-Version: 0.9.91
 Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
+Require-Bundle: ch.ethz.iks.r_osgi.remote,
+ ch.ethz.iks.slp,
+ org.eclipse.osgi

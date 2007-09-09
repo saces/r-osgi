@@ -1,11 +1,15 @@
 package ch.ethz.iks.r_osgi.service_discovery;
 
+import java.net.URI;
+import java.util.Dictionary;
+
+import org.osgi.framework.ServiceReference;
+
 public interface ServiceDiscoveryHandler {
 
-	void registerForDiscovery(ServiceDiscoveryListener listener,
-			final String serviceInterface, final String filter);
+	void registerService(final ServiceReference ref,
+			final Dictionary properties, final URI uri);
 
-	void unregisterForDiscovery(ServiceDiscoveryListener listener,
-			final String serviceInterface, final String filter);
+	void unregisterService(final ServiceReference ref);
 
 }

@@ -63,7 +63,7 @@ import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
-import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryListener;
+import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryHandler;
 import ch.ethz.iks.r_osgi.types.Timestamp;
 import ch.ethz.iks.util.CollectionUtils;
 
@@ -77,8 +77,7 @@ import ch.ethz.iks.util.CollectionUtils;
  * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.1
  */
-final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
-		ServiceDiscoveryListener {
+final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	/**
 	 * the R-OSGi standard port.
@@ -188,6 +187,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	private static ServiceTracker remoteServiceListenerTracker;
 
 	private static ServiceTracker networkChannelFactoryTracker;
+
+	private static ServiceTracker serviceDiscoveryHandlerTracker;
 
 	/**
 	 * the bundle context.
@@ -371,11 +372,25 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 						serviceRegistrations.put(service, reg);
 
-						final Dictionary attribs = reg.getProperties();
-						// final ServiceURL[] urls = reg.getURLs();
-
-						// TODO: schedule for registration on the service
-						// discovery layer.
+						// register the service with all service discovery
+						// handler
+						final Dictionary props = reg.getProperties();
+						final Object[] handler = serviceDiscoveryHandlerTracker
+								.getServices();
+						for (int i = 0; i < handler.length; i++) {
+							((ServiceDiscoveryHandler) handler[i])
+									.registerService(
+											reference,
+											props,
+											URI
+													.create("r-osgi://"
+															+ RemoteOSGiServiceImpl.MY_ADDRESS
+															+ ":"
+															+ RemoteOSGiServiceImpl.R_OSGI_PORT
+															+ "#"
+															+ reg
+																	.getServiceID()));
+						}
 
 						updateLeases(new LeaseUpdateMessage(
 								LeaseUpdateMessage.SERVICE_ADDED, reg));
@@ -403,6 +418,14 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 						Object service) {
 					final RemoteServiceRegistration reg = (RemoteServiceRegistration) serviceRegistrations
 							.remove(reference);
+
+					final Object[] handler = serviceDiscoveryHandlerTracker
+							.getServices();
+					for (int i = 0; i < handler.length; i++) {
+						((ServiceDiscoveryHandler) handler[i])
+								.unregisterService(reference);
+					}
+
 					updateLeases(new LeaseUpdateMessage(
 							LeaseUpdateMessage.SERVICE_REMOVED, reg));
 				}
@@ -441,6 +464,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 								Object factory) {
 						}
 					});
+			networkChannelFactoryTracker.open();
+
+			serviceDiscoveryHandlerTracker = new ServiceTracker(context,
+					ServiceDiscoveryHandler.class.getName(), null);
 			networkChannelFactoryTracker.open();
 
 		} catch (InvalidSyntaxException ise) {
@@ -653,7 +680,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 	}
 
 	private String getChannelURI(URI serviceURI) {
-		return URI.create(serviceURI.getScheme() + "://" + serviceURI.getHost() + ":" + serviceURI.getPort()).toString();
+		return URI.create(
+				serviceURI.getScheme() + "://" + serviceURI.getHost() + ":"
+						+ serviceURI.getPort()).toString();
 	}
 
 	public void addRedundantEndpoint(URI service, URI redundant) {
@@ -837,14 +866,5 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting,
 
 	public void createEndpoint(final NetworkChannel channel) {
 		new ChannelEndpointImpl(channel);
-	}
-
-	public void announceService(String serviceInterface, String url,
-			Dictionary properties) {
-
-	}
-
-	public void discardService(String serviceInterface, String url) {
-
 	}
 }
