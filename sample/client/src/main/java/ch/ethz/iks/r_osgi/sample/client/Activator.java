@@ -6,6 +6,7 @@ import java.util.Hashtable;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
@@ -16,6 +17,7 @@ import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
+import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryListener;
 
 public class Activator implements BundleActivator {
 
@@ -27,9 +29,11 @@ public class Activator implements BundleActivator {
 
 	private ServiceInterface service;
 
-	private Thread usingThread;
+	private Thread clientThread;
 
 	private boolean running = true;
+
+	private static final boolean discovery = true;
 
 	public void start(final BundleContext context) {
 		try {
@@ -43,88 +47,49 @@ public class Activator implements BundleActivator {
 				throw new BundleException("OSGi remote service is not present.");
 			}
 
-			//final URI uri = new URI("r-osgi://localhost:9278");
-			//final URI uri = new URI("r-osgi://84.73.219.12:9278");
-			final URI uri = new URI("btspp://0010DCE96CB8:1");
-			remote.connect(uri);
-			final RemoteServiceReference ref = remote
-					.getRemoteServiceReferences(uri, ServiceInterface.class
-							.getName(), null)[0];
-			System.out.println("REFERENCE " + ref);
-			remote.fetchService(ref);
-			service = (ServiceInterface) remote.getFetchedService(ref);
+			if (discovery) {
+				context.registerService(ServiceDiscoveryListener.class
+						.getName(), new ServiceDiscoveryListener() {
 
-			/*
-			 * listener = new RemoteServiceListener() { public void
-			 * remoteServiceEvent(RemoteServiceEvent event) { switch
-			 * (event.getType()) { case RemoteServiceEvent.REGISTERED:
-			 * System.out.println("found service " +
-			 * event.getRemoteReference().getURI()); try { // fetch the service
-			 * remote.fetchService(event.getRemoteReference()); service =
-			 * (ServiceInterface) remote
-			 * .getFetchedService(event.getRemoteReference());
-			 */
-
-			// and create a thread that makes use of the service
-			try {
-				usingThread = new Thread() {
-					public void run() {
-						setName("SampleClientThread");
+					public void announceService(String serviceInterface,
+							URI uri, Dictionary properties) {
+						remote.connect(uri);
 						try {
-							int i = 1;
-							while (running) {
-								synchronized (this) {
-									System.out
-											.println("Invoking remote service:");
-									System.out.println(service.echoService(
-											"my message", new Integer(i)));
-									System.out.println(service
-											.reverseService("my message"));
-									System.out.println("calling local");
-									try {
-										service.local();
-									} catch (RuntimeException r) {
-										r.printStackTrace();
-									}
-									service.printRemote(i, 0.987654321F);
-									System.out.println(service
-											.equals(new Integer(10)));
-									if (i <= 10) {
-										i++;
-									}
-									wait(5000);
-								}
-							}
-						} catch (InterruptedException ie) {
-							// let the thread terminate
+							final RemoteServiceReference ref = remote
+									.getRemoteServiceReferences(uri,
+											ServiceInterface.class.getName(),
+											null)[0];
+							System.out.println("REFERENCE " + ref);
+							remote.fetchService(ref);
+							service = (ServiceInterface) remote
+									.getFetchedService(ref);
+							clientThread = new ClientThread();
+						} catch (InvalidSyntaxException ise) {
+							ise.printStackTrace();
 						}
 					}
-				};
-				usingThread.start();
 
-			} catch (RemoteOSGiException e) {
-				e.printStackTrace();
+					public void discardService(String serviceInterface, URI uri) {
+						System.out.println("LOST SERVICE " + uri);
+
+					}
+
+				}, null);
+
+			} else {
+				// final URI uri = new URI("r-osgi://localhost:9278");
+				// final URI uri = new URI("r-osgi://84.73.219.12:9278");
+				final URI uri = new URI("btspp://0010DCE96CB8:1");
+				remote.connect(uri);
+				final RemoteServiceReference ref = remote
+						.getRemoteServiceReferences(uri, ServiceInterface.class
+								.getName(), null)[0];
+				System.out.println("REFERENCE " + ref);
+				remote.fetchService(ref);
+				service = (ServiceInterface) remote.getFetchedService(ref);
+				clientThread = new ClientThread();
 			}
 
-			/*
-			 * return; case RemoteServiceEvent.UNREGISTERING:
-			 * System.out.println("lost service " +
-			 * event.getRemoteReference().getURI()); usingThread.interrupt();
-			 * return; } } }; final Dictionary props = new Hashtable();
-			 * props.put(RemoteServiceListener.SERVICE_INTERFACES, new String[] {
-			 * ServiceInterface.class.getName() });
-			 * context.registerService(RemoteServiceListener.class.getName(),
-			 * listener, props);
-			 * 
-			 * final Dictionary properties = new Hashtable();
-			 * properties.put(EventConstants.EVENT_TOPIC, new String[] {
-			 * "test/topic" });
-			 * context.registerService(EventHandler.class.getName(), new
-			 * EventHandler() {
-			 * 
-			 * public void handleEvent(Event arg0) {
-			 * System.out.println("RECEIVED " + arg0); } }, properties);
-			 */
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -132,14 +97,44 @@ public class Activator implements BundleActivator {
 
 	public void stop(final BundleContext context) throws Exception {
 		running = false;
-
 		// if the thread exists, interrupt it
-		if (usingThread != null) {
-			usingThread.interrupt();
-			usingThread = null;
+		if (clientThread != null) {
+			clientThread.interrupt();
+			clientThread = null;
 		}
-		// cleanup
 		remote = null;
-		context.ungetService(sref);
 	}
+
+	private class ClientThread extends Thread {
+		public void run() {
+			setName("SampleClientThread");
+			try {
+				int i = 1;
+				while (!isInterrupted()) {
+					synchronized (this) {
+						System.out.println("Invoking remote service:");
+						System.out.println(service.echoService("my message",
+								new Integer(i)));
+						System.out
+								.println(service.reverseService("my message"));
+						System.out.println("calling local");
+						try {
+							service.local();
+						} catch (RuntimeException r) {
+							r.printStackTrace();
+						}
+						service.printRemote(i, 0.987654321F);
+						System.out.println(service.equals(new Integer(10)));
+						if (i <= 10) {
+							i++;
+						}
+						wait(5000);
+					}
+				}
+			} catch (InterruptedException ie) {
+				// let the thread terminate
+			}
+		}
+	};
+
 }
