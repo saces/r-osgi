@@ -7,3 +7,4 @@ Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
 Require-Bundle: ch.ethz.iks.r_osgi.remote,
  ch.ethz.iks.slp,
  org.eclipse.osgi
+Bundle-Activator: ch.ethz.iks.r_osgi.service_discovery.slp.Activator

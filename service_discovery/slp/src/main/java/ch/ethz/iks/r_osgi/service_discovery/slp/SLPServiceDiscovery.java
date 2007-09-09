@@ -46,13 +46,13 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
 
 	private ServiceTracker discoveryListenerTracker;
 
-	private BundleContext context;
-
-	private Boolean hasListeners;
+	private boolean hasListeners = false;
 
 	private ArrayList knownServices = new ArrayList();
 
 	private ArrayList warningList = new ArrayList();
+
+	private DiscoveryThread thread;
 
 	private static final ServiceType OSGI = new ServiceType("service:osgi");
 
@@ -68,7 +68,6 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
 	static int DEFAULT_SLP_LIFETIME;
 
 	public SLPServiceDiscovery(final BundleContext context) {
-		this.context = context;
 		final String prop = context.getProperty(DEFAULT_SLP_LIFETIME_PROPERTY);
 		DEFAULT_SLP_LIFETIME = prop != null ? Integer.parseInt(prop) : 90;
 
@@ -82,51 +81,52 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
 		this.advertiser = (Advertiser) context.getService(advRef);
 		this.locator = (Locator) context.getService(locRef);
 
-		try {
-			discoveryListenerTracker = new ServiceTracker(context, context
-					.createFilter("(" + Constants.OBJECTCLASS + "="
-							+ ServiceDiscoveryListener.class.getName() + ")"),
-					new ServiceTrackerCustomizer() {
-
-						public Object addingService(ServiceReference reference) {
-							synchronized (hasListeners) {
-								if (hasListeners != Boolean.TRUE) {
-									hasListeners = Boolean.TRUE;
-									hasListeners.notifyAll();
-								}
-							}
-
-							// TODO: modify the query
-
-							return context.getService(reference);
-						}
-
-						public void modifiedService(ServiceReference reference,
-								Object service) {
-							// TODO: modify the query
-
-						}
-
-						public void removedService(ServiceReference reference,
-								Object service) {
-							// TODO: modify the query
-
-							if (discoveryListenerTracker.getTrackingCount() == 0) {
-								synchronized (hasListeners) {
-									hasListeners = Boolean.FALSE;
-									hasListeners.notifyAll();
-								}
-							}
-						}
-					});
-			discoveryListenerTracker.open();
-		} catch (InvalidSyntaxException ise) {
-			// should not happen
-			ise.printStackTrace();
-		}
-
 		if (DISCOVERY_INTERVAL > 0) {
-			new DiscoveryThread().start();
+			thread = new DiscoveryThread();
+			thread.start();
+
+			try {
+				discoveryListenerTracker = new ServiceTracker(context, context
+						.createFilter("(" + Constants.OBJECTCLASS + "="
+								+ ServiceDiscoveryListener.class.getName()
+								+ ")"), new ServiceTrackerCustomizer() {
+
+					public Object addingService(ServiceReference reference) {
+						synchronized (thread) {
+							if (!hasListeners) {
+								hasListeners = true;
+								thread.notifyAll();
+							}
+						}
+
+						// TODO: modify the query
+
+						return context.getService(reference);
+					}
+
+					public void modifiedService(ServiceReference reference,
+							Object service) {
+						// TODO: modify the query
+
+					}
+
+					public void removedService(ServiceReference reference,
+							Object service) {
+						// TODO: modify the query
+
+						if (discoveryListenerTracker.getTrackingCount() == 0) {
+							synchronized (thread) {
+								hasListeners = true;
+								thread.notifyAll();
+							}
+						}
+					}
+				});
+				discoveryListenerTracker.open();
+			} catch (InvalidSyntaxException ise) {
+				// should not happen
+				ise.printStackTrace();
+			}
 		}
 	}
 
@@ -229,9 +229,9 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
 			try {
 				while (!isInterrupted()) {
 					// in case nobody listens, don't do any discovery
-					synchronized (hasListeners) {
-						if (hasListeners == Boolean.FALSE) {
-							hasListeners.wait();
+					synchronized (this) {
+						if (!hasListeners) {
+							wait();
 						}
 					}
 
