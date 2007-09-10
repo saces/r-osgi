@@ -157,6 +157,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			this.endpoint = endpoint;
 			this.remoteEndpoint = endpointURI;
 			open(new Socket(InetAddress.getByName(endpointURI.getHost()), port));
+			new ReceiverThread().start();
 		}
 
 		/**
@@ -176,6 +177,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 
 		public void bind(ChannelEndpoint endpoint) {
 			this.endpoint = endpoint;
+			new ReceiverThread().start();
 		}
 
 		/**
@@ -197,7 +199,6 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			output.flush();
 			input = new ObjectInputStream(new BufferedInputStream(socket
 					.getInputStream()));
-			new ReceiverThread().start();
 		}
 
 		/**
