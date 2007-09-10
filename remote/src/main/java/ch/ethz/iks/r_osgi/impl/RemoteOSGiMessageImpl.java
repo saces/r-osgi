@@ -156,6 +156,7 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 			out.writeShort(xid);
 			writeBody(out);
 			out.flush();
+			out.reset();
 		}
 	}
 

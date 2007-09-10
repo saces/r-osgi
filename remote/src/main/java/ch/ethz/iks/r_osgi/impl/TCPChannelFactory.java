@@ -88,7 +88,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		thread = new TCPThread();
 		thread.start();
 	}
-	
+
 	public void deactivate(final Remoting remoting) throws IOException {
 		thread.interrupt();
 		this.remoting = null;
