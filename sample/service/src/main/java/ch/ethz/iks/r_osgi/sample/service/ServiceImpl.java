@@ -46,4 +46,9 @@ public final class ServiceImpl implements ServiceInterface {
 		System.out.println("i is " + i);
 		System.out.println("f is " + f);
 	}
+
+	public boolean verifyBlock(byte[] data, int i, int j, int k) {
+		System.out.println("GOT CALLED WITH " + new String(data));
+		return true;
+	}
 }

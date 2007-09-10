@@ -16,5 +16,7 @@ public interface ServiceInterface {
 	public void zero();
 
 	public void local();
+	
+	public boolean verifyBlock(final byte[] data, final int i, final int j, final int k);
 
 }

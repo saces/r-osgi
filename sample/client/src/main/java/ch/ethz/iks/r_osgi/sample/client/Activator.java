@@ -33,7 +33,7 @@ public class Activator implements BundleActivator {
 
 	private boolean running = true;
 
-	private static final boolean discovery = true;
+	private static final boolean discovery = false;
 
 	public void start(final BundleContext context) {
 		try {
@@ -79,9 +79,9 @@ public class Activator implements BundleActivator {
 				}, null);
 
 			} else {
-				// final URI uri = new URI("r-osgi://localhost:9278");
+				final URI uri = new URI("r-osgi://localhost:9278");
 				// final URI uri = new URI("r-osgi://84.73.219.12:9278");
-				final URI uri = new URI("btspp://0010DCE96CB8:1");
+				//final URI uri = new URI("btspp://0010DCE96CB8:1");
 				remote.connect(uri);
 				final RemoteServiceReference ref = remote
 						.getRemoteServiceReferences(uri, ServiceInterface.class
@@ -90,6 +90,7 @@ public class Activator implements BundleActivator {
 				remote.fetchService(ref);
 				service = (ServiceInterface) remote.getFetchedService(ref);
 				clientThread = new ClientThread();
+				clientThread.start();
 			}
 
 		} catch (Exception e) {
@@ -130,6 +131,7 @@ public class Activator implements BundleActivator {
 						if (i <= 10) {
 							i++;
 						}
+						service.verifyBlock("This is a test".getBytes(), 0, 1, 2);
 						wait(5000);
 					}
 				}
