@@ -225,44 +225,4 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 		return result;
 	}
 
-	/**
-	 * get the URI of the service or the channel involved.
-	 * 
-	 * @return the URI of the service or channel.
-	 */
-	final URI getURI() {
-		return uri;
-	}
-
-	/**
-	 * rewrite the serviceURLs contained in the message for bridging.
-	 * 
-	 * @param protocol
-	 *            the protocol.
-	 * @param host
-	 *            the host name/address.
-	 * @param port
-	 *            the port.
-	 */
-	public final void rewriteURI(final String protocol, final String host,
-			final String port) {
-		if (uri == null) {
-			return;
-		}
-		String newURI = protocol == null ? uri.getScheme() : protocol + "://"
-				+ host == null ? uri.getHost()
-				: host + ":" + port == null ? String.valueOf(uri.getPort())
-						: port;
-		if (uri.getFragment() != null) {
-			newURI = newURI + "#" + uri.getFragment();
-		}
-		uri = URI.create(newURI);
-	}
-
-	final Long getServiceID() {
-		if (uri == null)
-			return null;
-		return Long.decode(uri.getFragment());
-	}
-
 }

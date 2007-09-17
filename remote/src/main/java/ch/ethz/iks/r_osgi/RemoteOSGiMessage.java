@@ -94,8 +94,6 @@ public abstract class RemoteOSGiMessage {
 	 */
 	protected short funcID;
 
-	protected URI uri;
-
 	/**
 	 * Get the function ID (type code) of the message.
 	 * 
@@ -140,18 +138,5 @@ public abstract class RemoteOSGiMessage {
 			throws SocketException {
 		return RemoteOSGiMessageImpl.parse(input);
 	}
-
-	/**
-	 * rewrite the serviceURLs contained in the message for bridging.
-	 * 
-	 * @param protocol
-	 *            the protocol.
-	 * @param host
-	 *            the host name/address.
-	 * @param port
-	 *            the port.
-	 */
-	public abstract void rewriteURI(final String protocol, final String host,
-			final String port);
 
 }

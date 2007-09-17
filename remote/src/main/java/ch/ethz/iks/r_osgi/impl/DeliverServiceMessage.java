@@ -85,6 +85,8 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * the exports.
 	 */
 	private final String exports;
+	
+	private String serviceID;
 
 	/**
 	 * Create a new DeliverServiceMessage for a proxied service.
@@ -107,13 +109,12 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 			final String smartProxyName, final HashMap injections,
 			final String imports, final String exports)
 			throws RemoteOSGiException {
-		funcID = DELIVER_SERVICE;
-
+		funcID = DELIVER_SERVICE;		
 		this.serviceInterfaceNames = serviceInterfaceNames;
 		this.smartProxyName = smartProxyName;
 		this.injections = injections;
 		this.imports = imports;
-		this.exports = exports;
+		this.exports = exports;		
 	}
 
 	/**
@@ -121,8 +122,8 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * @param fetchReq
 	 * @param attributes
 	 */
-	void init(final FetchServiceMessage fetchReq) {
-		this.uri = fetchReq.getURI();
+	void init(final long serviceID, final FetchServiceMessage fetchReq) {
+		this.serviceID = String.valueOf(serviceID);
 		this.xid = fetchReq.xid;
 	}
 
@@ -156,8 +157,8 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 *             in case of parse errors.
 	 */
 	DeliverServiceMessage(final ObjectInputStream input) throws IOException {
-		// the uri
-		uri = URI.create(input.readUTF());
+		// the fragment that describes the service
+		serviceID = input.readUTF();
 		// imports
 		imports = input.readUTF();
 		// exports
@@ -184,11 +185,7 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 *             in case of parse errors.
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		if (uri == null) {
-			throw new IllegalStateException(
-					"DeliverServiceMessage not initialized");
-		}
-		out.writeUTF(uri.toString());
+		out.writeUTF(serviceID);
 		out.writeUTF(imports);
 		out.writeUTF(exports);
 		writeStringArray(out, serviceInterfaceNames);
@@ -203,6 +200,10 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 		}
 	}
 
+	String getServiceID() {
+		return serviceID;
+	}
+	
 	/**
 	 * get the interface name of the delivered service.
 	 * 

@@ -31,8 +31,6 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import java.net.URI;
-
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
 
 
@@ -47,6 +45,8 @@ import ch.ethz.iks.r_osgi.RemoteServiceReference;
  */
 class FetchServiceMessage extends RemoteOSGiMessageImpl {
 
+	private String serviceID;
+	
 	/**
 	 * hidden default constructor.
 	 */
@@ -61,7 +61,7 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 */
 	FetchServiceMessage(final RemoteServiceReference ref) {
 		funcID = FETCH_SERVICE;
-		uri = ref.getURI();
+		serviceID = ref.getURI().getFragment();
 	}
 
 	/**
@@ -84,7 +84,7 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 *             if something goes wrong.
 	 */
 	FetchServiceMessage(final ObjectInputStream input) throws IOException {
-		uri = URI.create(input.readUTF());
+		serviceID = input.readUTF();
 	}
 
 	/**
@@ -97,7 +97,11 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		out.writeUTF(uri.toString());
+		out.writeUTF(serviceID);
+	}
+	
+	public String getServiceID() {
+		return serviceID;
 	}
 
 	/**
@@ -111,8 +115,8 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 		buffer.append("[FETCH_MESSAGE]");
 		buffer.append("- XID: ");
 		buffer.append(xid);
-		buffer.append(", URL: ");
-		buffer.append(uri);
+		buffer.append(", serviceID: ");
+		buffer.append("#" + serviceID);
 		return buffer.toString();
 	}
 }

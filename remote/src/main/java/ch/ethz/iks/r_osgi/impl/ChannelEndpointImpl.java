@@ -208,14 +208,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	RemoteServiceReference[] sendLease(
 			final RemoteServiceRegistration[] myServices,
 			final String[] myTopics) {
-		final LeaseMessage l = new LeaseMessage(getLocalEndpoint(),
-				getRemoteEndpoint(), myServices, myTopics);
+		final LeaseMessage l = new LeaseMessage(myServices, myTopics);
 		final LeaseMessage lease = (LeaseMessage) sendMessage(l);
 		return processLease(lease);
 	}
 
 	void updateLease(final LeaseUpdateMessage msg) {
-		msg.init(getLocalEndpoint());
 		send(msg);
 	}
 
@@ -453,15 +451,16 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		try {
 			if (msg instanceof DeliverServiceMessage) {
 				final DeliverServiceMessage deliv = (DeliverServiceMessage) msg;
-				final URI service = deliv.getURI();
+				final URI service = networkChannel.getRemoteEndpoint().resolve(
+						"#" + deliv.getServiceID());
 
 				// generate a proxy bundle for the service
 				bundleLocation = new ProxyGenerator().generateProxyBundle(
 						service, deliv);
-				
+
 				// TODO: remove debug output
 				System.out.println(bundleLocation);
-				
+
 				// install the proxy bundle
 				final Bundle bundle = RemoteOSGiServiceImpl.context
 						.installBundle("file:" + bundleLocation);
@@ -682,25 +681,25 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final LeaseMessage lease = (LeaseMessage) msg;
 			processLease(lease);
 
-			return lease.replyWith(lease.getURI(), getRemoteEndpoint(),
-					RemoteOSGiServiceImpl.getServices(), RemoteOSGiServiceImpl
-							.getTopics());
+			return lease.replyWith(RemoteOSGiServiceImpl.getServices(),
+					RemoteOSGiServiceImpl.getTopics());
 		}
 		case RemoteOSGiMessageImpl.FETCH_SERVICE: {
 			try {
 				final FetchServiceMessage fetchReq = (FetchServiceMessage) msg;
-				final URI service = fetchReq.getURI();
+				final String serviceID = fetchReq.getServiceID();
 
 				final RemoteServiceRegistration reg = RemoteOSGiServiceImpl
 						.getService(fetchReq.getServiceID());
 
 				if (reg == null) {
-					throw new IllegalStateException("Could not get " + service);
+					throw new IllegalStateException("Could not get "
+							+ fetchReq.getServiceID());
 				}
 
 				if (reg instanceof ProxiedServiceRegistration) {
 
-					localServices.put(service.toString(), reg);
+					localServices.put(serviceID, reg);
 
 					RemoteOSGiMessage m = ((ProxiedServiceRegistration) reg)
 							.deliver(fetchReq);
@@ -717,7 +716,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		case RemoteOSGiMessageImpl.LEASE_UPDATE: {
 			LeaseUpdateMessage suMsg = (LeaseUpdateMessage) msg;
 
-			final URI service = suMsg.getURI();
+			final String serviceID = suMsg.getServiceID();
 			final short stateUpdate = suMsg.getType();
 
 			switch (stateUpdate) {
@@ -728,10 +727,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 			case LeaseUpdateMessage.SERVICE_ADDED: {
 				final RemoteServiceReferenceImpl ref = new RemoteServiceReferenceImpl(
-						(String[]) suMsg.getContent()[0], service.getFragment(),
+						(String[]) suMsg.getContent()[0], serviceID,
 						(Dictionary) suMsg.getContent()[1], this);
-			
-				remoteServices.put(ref.getURI().toString(), ref);
+
+				remoteServices.put(serviceID, ref);
 
 				RemoteOSGiServiceImpl
 						.notifyRemoteServiceListeners(new RemoteServiceEvent(
@@ -741,13 +740,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			case LeaseUpdateMessage.SERVICE_MODIFIED: {
 				final Dictionary newProps = (Dictionary) suMsg.getContent()[1];
 				final ServiceRegistration reg = (ServiceRegistration) proxiedServices
-						.get(service.toString());
+						.get(serviceID);
 				if (reg != null) {
 					reg.setProperties(newProps);
 				}
 
-				final RemoteServiceReferenceImpl ref = getRemoteReference(service
-						.toString());
+				final RemoteServiceReferenceImpl ref = getRemoteReference(getRemoteEndpoint()
+						.resolve("#" + serviceID).toString());
 				ref.setProperties(newProps);
 				RemoteOSGiServiceImpl
 						.notifyRemoteServiceListeners(new RemoteServiceEvent(
@@ -755,18 +754,18 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				return null;
 			}
 			case LeaseUpdateMessage.SERVICE_REMOVED: {
-				final Bundle bundle = (Bundle) proxyBundles.remove(service
-						.toString());
+				final Bundle bundle = (Bundle) proxyBundles.remove(serviceID);
 				if (bundle != null) {
 					try {
 						bundle.uninstall();
 					} catch (BundleException be) {
 						be.printStackTrace();
 					}
-					proxiedServices.remove(service.toString());
+					proxiedServices.remove(serviceID);
 				}
 				final RemoteServiceReference ref = (RemoteServiceReference) remoteServices
-						.remove(service.toString());
+						.remove(getRemoteEndpoint().resolve("#" + serviceID)
+								.toString());
 				RemoteOSGiServiceImpl
 						.notifyRemoteServiceListeners(new RemoteServiceEvent(
 								RemoteServiceEvent.UNREGISTERING, ref));
@@ -778,10 +777,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final InvokeMethodMessage invMsg = (InvokeMethodMessage) msg;
 			try {
 				final ProxiedServiceRegistration serv = (ProxiedServiceRegistration) localServices
-						.get(invMsg.getURI().toString());
+						.get(invMsg.getServiceID());
 				if (serv == null) {
 					throw new IllegalStateException("Could not get "
-							+ invMsg.getURI() + ", known services "
+							+ invMsg.getServiceID() + ", known services "
 							+ localServices);
 				}
 

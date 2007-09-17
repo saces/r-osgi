@@ -52,7 +52,7 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 	private final Object serviceObject;
 
 	private final HashMap methodTable = new HashMap(0);
-
+	
 	private DeliverServiceMessage deliverServiceMessage;
 
 	/**
@@ -128,7 +128,7 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 	}
 
 	DeliverServiceMessage deliver(final FetchServiceMessage fetchReq) {
-		deliverServiceMessage.init(fetchReq);
+		deliverServiceMessage.init(getServiceID(), fetchReq);
 		return deliverServiceMessage;
 	}
 }

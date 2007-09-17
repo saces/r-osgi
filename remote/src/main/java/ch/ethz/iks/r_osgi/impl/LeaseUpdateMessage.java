@@ -30,9 +30,15 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 	 */
 	private Object content1;
 
+	/**
+	 * 
+	 */
 	private Object content2;
 
-	private long serviceID;
+	/**
+	 * 
+	 */
+	private String serviceID;
 
 	/**
 	 * creates a new LeaseUpdateMessage for service updates.
@@ -44,13 +50,9 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 			throw new IllegalArgumentException("REG IS NULL");
 		}
 		this.type = type;
-		this.serviceID = reg.getServiceID();
+		this.serviceID = String.valueOf(reg.getServiceID());
 		this.content1 = reg.getInterfaceNames();
 		this.content2 = reg.getProperties();
-	}
-
-	void init(URI uri) {
-		this.uri = URI.create(uri + "#" + String.valueOf(serviceID));
 	}
 
 	/**
@@ -90,7 +92,7 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 	LeaseUpdateMessage(final ObjectInputStream input) throws IOException {
 		funcID = LEASE_UPDATE;
 		type = input.readShort();
-		uri = URI.create(input.readUTF());
+		serviceID = input.readUTF();
 		content1 = SmartSerializer.deserialize(input);
 		content2 = SmartSerializer.deserialize(input);
 	}
@@ -106,13 +108,17 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		out.writeShort(type);
-		out.writeUTF(uri.toString());
+		out.writeUTF(serviceID);
 		SmartSerializer.serialize(content1, out);
 		SmartSerializer.serialize(content2, out);
 	}
 
 	short getType() {
 		return type;
+	}
+	
+	String getServiceID() {
+		return serviceID;
 	}
 
 	Object[] getContent() {
@@ -129,8 +135,8 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("[STATE_UPDATE] - XID: ");
 		buffer.append(xid);
-		buffer.append(", url ");
-		buffer.append(uri);
+		buffer.append(", service ");
+		buffer.append("#" + serviceID);
 		buffer.append(", type ");
 		buffer.append(type);
 		buffer.append(", content ");

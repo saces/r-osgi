@@ -795,7 +795,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 								.size()]);
 	}
 
-	static RemoteServiceRegistration getService(final Long serviceID) {
+	static RemoteServiceRegistration getService(final String serviceID) {
 
 		final String filter = "".equals(serviceID) ? null : '('
 				+ Constants.SERVICE_ID + "=" + serviceID + ")";

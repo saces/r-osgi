@@ -45,6 +45,8 @@ import ch.ethz.iks.util.SmartSerializer;
  */
 class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 
+	private String serviceID;
+	
 	/**
 	 * the signature of the method that is requested to be invoked.
 	 */
@@ -68,7 +70,7 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	InvokeMethodMessage(final URI service, final String methodSignature,
 			final Object[] params) {
 		funcID = INVOKE_METHOD;
-		this.uri = service;
+		serviceID = service.getFragment();
 		this.methodSignature = methodSignature;
 		this.arguments = params;
 	}
@@ -98,7 +100,7 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 */
 	InvokeMethodMessage(final ObjectInputStream input) throws IOException {
 		funcID = INVOKE_METHOD;
-		uri = URI.create(input.readUTF());
+		serviceID = input.readUTF();
 		methodSignature = input.readUTF();
 		final short argLength = input.readShort();
 		arguments = new Object[argLength];
@@ -117,7 +119,7 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		out.writeUTF(uri.toString());
+		out.writeUTF(serviceID);
 		out.writeUTF(methodSignature);
 		out.writeShort(arguments.length);
 		for (short i = 0; i < arguments.length; i++) {
@@ -125,6 +127,10 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 		}
 	}
 
+	public String getServiceID() {
+		return serviceID;
+	}
+	
 	/**
 	 * get the parameters for the invoked method.
 	 * 
@@ -153,8 +159,8 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("[INVOKE_METHOD] - XID: ");
 		buffer.append(xid);
-		buffer.append(", url: ");
-		buffer.append(uri);
+		buffer.append(", serviceID: ");
+		buffer.append(serviceID);
 		buffer.append(", methodName: ");
 		buffer.append(methodSignature);
 		buffer.append(", params: ");

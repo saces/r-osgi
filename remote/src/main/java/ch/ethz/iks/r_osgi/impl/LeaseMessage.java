@@ -35,8 +35,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Dictionary;
 
-import ch.ethz.iks.r_osgi.RemoteOSGiService;
-
 /**
  * Lease message. Is exchanged when a channel is established. Leases are the
  * implementations of the statements of supply and demand.
@@ -68,11 +66,9 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @param topics
 	 *            the topics the peer is interested in.
 	 */
-	public LeaseMessage(final URI localEndpoint, final URI remoteEndpoint,
-			final RemoteServiceRegistration[] regs, final String[] topics) {
+	public LeaseMessage(final RemoteServiceRegistration[] regs, final String[] topics) {
 		this.funcID = LEASE;
-		this.uri = localEndpoint;
-		parseRegistrations(localEndpoint, regs);
+		parseRegistrations(regs);
 		this.topics = topics == null ? new String[0] : topics;
 	}
 
@@ -83,9 +79,9 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 *           0                   1                   2                   3
 	 *           0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *          |       R-OSGi header (function = Fetch = 1)                    |
+	 *          |       R-OSGi header (function = Lease = 1)                    |
 	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *          |  Array of service information                                 \
+	 *          |  Array of service info (Fragment#, Interface[], properties    \
 	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *          |  Array of topic strings                                       \
 	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -99,7 +95,6 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 */
 	LeaseMessage(final ObjectInputStream input) throws IOException {
 		funcID = LEASE;
-		uri = URI.create(input.readUTF());
 		final int serviceCount = input.readShort();	
 		fragments = new String[serviceCount];
 		serviceInterfaces = new String[serviceCount][];
@@ -149,10 +144,8 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 *            the topics of interest of this peer.
 	 * @return the reply lease message.
 	 */
-	LeaseMessage replyWith(final URI localEndpoint, final URI remoteEndpoint,
-			final RemoteServiceRegistration[] refs, final String[] topics) {
-		this.uri = localEndpoint;
-		parseRegistrations(localEndpoint, refs);
+	LeaseMessage replyWith(final RemoteServiceRegistration[] refs, final String[] topics) {
+		parseRegistrations(refs);
 		this.topics = topics;
 		return this;
 	}
@@ -167,7 +160,6 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		out.writeUTF(uri.toString());
 		final int slen = serviceInterfaces.length;
 		out.writeShort(slen);
 		for (short i = 0; i < slen; i++) {
@@ -203,12 +195,11 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		return buffer.toString();
 	}
 
-	private void parseRegistrations(final URI localEndpoint,
+	private void parseRegistrations(
 			final RemoteServiceRegistration[] regs) {
 		fragments = new String[regs.length];
 		serviceInterfaces = new String[regs.length][];
 		serviceProperties = new Dictionary[regs.length];
-		final String baseURI = localEndpoint.toString();
 		for (short i = 0; i < regs.length; i++) {
 			fragments[i] = String.valueOf(regs[i].getServiceID());
 			serviceInterfaces[i] = regs[i].getInterfaceNames();
