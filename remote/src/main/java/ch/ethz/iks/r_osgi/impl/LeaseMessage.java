@@ -51,7 +51,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 */
 	private String[][] serviceInterfaces;
 
-	private URI[] URIs;
+	private String[] fragments;
 
 	private Dictionary[] serviceProperties;
 
@@ -71,7 +71,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	public LeaseMessage(final URI localEndpoint, final URI remoteEndpoint,
 			final RemoteServiceRegistration[] regs, final String[] topics) {
 		this.funcID = LEASE;
-		this.uri = remoteEndpoint;
+		this.uri = localEndpoint;
 		parseRegistrations(localEndpoint, regs);
 		this.topics = topics == null ? new String[0] : topics;
 	}
@@ -100,25 +100,15 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	LeaseMessage(final ObjectInputStream input) throws IOException {
 		funcID = LEASE;
 		uri = URI.create(input.readUTF());
-		final int serviceCount = input.readShort();
-		URIs = new URI[serviceCount];
+		final int serviceCount = input.readShort();	
+		fragments = new String[serviceCount];
 		serviceInterfaces = new String[serviceCount][];
 		serviceProperties = new Dictionary[serviceCount];
 		try {
 			for (short i = 0; i < serviceCount; i++) {
-				serviceInterfaces[i] = readStringArray(input);
-				URIs[i] = URI.create(input.readUTF());
+				fragments[i] = input.readUTF();
+				serviceInterfaces[i] = readStringArray(input);				
 				serviceProperties[i] = (Dictionary) input.readObject();
-				serviceProperties[i].put(RemoteOSGiServiceImpl.SERVICE_URI,
-						URIs[i].toString());
-
-				// remove the service PID, if set
-				serviceProperties[i].remove("service.pid");
-
-				// remove the R-OSGi registration property
-				serviceProperties[i]
-						.remove(RemoteOSGiService.R_OSGi_REGISTRATION);
-
 			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -132,10 +122,10 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @return the services.
 	 */
 	RemoteServiceReferenceImpl[] getServices(final ChannelEndpointImpl channel) {
-		final RemoteServiceReferenceImpl[] refs = new RemoteServiceReferenceImpl[URIs.length];
-		for (short i = 0; i < URIs.length; i++) {
-			refs[i] = new RemoteServiceReferenceImpl(serviceInterfaces[i],
-					URIs[i], serviceProperties[i], channel);
+		final RemoteServiceReferenceImpl[] refs = new RemoteServiceReferenceImpl[fragments.length];
+		for (short i = 0; i < fragments.length; i++) {
+			refs[i] = new RemoteServiceReferenceImpl(serviceInterfaces[i], 
+					fragments[i], serviceProperties[i], channel);
 		}
 		return refs;
 	}
@@ -161,7 +151,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 */
 	LeaseMessage replyWith(final URI localEndpoint, final URI remoteEndpoint,
 			final RemoteServiceRegistration[] refs, final String[] topics) {
-		this.uri = remoteEndpoint;
+		this.uri = localEndpoint;
 		parseRegistrations(localEndpoint, refs);
 		this.topics = topics;
 		return this;
@@ -181,8 +171,8 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		final int slen = serviceInterfaces.length;
 		out.writeShort(slen);
 		for (short i = 0; i < slen; i++) {
-			writeStringArray(out, serviceInterfaces[i]);
-			out.writeUTF(URIs[i].toString());
+			out.writeUTF(fragments[i]);
+			writeStringArray(out, serviceInterfaces[i]);			
 			// TODO: smart serializer
 			out.writeObject(serviceProperties[i]);
 		}
@@ -203,7 +193,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		for (int i = 0; i < serviceInterfaces.length; i++) {
 			buffer.append(serviceInterfaces[i]);
 			buffer.append("-");
-			buffer.append(URIs[i]);
+			buffer.append(fragments[i]);
 			if (i < serviceInterfaces.length) {
 				buffer.append(", ");
 			}
@@ -215,12 +205,12 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 
 	private void parseRegistrations(final URI localEndpoint,
 			final RemoteServiceRegistration[] regs) {
-		URIs = new URI[regs.length];
+		fragments = new String[regs.length];
 		serviceInterfaces = new String[regs.length][];
 		serviceProperties = new Dictionary[regs.length];
 		final String baseURI = localEndpoint.toString();
 		for (short i = 0; i < regs.length; i++) {
-			URIs[i] = URI.create(baseURI + "#" + regs[i].getServiceID());
+			fragments[i] = String.valueOf(regs[i].getServiceID());
 			serviceInterfaces[i] = regs[i].getInterfaceNames();
 			serviceProperties[i] = regs[i].getProperties();
 		}

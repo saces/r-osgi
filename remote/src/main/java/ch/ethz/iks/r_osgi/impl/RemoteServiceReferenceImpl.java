@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
+
+import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
 
 final class RemoteServiceReferenceImpl implements RemoteServiceReference {
@@ -22,11 +24,17 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 
 	private transient ChannelEndpointImpl channel;
 
-	RemoteServiceReferenceImpl(final String[] serviceInterfaces, final URI uri,
+	RemoteServiceReferenceImpl(final String[] serviceInterfaces, final String fragment,
 			final Dictionary properties, final ChannelEndpointImpl channel) {
 		this.serviceInterfaces = serviceInterfaces;
-		this.uri = uri;
+		this.uri = channel.getRemoteEndpoint().resolve("#" + fragment);
 		this.properties = properties;
+		// adjust the properties
+		this.properties.put(RemoteOSGiServiceImpl.SERVICE_URI, uri.toString());
+		// remove the service PID, if set
+		this.properties.remove("service.pid");
+		// remove the R-OSGi registration property
+		this.properties.remove(RemoteOSGiService.R_OSGi_REGISTRATION);
 		this.channel = channel;
 	}
 

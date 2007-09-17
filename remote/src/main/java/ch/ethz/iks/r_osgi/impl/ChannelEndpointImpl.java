@@ -728,8 +728,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 			case LeaseUpdateMessage.SERVICE_ADDED: {
 				final RemoteServiceReferenceImpl ref = new RemoteServiceReferenceImpl(
-						(String[]) suMsg.getContent()[0], service,
+						(String[]) suMsg.getContent()[0], service.getFragment(),
 						(Dictionary) suMsg.getContent()[1], this);
+			
 				remoteServices.put(ref.getURI().toString(), ref);
 
 				RemoteOSGiServiceImpl
