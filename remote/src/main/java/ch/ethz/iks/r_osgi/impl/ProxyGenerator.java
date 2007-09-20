@@ -179,8 +179,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * @throws IOException
 	 *             in case of proxy generation error
 	 */
-	protected String generateProxyBundle(final URI service, final DeliverServiceMessage deliv)
-			throws IOException {
+	protected String generateProxyBundle(final URI service,
+			final DeliverServiceMessage deliv) throws IOException {
 
 		this.uri = service.toString();
 		sourceID = generateSourceID(uri);
@@ -204,7 +204,12 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		attr.putValue("Created-By", "R-OSGi Proxy Generator");
 		attr.putValue("Bundle-Activator", className);
 		attr.putValue("Bundle-Classpath", ".");
-		attr.putValue("Import-Package", deliv.getImports());
+		attr
+				.putValue(
+						"Import-Package",
+						"org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.types, ch.ethz.iks.r_osgi.channels"
+								+ ("".equals(deliv.getImports()) ? "" : ", ")
+								+ deliv.getImports());
 		if (!"".equals(deliv.getExports())) {
 			attr.putValue("Export-Package", deliv.getExports());
 		}
@@ -268,7 +273,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	private byte[] generateProxyClass(final String[] interfaceNames,
 			final byte[] interfaceClass) throws IOException {
 		interfaceClassNames = interfaceNames;
-		implName = "proxy/" + sourceID + "/" + interfaceNames[0].replace('.', '/') + "Impl";
+		implName = "proxy/" + sourceID + "/"
+				+ interfaceNames[0].replace('.', '/') + "Impl";
 		// TODO: remove debug output
 		System.out.println("IMPL NAME IS " + implName);
 
@@ -303,7 +309,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			final byte[] interfaceClass, final String proxyName,
 			final byte[] proxyClass) throws IOException {
 		interfaceClassNames = interfaceNames;
-		implName = "proxy/" + sourceID + "/" + proxyName.replace('.', '/') + "Impl";
+		implName = "proxy/" + sourceID + "/" + proxyName.replace('.', '/')
+				+ "Impl";
 		smartProxyClassName = proxyName;
 		smartProxyClassNameDashed = smartProxyClassName.replace('.', '/');
 		ClassReader reader = new ClassReader(proxyClass);
@@ -358,9 +365,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			final String[] interfaces) {
 		MethodVisitor method;
 		FieldVisitor field;
-		
+
 		if (interfaceClassNames[0].replace('.', '/').equals(name)) {
-			
+
 			if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 						"creating proxy class " + implName);
@@ -715,8 +722,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					method.visitInsn(DUP);
 					method.visitVarInsn(args[i].getOpcode(ILOAD), slot);
 					method.visitMethodInsn(INVOKESPECIAL,
-							"ch/ethz/iks/r_osgi/types/BoxedPrimitive", "<init>", "("
-									+ args[i].getDescriptor() + ")V");
+							"ch/ethz/iks/r_osgi/types/BoxedPrimitive",
+							"<init>", "(" + args[i].getDescriptor() + ")V");
 					method.visitInsn(AASTORE);
 					slot += args[i].getSize();
 					needsBoxing = true;
@@ -739,8 +746,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					method.visitInsn(DUP);
 					method.visitVarInsn(args[i].getOpcode(ILOAD), slot);
 					method.visitMethodInsn(INVOKESPECIAL,
-							"ch/ethz/iks/r_osgi/types/BoxedPrimitive", "<init>", "("
-									+ args[i].getDescriptor() + ")V");
+							"ch/ethz/iks/r_osgi/types/BoxedPrimitive",
+							"<init>", "(" + args[i].getDescriptor() + ")V");
 					method.visitInsn(AASTORE);
 					slot += args[i].getSize();
 					needsBoxing = true;
@@ -783,13 +790,14 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					}
 					// primitive array
 					method.visitTypeInsn(CHECKCAST, a.toString()
-							+ returnType.getElementType().toString());					
+							+ returnType.getElementType().toString());
 				} else {
 					// object array
 					a.append("[");
 					method.visitTypeInsn(CHECKCAST, a.toString()
 							+ returnType.getInternalName() + ";");
-					System.out.println("INTERNAL NAME " + returnType.getInternalName().toString());
+					System.out.println("INTERNAL NAME "
+							+ returnType.getInternalName().toString());
 				}
 				method.visitInsn(ARETURN);
 				break;
@@ -1155,8 +1163,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 */
 	private static String generateSourceID(final String id) {
 		final int pos1 = id.indexOf("://");
-		char[] chars = id.substring(pos1 + 3).replace('/', '_').replace(':', '_')
-				.toCharArray();
+		char[] chars = id.substring(pos1 + 3).replace('/', '_').replace(':',
+				'_').toCharArray();
 		StringBuffer buffer = new StringBuffer();
 		for (int i = 0; i < chars.length; i++) {
 			if (chars[i] == '.') {

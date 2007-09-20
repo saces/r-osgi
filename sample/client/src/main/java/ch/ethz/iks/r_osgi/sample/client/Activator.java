@@ -83,6 +83,7 @@ public class Activator implements BundleActivator {
 				// final URI uri = new URI("r-osgi://84.73.219.12:9278");
 				// final URI uri = new URI("btspp://0010DCE96CB8:1");
 				// final URI uri = new URI("btspp://0014A4D46D9A:1");
+				// final URI uri = new URI("r-osgi://localhost:9270");
 				remote.connect(uri);
 				final RemoteServiceReference ref = remote
 						.getRemoteServiceReferences(uri, ServiceInterface.class

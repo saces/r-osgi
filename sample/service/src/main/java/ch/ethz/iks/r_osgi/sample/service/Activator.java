@@ -1,5 +1,6 @@
 package ch.ethz.iks.r_osgi.sample.service;
 
+import java.util.Dictionary;
 import java.util.Hashtable;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -14,7 +15,9 @@ import ch.ethz.iks.r_osgi.SurrogateRegistration;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 
 public class Activator implements BundleActivator, SurrogateRegistration {
-
+	
+	private ServiceRegistration registration;
+	
 	public void start(BundleContext context) throws Exception {
 
 		// register the sample service and enable R-OSGi remote access by
@@ -34,7 +37,7 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 
 		properties.put(SurrogateRegistration.SERVICE_REFERENCE, reg.getReference());
 		
-		context.registerService(SurrogateRegistration.class.getName(), this, properties);
+		registration = context.registerService(SurrogateRegistration.class.getName(), this, properties);
 		
 		System.out.println("Registered service "
 				+ ServiceInterface.class.getName());
@@ -84,6 +87,12 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 							System.err.println("Unknown command");
 						}
 					}, new Hashtable());
+			
+			System.out.println("PRESS ANY KEY TO CAUSE A PROPERTY UPDATE");
+			System.in.read();
+			Dictionary newProps = new Hashtable();
+			newProps.put("Dummy", "value");
+			reg.setProperties(newProps);
 		} else {
 			System.err.println();
 			System.err

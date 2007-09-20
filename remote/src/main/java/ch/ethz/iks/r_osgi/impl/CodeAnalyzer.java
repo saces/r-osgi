@@ -199,10 +199,10 @@ final class CodeAnalyzer implements ClassVisitor {
 			proxyImports.add(packageOf(ifaces[i]));
 			proxyExports.add(packageOf(ifaces[i]));
 		}
-		proxyImports.add("org.osgi.framework");
-		proxyImports.add("ch.ethz.iks.r_osgi");
-		proxyImports.add("ch.ethz.iks.r_osgi.types");
-		proxyImports.add("ch.ethz.iks.r_osgi.channels");
+		proxyImports.remove("org.osgi.framework");
+		proxyImports.remove("ch.ethz.iks.r_osgi");
+		proxyImports.remove("ch.ethz.iks.r_osgi.types");
+		proxyImports.remove("ch.ethz.iks.r_osgi.channels");
 
 		final StringBuffer importDeclaration = new StringBuffer();
 		final StringBuffer exportDeclaration = new StringBuffer();
