@@ -64,6 +64,7 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 	LeaseUpdateMessage(final String[] addedTopics, final String[] removedTopics) {
 		funcID = LEASE_UPDATE;
 		this.type = TOPIC_UPDATE;
+		this.serviceID = "";
 		this.content1 = addedTopics == null ? new String[0] : addedTopics;
 		this.content2 = removedTopics == null ? new String[0] : removedTopics;
 	}
