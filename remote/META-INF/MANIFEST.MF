@@ -16,5 +16,5 @@ Bundle-Activator: ch.ethz.iks.r_osgi.impl.RemoteOSGiActivator
 DynamicImport-Package: *
 Import-Package: org.osgi.framework, org.osgi.util.tracker, org.osgi.service.event, org.osgi.service.log 
 Bundle-Vendor: Jan S. Rellermeyer, IKS, ETH Zurich
-Eclipse-LazyStart: false
+Eclipse-LazyStart: true
 Bundle-RequiredExecutionEnvironment: OSGi/Minimum-1.0

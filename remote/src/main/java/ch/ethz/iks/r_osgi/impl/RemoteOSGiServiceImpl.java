@@ -176,10 +176,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 */
 	private static ServiceTracker remoteServiceTracker;
 
-	/**
-	 * 
-	 */
-	private static ServiceTracker serviceDiscoveryTracker;
 
 	/**
 	 * 
@@ -778,7 +774,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 		eventAdminTracker.close();
 		remoteServiceTracker.close();
-		serviceDiscoveryTracker.close();
+		serviceDiscoveryHandlerTracker.close();
 		remoteServiceListenerTracker.close();
 		networkChannelFactoryTracker.close();
 	}
@@ -805,7 +801,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 					filter);
 			if (refs == null) {
 				if (log != null) {
-					log.log(LogService.LOG_WARNING, "COUND NOT FIND " + filter);
+					log.log(LogService.LOG_WARNING, "COULD NOT FIND " + filter);
 				}
 				return null;
 			}

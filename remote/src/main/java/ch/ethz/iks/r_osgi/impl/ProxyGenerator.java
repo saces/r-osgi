@@ -380,6 +380,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			serviceInterfaces[interfaceClassNames.length] = "org/osgi/framework/BundleActivator";
 
 			if ((access & ACC_INTERFACE) == 0) {
+				// we have a smart proxy
 				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
 						"java/lang/Object", serviceInterfaces);
 				if (java.util.Arrays.asList(interfaces).contains(
@@ -387,6 +388,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					isSmartProxyFromInterface = true;
 				}
 			} else {
+				// we have an interface
 				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
 						"java/lang/Object", serviceInterfaces);
 				if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
@@ -529,9 +531,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 								"(Ljava/lang/String;Ljava/lang/Object;Ljava/util/Dictionary;)Lorg/osgi/framework/ServiceRegistration;");
 				method.visitInsn(POP);
 				method.visitLabel(l0);
-				method.visitVarInsn(ALOAD, 0);
-				method.visitVarInsn(ALOAD, 1);
 				if (isSmartProxyFromInterface) {
+					method.visitVarInsn(ALOAD, 0);
+					method.visitVarInsn(ALOAD, 1);
 					method.visitMethodInsn(INVOKEVIRTUAL, implName, "started",
 							"(Lorg/osgi/framework/BundleContext;)V");
 				}
