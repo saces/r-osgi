@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URI;
+import java.util.Arrays;
+
 import ch.ethz.iks.util.SmartSerializer;
 
 /**
@@ -140,10 +142,17 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 		buffer.append("#" + serviceID);
 		buffer.append(", type ");
 		buffer.append(type);
-		buffer.append(", content ");
-		buffer.append(content1);
-		buffer.append(" ");
-		buffer.append(content2);
+		if (type == TOPIC_UPDATE) {
+			buffer.append(", topics added: ");
+			buffer.append(Arrays.asList((String[]) content1));
+			buffer.append(", topics removed: ");
+			buffer.append(Arrays.asList((String[]) content2));
+		} else {
+			buffer.append(", service interfaces: ");
+			buffer.append(Arrays.asList((String[]) content1));
+			buffer.append(", properties: ");
+			buffer.append(content2);			
+		}
 		return buffer.toString();
 	}
 

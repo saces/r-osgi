@@ -377,17 +377,23 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @return
 	 */
 	RemoteServiceReference[] getRemoteReferences(final Filter filter) {
+		System.out.println("LOOKING FOR SERVICES ON " + networkChannel.getRemoteEndpoint() + " (local=" + networkChannel.getLocalEndpoint() + ")");		
 		final List result = new ArrayList();
 		final RemoteServiceReferenceImpl[] refs = (RemoteServiceReferenceImpl[]) remoteServices
 				.values().toArray(
 						new RemoteServiceReferenceImpl[remoteServices.size()]);
-		for (int i = 0; i < refs.length; i++) {
-			if (filter == null || filter.match(refs[i].getProperties())) {
-				result.add(refs[i]);
+		System.out.println("CANDIDATES " + Arrays.toString(refs));
+		if (filter == null) {
+			return refs;
+		} else {
+			for (int i = 0; i < refs.length; i++) {
+				if (filter.match(refs[i].getProperties())) {
+					result.add(refs[i]);
+				}
 			}
+			return (RemoteServiceReference[]) result
+					.toArray(new RemoteServiceReferenceImpl[result.size()]);
 		}
-		return (RemoteServiceReference[]) result
-				.toArray(new RemoteServiceReferenceImpl[result.size()]);
 	}
 
 	/**
@@ -681,6 +687,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final LeaseMessage lease = (LeaseMessage) msg;
 			processLease(lease);
 
+			// TODO: remove debug output
+			System.out.println(toString() + " REPLYING WITH LEASE CONTAINING "
+					+ RemoteOSGiServiceImpl.getServices());
+
 			return lease.replyWith(RemoteOSGiServiceImpl.getServices(),
 					RemoteOSGiServiceImpl.getTopics());
 		}
@@ -846,5 +856,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public String toString() {
+		return "ChannelEndpoint(" + networkChannel.toString() + ")";
 	}
 }

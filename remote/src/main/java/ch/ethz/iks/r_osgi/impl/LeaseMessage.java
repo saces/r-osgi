@@ -31,7 +31,6 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Dictionary;
 
@@ -183,7 +182,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		buffer.append(xid);
 		buffer.append(", services: ");
 		for (int i = 0; i < serviceInterfaces.length; i++) {
-			buffer.append(serviceInterfaces[i]);
+			buffer.append(Arrays.asList(serviceInterfaces[i]));
 			buffer.append("-");
 			buffer.append(fragments[i]);
 			if (i < serviceInterfaces.length) {

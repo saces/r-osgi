@@ -633,6 +633,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 						final NetworkChannelFactory factory = (NetworkChannelFactory) networkChannelFactoryTracker
 								.getService(refs[i]);
 						channel = new ChannelEndpointImpl(factory, endpoint);
+						System.out.println("CREATED NEW " + channel);
 						return channel.sendLease(getServices(), getTopics());
 					}
 				}
@@ -869,6 +870,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		ChannelEndpointImpl[] endpoints = (ChannelEndpointImpl[]) channels
 				.values().toArray(new ChannelEndpointImpl[channels.size()]);
 		for (int i = 0; i < endpoints.length; i++) {
+			System.out.println("SENDING UPDATE TO " + endpoints[i] + ": " + msg);
 			endpoints[i].updateLease(msg);
 		}
 	}
@@ -911,6 +913,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	}
 
 	public void createEndpoint(final NetworkChannel channel) {
-		new ChannelEndpointImpl(channel);
+		ChannelEndpoint ep = new ChannelEndpointImpl(channel);
+		System.err.println("ACCEPTED NEW CHANNEL " + ep);
 	}
 }
