@@ -60,9 +60,8 @@ public class Activator implements BundleActivator {
 											ServiceInterface.class.getName(),
 											null)[0];
 							System.out.println("REFERENCE " + ref);
-							remote.fetchService(ref);
 							service = (ServiceInterface) remote
-									.getFetchedService(ref);
+									.getRemoteService(ref);
 							System.out.println("HAVE THE SERVICE " + service);
 							clientThread = new ClientThread();
 							clientThread.start();
@@ -89,8 +88,7 @@ public class Activator implements BundleActivator {
 						.getRemoteServiceReferences(uri, ServiceInterface.class
 								.getName(), null)[0];
 				System.out.println("REFERENCE " + ref);
-				remote.fetchService(ref);
-				service = (ServiceInterface) remote.getFetchedService(ref);
+				service = (ServiceInterface) remote.getRemoteService(ref);
 				clientThread = new ClientThread();
 				clientThread.start();
 			}

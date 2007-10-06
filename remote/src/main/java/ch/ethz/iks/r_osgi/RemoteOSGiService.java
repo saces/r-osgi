@@ -189,20 +189,6 @@ public interface RemoteOSGiService {
 	void disconnect(final URI endpoint) throws RemoteOSGiException;
 
 	/**
-	 * fetch the discovered remote service. The service will be fetched from the
-	 * service providing host and a proxy bundle is registered with the local
-	 * framework.
-	 * 
-	 * @param service
-	 *            the <code>ServiceURL</code>.
-	 * @throws RemoteOSGiException
-	 *             if the fetching fails.
-	 * @since 0.5
-	 */
-	void fetchService(final RemoteServiceReference ref)
-			throws RemoteOSGiException;
-
-	/**
 	 * 
 	 * @param url
 	 * @param clazz
@@ -210,8 +196,8 @@ public interface RemoteOSGiService {
 	 * @return
 	 * @throws InvalidSyntaxException
 	 */
-	public RemoteServiceReference[] getRemoteServiceReferences(
-			final URI uri, final String clazz, final Filter filter)
+	public RemoteServiceReference[] getRemoteServiceReferences(final URI uri,
+			final String clazz, final Filter filter)
 			throws InvalidSyntaxException;
 
 	/**
@@ -223,17 +209,7 @@ public interface RemoteOSGiService {
 	 * @return the service belonging to the service url or null, if no such
 	 *         service is present.
 	 */
-	Object getFetchedService(final RemoteServiceReference ref);
-
-	/**
-	 * get the service reference of the service that has just been fetched.
-	 * 
-	 * @param url
-	 *            the service url.
-	 * @return the service reference belonging to the service or null, if no
-	 *         such service is present.
-	 */
-	ServiceReference getFetchedServiceReference(final RemoteServiceReference ref);
+	Object getRemoteService(final RemoteServiceReference ref);
 
 	/**
 	 * transform a timestamp into the peer's local time.

@@ -176,7 +176,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 */
 	private static ServiceTracker remoteServiceTracker;
 
-
 	/**
 	 * 
 	 */
@@ -536,10 +535,14 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * @category RemoteOSGiService
 	 * @since 0.6
 	 */
-	public Object getFetchedService(final RemoteServiceReference ref) {
-		final ServiceReference sref = getFetchedServiceReference(ref);
+	public Object getRemoteService(final RemoteServiceReference ref) {
+		if (ref == null) {
+			throw new IllegalArgumentException("Remote Reference is null.");
+		}
+		ServiceReference sref = getFetchedServiceReference(ref);
 		if (sref == null) {
-			throw new IllegalStateException("SREF IS NULL");
+			fetchService(ref);
+			sref = getFetchedServiceReference(ref);
 		}
 		return ref == null ? null : context.getService(sref);
 	}
@@ -575,11 +578,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			final String clazz, final Filter filter)
 			throws InvalidSyntaxException {
 		String uri = getChannelURI(service);
-		final ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
-				.get(uri);
+		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels.get(uri);
 		if (channel == null) {
-			throw new IllegalStateException("NO CHANNEL TO " + uri
-					+ ", known channels " + channels);
+			connect(service);
+			channel = (ChannelEndpointImpl) channels.get(uri);
 		}
 		if (clazz == null) {
 			return channel.getRemoteReferences(null);
@@ -670,7 +672,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * @since 0.1
 	 * @category RemoteOSGiService
 	 */
-	public void fetchService(final RemoteServiceReference ref)
+	private void fetchService(final RemoteServiceReference ref)
 			throws RemoteOSGiException {
 		try {
 			ChannelEndpointImpl channel;
@@ -870,7 +872,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		ChannelEndpointImpl[] endpoints = (ChannelEndpointImpl[]) channels
 				.values().toArray(new ChannelEndpointImpl[channels.size()]);
 		for (int i = 0; i < endpoints.length; i++) {
-			System.out.println("SENDING UPDATE TO " + endpoints[i] + ": " + msg);
+			System.out
+					.println("SENDING UPDATE TO " + endpoints[i] + ": " + msg);
 			endpoints[i].updateLease(msg);
 		}
 	}

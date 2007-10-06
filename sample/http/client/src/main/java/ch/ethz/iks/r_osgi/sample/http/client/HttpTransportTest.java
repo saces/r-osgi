@@ -70,9 +70,8 @@ public class HttpTransportTest implements BundleActivator {
 		}
 
 		System.out.println("FETCHING " + services[0]);
-		remote.fetchService(services[0]);
 		final ServiceInterface test = (ServiceInterface) remote
-				.getFetchedService(services[0]);
+				.getRemoteService(services[0]);
 		new Thread() {
 			public void run() {
 				setName("HttpTestClient");

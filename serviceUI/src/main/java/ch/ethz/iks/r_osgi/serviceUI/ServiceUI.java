@@ -61,7 +61,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
-
 import ch.ethz.iks.r_osgi.RemoteServiceEvent;
 import ch.ethz.iks.r_osgi.RemoteServiceListener;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
@@ -280,9 +279,7 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 
 	private void fetchService(final RemoteServiceReference ref) {
 		try {
-			ServiceUIActivator.remote.fetchService(ref);
-			ServiceReference sref = ServiceUIActivator.remote
-					.getFetchedServiceReference(ref);
+			ServiceUIActivator.remote.getRemoteService(ref);
 			if (ref != null) {
 				String presentation = (String) ref
 						.getProperty(RemoteOSGiService.PRESENTATION);
