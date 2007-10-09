@@ -472,9 +472,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 					final Object[] handler = serviceDiscoveryHandlerTracker
 							.getServices();
-					for (int i = 0; i < handler.length; i++) {
-						((ServiceDiscoveryHandler) handler[i])
-								.unregisterService(reference);
+					if (handler != null) {
+						for (int i = 0; i < handler.length; i++) {
+							((ServiceDiscoveryHandler) handler[i])
+									.unregisterService(reference);
+						}
 					}
 
 					updateLeases(new LeaseUpdateMessage(
