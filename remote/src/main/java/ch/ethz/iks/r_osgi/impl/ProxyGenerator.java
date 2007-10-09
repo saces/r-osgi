@@ -45,11 +45,13 @@ import java.util.jar.Manifest;
 import java.util.zip.CRC32;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
+import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -115,7 +117,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 	private String smartProxyClassNameDashed;
 
-	private boolean isSmartProxyFromInterface;
+	private boolean addLifecycleSupport;
 
 	/**
 	 * the constants.
@@ -234,17 +236,37 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		// write the class injections
 		for (int i = 0; i < injectionNames.length; i++) {
 
-			final String name = injectionNames[i];
+			String name = injectionNames[i];
+			// the original smart proxy class is omitted
+			if (name.equals(smartProxyClassNameDashed + ".class")) {
+				continue;
+			}
 			final byte[] data = (byte[]) injections.get(name);
+			final byte[] rewritten;
+
+			// inner classes of the smart proxy have to be rewritten
+			// so that references to the original smart proxy class
+			// point to the generated proxy class
+			if (name.startsWith(smartProxyClassNameDashed)) {
+				final String rest = name.substring(smartProxyClassNameDashed
+						.length());
+				name = implName + rest;
+				ClassReader reader = new ClassReader(data);
+				ClassWriter writer = new ClassWriter(false);
+				reader.accept(new ClassRewriter(writer), true);
+				rewritten = writer.toByteArray();
+			} else {
+				rewritten = data;
+			}
 
 			crc = new CRC32();
-			crc.update(data, 0, data.length);
+			crc.update(rewritten, 0, rewritten.length);
 			jarEntry = new JarEntry(name);
-			jarEntry.setSize(data.length);
+			jarEntry.setSize(rewritten.length);
 			jarEntry.setCrc(crc.getValue());
 
 			out.putNextEntry(jarEntry);
-			out.write(data, 0, data.length);
+			out.write(rewritten, 0, rewritten.length);
 			out.flush();
 			out.closeEntry();
 		}
@@ -381,11 +403,17 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 			if ((access & ACC_INTERFACE) == 0) {
 				// we have a smart proxy
+				final Set ifaces = new HashSet();
+				ifaces.addAll(Arrays.asList(interfaces));
+				ifaces.add("org/osgi/framework/BundleActivator");
+				ifaces.add(serviceInterfaces);
 				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
-						"java/lang/Object", serviceInterfaces);
+						superName, (String[]) ifaces.toArray(new String[ifaces
+								.size()]));
+
 				if (java.util.Arrays.asList(interfaces).contains(
 						"ch/ethz/iks/r_osgi/SmartProxy")) {
-					isSmartProxyFromInterface = true;
+					addLifecycleSupport = true;
 				}
 			} else {
 				// we have an interface
@@ -531,7 +559,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 								"(Ljava/lang/String;Ljava/lang/Object;Ljava/util/Dictionary;)Lorg/osgi/framework/ServiceRegistration;");
 				method.visitInsn(POP);
 				method.visitLabel(l0);
-				if (isSmartProxyFromInterface) {
+				if (addLifecycleSupport) {
 					method.visitVarInsn(ALOAD, 0);
 					method.visitVarInsn(ALOAD, 1);
 					method.visitMethodInsn(INVOKEVIRTUAL, implName, "started",
@@ -556,7 +584,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitInsn(ACONST_NULL);
 				method.visitFieldInsn(PUTFIELD, implName, "endpoint", "L"
 						+ ENDPOINT_I + ";");
-				if (isSmartProxyFromInterface) {
+				if (addLifecycleSupport) {
 					method.visitVarInsn(ALOAD, 0);
 					method.visitVarInsn(ALOAD, 1);
 					method.visitMethodInsn(INVOKEVIRTUAL, implName, "stopped",
@@ -612,7 +640,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 */
 	public AnnotationVisitor visitAnnotation(final String desc,
 			final boolean visible) {
-		writer.visitAnnotation(desc, visible);
+		writer.visitAnnotation(checkRewriteDesc(desc), visible);
 		return null;
 	}
 
@@ -640,7 +668,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 */
 	public void visitInnerClass(final String name, final String outerName,
 			final String innerName, final int access) {
-		writer.visitInnerClass(name, outerName, innerName, access);
+		writer.visitInnerClass(checkRewrite(name), checkRewrite(outerName),
+				checkRewrite(innerName), access);
 	}
 
 	/**
@@ -660,7 +689,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 */
 	public FieldVisitor visitField(final int access, final String name,
 			final String desc, final String signature, final Object value) {
-		return writer.visitField(access, name, desc, signature, value);
+		if (name == "endpoint") {
+			return null;
+		}
+		return writer.visitField(access, name, checkRewriteDesc(desc),
+				signature, value);
 	}
 
 	/**
@@ -833,86 +866,77 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		writer.visitEnd();
 	}
 
+	private final class ClassRewriter extends ClassAdapter {
+
+		/**
+		 * 
+		 */
+		private ClassRewriter(ClassWriter writer) {
+			super(writer);
+		}
+
+		/**
+		 * 
+		 * @see org.objectweb.asm.ClassAdapter#visit(int, int, java.lang.String,
+		 *      java.lang.String, java.lang.String, java.lang.String[])
+		 */
+		public void visit(final int version, final int access,
+				final String name, final String signature,
+				final String superName, final String[] interfaces) {
+			// rewriting
+			super.cv.visit(version, access, checkRewrite(name), signature,
+					checkRewrite(superName), interfaces);
+		}
+
+		/**
+		 * 
+		 * @see org.objectweb.asm.ClassAdapter#visitField(int, java.lang.String,
+		 *      java.lang.String, java.lang.String, java.lang.Object)
+		 */
+		public FieldVisitor visitField(final int access, final String name,
+				final String desc, final String signature, final Object value) {
+			super.cv.visitField(access, checkRewrite(name),
+					checkRewriteDesc(desc), signature, value);
+			return null;
+		}
+
+		/**
+		 * 
+		 * @see org.objectweb.asm.ClassAdapter#visitInnerClass(java.lang.String,
+		 *      java.lang.String, java.lang.String, int)
+		 */
+		public void visitInnerClass(final String name, final String outerName,
+				final String innerName, final int access) {
+			super.cv.visitInnerClass(checkRewrite(name),
+					checkRewrite(outerName), checkRewrite(innerName), access);
+		}
+
+		/**
+		 * 
+		 * @see org.objectweb.asm.ClassAdapter#visitMethod(int,
+		 *      java.lang.String, java.lang.String, java.lang.String,
+		 *      java.lang.String[])
+		 */
+		public MethodVisitor visitMethod(final int access, final String name,
+				final String desc, final String signature,
+				final String[] exceptions) {
+			return new MethodRewriter(super.cv.visitMethod(access, name,
+					checkRewriteDesc(desc), signature, exceptions));
+		}
+
+	}
+
 	/**
 	 * 
 	 * @author Jan S. Rellermeyer, ETH Zurich
 	 */
-	private final class MethodRewriter implements MethodVisitor {
-		/**
-		 * 
-		 */
-		private MethodVisitor methodWriter;
-
+	private final class MethodRewriter extends MethodAdapter {
 		/**
 		 * @param methodWriter
 		 *            methodWriter
 		 */
 		private MethodRewriter(final MethodVisitor methodWriter) {
-			this.methodWriter = methodWriter;
-		}
-
-		/**
-		 * @return AnnotationVisitor
-		 * @see org.objectweb.asm.MethodVisitor#visitAnnotationDefault()
-		 */
-		public AnnotationVisitor visitAnnotationDefault() {
-			methodWriter.visitAnnotationDefault();
-			return null;
-		}
-
-		/**
-		 * @param parameter
-		 *            parameter
-		 * @param desc
-		 *            desc
-		 * @param visible
-		 *            visible
-		 * @return AnnotationVisitor
-		 * @see org.objectweb.asm.MethodVisitor#visitParameterAnnotation(int,
-		 *      java.lang.String, boolean)
-		 */
-		public AnnotationVisitor visitParameterAnnotation(final int parameter,
-				final String desc, final boolean visible) {
-			methodWriter.visitParameterAnnotation(parameter, desc, visible);
-			return null;
-		}
-
-		/**
-		 * @see org.objectweb.asm.MethodVisitor#visitCode()
-		 */
-		public void visitCode() {
-			methodWriter.visitCode();
-		}
-
-		/**
-		 * @param opcode
-		 *            opcode
-		 * @see org.objectweb.asm.MethodVisitor#visitInsn(int)
-		 */
-		public void visitInsn(final int opcode) {
-			methodWriter.visitInsn(opcode);
-		}
-
-		/**
-		 * @param opcode
-		 *            opcode
-		 * @param operand
-		 *            operand
-		 * @see org.objectweb.asm.MethodVisitor#visitIntInsn(int, int)
-		 */
-		public void visitIntInsn(final int opcode, final int operand) {
-			methodWriter.visitIntInsn(opcode, operand);
-		}
-
-		/**
-		 * @param opcode
-		 *            opcode
-		 * @param var
-		 *            var
-		 * @see org.objectweb.asm.MethodVisitor#visitVarInsn(int, int)
-		 */
-		public void visitVarInsn(final int opcode, final int var) {
-			methodWriter.visitVarInsn(opcode, var);
+			super(methodWriter);
 		}
 
 		/**
@@ -923,8 +947,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		 * @see org.objectweb.asm.MethodVisitor#visitTypeInsn(int,
 		 *      java.lang.String)
 		 */
-		public void visitTypeInsn(final int opcode, final String desc) {
-			methodWriter.visitTypeInsn(opcode, desc);
+		public void visitTypeInsn(final int opcode, String desc) {
+			super.mv.visitTypeInsn(opcode, checkRewrite(desc));
 		}
 
 		/**
@@ -941,11 +965,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		 */
 		public void visitFieldInsn(final int opcode, final String owner,
 				final String name, final String desc) {
-			if (owner.equals(smartProxyClassNameDashed)) {
-				methodWriter.visitFieldInsn(opcode, implName, name, desc);
-			} else {
-				methodWriter.visitFieldInsn(opcode, owner, name, desc);
-			}
+			super.mv.visitFieldInsn(opcode, checkRewrite(owner), name,
+					checkRewriteDesc(desc));
 		}
 
 		/**
@@ -962,87 +983,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		 */
 		public void visitMethodInsn(final int opcode, final String owner,
 				final String name, final String desc) {
-			if (opcode == INVOKEVIRTUAL
-					&& owner.replace('/', '.').equals(smartProxyClassName)) {
-				methodWriter.visitMethodInsn(opcode, implName, name, desc);
-				return;
-			}
-			methodWriter.visitMethodInsn(opcode, owner, name, desc);
-		}
-
-		/**
-		 * @param opcode
-		 *            opcode
-		 * @param label
-		 *            label
-		 * @see org.objectweb.asm.MethodVisitor#visitJumpInsn(int,
-		 *      org.objectweb.asm.Label)
-		 */
-		public void visitJumpInsn(final int opcode, final Label label) {
-			methodWriter.visitJumpInsn(opcode, label);
-		}
-
-		/**
-		 * @param label
-		 *            label
-		 * @see org.objectweb.asm.MethodVisitor
-		 *      #visitLabel(org.objectweb.asm.Label)
-		 */
-		public void visitLabel(final Label label) {
-			methodWriter.visitLabel(label);
-		}
-
-		/**
-		 * @param cst
-		 *            cst
-		 * @see org.objectweb.asm.MethodVisitor#visitLdcInsn(java.lang.Object)
-		 */
-		public void visitLdcInsn(final Object cst) {
-			methodWriter.visitLdcInsn(cst);
-		}
-
-		/**
-		 * @param var
-		 *            var
-		 * @param increment
-		 *            increment
-		 * @see org.objectweb.asm.MethodVisitor#visitIincInsn(int, int)
-		 */
-		public void visitIincInsn(final int var, final int increment) {
-			methodWriter.visitIincInsn(var, increment);
-		}
-
-		/**
-		 * @param min
-		 *            min
-		 * @param max
-		 *            max
-		 * @param dflt
-		 *            dflt
-		 * @param labels
-		 *            labels
-		 * @see org.objectweb.asm.MethodVisitor#visitTableSwitchInsn(int, int,
-		 *      org.objectweb.asm.Label, org.objectweb.asm.Label[])
-		 */
-		public void visitTableSwitchInsn(final int min, final int max,
-				final Label dflt, final Label[] labels) {
-			methodWriter.visitTableSwitchInsn(min, max, dflt, labels);
-		}
-
-		/**
-		 * @param dflt
-		 *            dflt
-		 * @param keys
-		 *            keys
-		 * @param labels
-		 *            labels
-		 * @see org.objectweb.asm.MethodVisitor
-		 *      #visitLookupSwitchInsn(org.objectweb.asm.Label, int[],
-		 *      org.objectweb.asm.Label[])
-		 */
-		public void visitLookupSwitchInsn(final Label dflt, final int[] keys,
-				final Label[] labels) {
-			methodWriter.visitLookupSwitchInsn(dflt, keys, labels);
+			// rewriting
+			super.mv.visitMethodInsn(opcode, checkRewrite(owner), name,
+					checkRewriteDesc(desc));
 		}
 
 		/**
@@ -1054,26 +997,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		 *      #visitMultiANewArrayInsn(java.lang.String, int)
 		 */
 		public void visitMultiANewArrayInsn(final String desc, final int dims) {
-			methodWriter.visitMultiANewArrayInsn(desc, dims);
-		}
-
-		/**
-		 * @param start
-		 *            start
-		 * @param end
-		 *            end
-		 * @param handler
-		 *            handler
-		 * @param type
-		 *            type
-		 * @see org.objectweb.asm.MethodVisitor
-		 *      #visitTryCatchBlock(org.objectweb.asm.Label,
-		 *      org.objectweb.asm.Label, org.objectweb.asm.Label,
-		 *      java.lang.String)
-		 */
-		public void visitTryCatchBlock(final Label start, final Label end,
-				final Label handler, final String type) {
-			methodWriter.visitTryCatchBlock(start, end, handler, type);
+			// rewriting
+			super.mv.visitMultiANewArrayInsn(checkRewrite(desc), dims);
 		}
 
 		/**
@@ -1097,31 +1022,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		public void visitLocalVariable(final String name, final String desc,
 				final String signature, final Label start, final Label end,
 				final int index) {
-			methodWriter.visitLocalVariable(name, desc, signature, start, end,
-					index);
-		}
-
-		/**
-		 * @param line
-		 *            line
-		 * @param start
-		 *            start
-		 * @see org.objectweb.asm.MethodVisitor#visitLineNumber(int,
-		 *      org.objectweb.asm.Label)
-		 */
-		public void visitLineNumber(final int line, final Label start) {
-			methodWriter.visitLineNumber(line, start);
-		}
-
-		/**
-		 * @param maxStack
-		 *            maxStack
-		 * @param maxLocals
-		 *            maxLocals
-		 * @see org.objectweb.asm.MethodVisitor#visitMaxs(int, int)
-		 */
-		public void visitMaxs(final int maxStack, final int maxLocals) {
-			methodWriter.visitMaxs(maxStack, maxLocals);
+			// rewriting
+			super.mv.visitLocalVariable(name, checkRewriteDesc(desc),
+					signature, start, end, index);
 		}
 
 		/**
@@ -1134,26 +1037,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		 */
 		public AnnotationVisitor visitAnnotation(final String desc,
 				final boolean visible) {
-			methodWriter.visitAnnotation(desc, visible);
+			// rewrite
+			super.mv.visitAnnotation(checkRewriteDesc(desc), visible);
 			return null;
 		}
 
-		/**
-		 * @param attr
-		 *            attr
-		 * @see org.objectweb.asm.MethodVisitor
-		 *      #visitAttribute(org.objectweb.asm.Attribute)
-		 */
-		public void visitAttribute(final Attribute attr) {
-			methodWriter.visitAttribute(attr);
-		}
-
-		/**
-		 * @see org.objectweb.asm.MethodVisitor#visitEnd()
-		 */
-		public void visitEnd() {
-			methodWriter.visitEnd();
-		}
 	}
 
 	/**
@@ -1183,5 +1071,29 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			buffer.append(chars[i]);
 		}
 		return buffer.toString();
+	}
+
+	private String checkRewrite(String clazzName) {
+		if (clazzName == null) {
+			return null;
+		}
+		if (clazzName.startsWith(smartProxyClassNameDashed)) {
+			final String rest = clazzName.substring(smartProxyClassNameDashed
+					.length());
+			return implName + rest;
+		} else {
+			return clazzName;
+		}
+	}
+
+	private String checkRewriteDesc(final String desc) {
+		String result = desc;
+		int i = result.indexOf(smartProxyClassNameDashed);
+		while (i > 0) {
+			int j = i + smartProxyClassNameDashed.length();
+			result = result.substring(0, i) + implName + result.substring(j);
+			i = result.indexOf(smartProxyClassNameDashed, j);
+		}
+		return result;
 	}
 }
