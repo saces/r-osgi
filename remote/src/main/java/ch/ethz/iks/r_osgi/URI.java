@@ -1,9 +1,13 @@
 package ch.ethz.iks.r_osgi;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public class URI {
+public class URI implements Serializable {
 
 	private String scheme;
 
@@ -44,6 +48,10 @@ public class URI {
 		System.out.println(uri1.resolve("#55"));
 		System.out.println();
 		System.out.println(uri1.equals("http://127.0.0.1:8080"));
+		URI uri3 = new URI("http://127.0.0.1:8080");
+		System.out.println(uri3.equals(uri1));
+		System.out.println(uri3.hashCode());
+		System.out.println(uri1.hashCode());
 	}
 
 	private void parse(final String uriString) throws UnknownHostException {
@@ -92,7 +100,7 @@ public class URI {
 	}
 
 	public int hashCode() {
-		return scheme.hashCode() + host.hashCode() + port + fragment.hashCode();
+		return scheme.hashCode() + host.hashCode() + port + (fragment != null ? fragment.hashCode() : 0);
 	}
 
 	public String toString() {
@@ -105,11 +113,21 @@ public class URI {
 			return equals(URI.create((String) other));
 		} else if (other instanceof URI) {
 			final URI otherURI = (URI) other;
-			return scheme.equals(otherURI.scheme) && host.equals(otherURI.host)
+			return scheme.equals(otherURI.scheme)
+					&& host.equals(otherURI.host)
 					&& port == otherURI.port
-					&& ((fragment == null && otherURI.fragment == null) || fragment.equals(otherURI.fragment));
+					&& ((fragment == null && otherURI.fragment == null) || fragment
+							.equals(otherURI.fragment));
 		} else {
 			return false;
 		}
+	}
+
+	private void writeObject(final ObjectOutputStream out) throws IOException {
+		out.writeUTF(toString());
+	}
+
+	private void readObject(final ObjectInputStream in) throws IOException {
+		parse(in.readUTF());
 	}
 }

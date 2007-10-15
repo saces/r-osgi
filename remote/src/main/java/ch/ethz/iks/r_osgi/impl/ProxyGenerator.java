@@ -247,7 +247,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			// inner classes of the smart proxy have to be rewritten
 			// so that references to the original smart proxy class
 			// point to the generated proxy class
-			if (name.startsWith(smartProxyClassNameDashed)) {
+			if (smartProxyClassNameDashed != null
+					&& name.startsWith(smartProxyClassNameDashed)) {
 				final String rest = name.substring(smartProxyClassNameDashed
 						.length());
 				name = implName + rest;
@@ -1074,6 +1075,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	}
 
 	private String checkRewrite(String clazzName) {
+		if (smartProxyClassNameDashed == null) {
+			return clazzName;
+		}
 		if (clazzName == null) {
 			return null;
 		}
@@ -1087,6 +1091,12 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	}
 
 	private String checkRewriteDesc(final String desc) {
+		if (smartProxyClassNameDashed == null) {
+			return desc;
+		}
+		if (desc == null) {
+			return null;
+		}
 		String result = desc;
 		int i = result.indexOf(smartProxyClassNameDashed);
 		while (i > 0) {
