@@ -1,6 +1,6 @@
 package ch.ethz.iks.r_osgi.service_discovery;
 
-import java.net.URI;
+import ch.ethz.iks.r_osgi.URI;
 import java.util.Dictionary;
 
 public interface ServiceDiscoveryListener {

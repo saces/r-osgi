@@ -31,7 +31,6 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +52,7 @@ import org.osgi.service.event.EventHandler;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceEvent;
@@ -616,10 +616,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 				.get(endpoint.toString());
 		if (test != null) {
 			return test.getRemoteReferences(null);
-		} else {
-			// TODO: remove debug output
-			System.out.println("REQUESTED CONNECTION TO " + endpoint);
-			System.out.println("KNOWN CHANNELS " + channels);
 		}
 
 		try {
@@ -919,6 +915,15 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	public void createEndpoint(final NetworkChannel channel) {
 		ChannelEndpoint ep = new ChannelEndpointImpl(channel);
-		System.err.println("ACCEPTED NEW CHANNEL " + ep);
+	}
+
+	public URI getLocalPeer() {
+		final ServiceReference ref = networkChannelFactoryTracker
+				.getServiceReference();
+		if (ref == null) {
+			return null;
+		}
+		NetworkChannelFactory factory = (NetworkChannelFactory) networkChannelFactoryTracker.getService(ref);
+		return factory.getURI();
 	}
 }

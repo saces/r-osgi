@@ -1,6 +1,5 @@
 package ch.ethz.iks.r_osgi.service_discovery.slp;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -8,7 +7,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
@@ -16,6 +14,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryHandler;
 import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryListener;
@@ -177,7 +176,7 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
 					.getProperty(ServiceDiscoveryListener.SERVICE_INTERFACES_PROPERTY);
 			if (interfaces == null) {
 				hitList.add(refs[i]);
-				break;				
+				break;
 			}
 			for (int j = 0; j < interfaces.length; j++) {
 				if (interfaces[j].equals(serviceInterfaceName)) {

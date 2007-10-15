@@ -31,11 +31,11 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.util.SmartSerializer;
 

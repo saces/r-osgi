@@ -32,7 +32,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
@@ -49,6 +48,7 @@ import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.log.LogService;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
@@ -847,7 +847,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		public void handleEvent(final Event event) {
 			try {
-				send(new RemoteEventMessage(event, getRemoteEndpoint()));
+				send(new RemoteEventMessage(event, getLocalEndpoint()));
 				if (RemoteOSGiServiceImpl.MSG_DEBUG) {
 					RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 							"Forwarding Event " + event);

@@ -1,7 +1,7 @@
 package ch.ethz.iks.r_osgi;
 
 import java.io.Serializable;
-import java.net.URI;
+import ch.ethz.iks.r_osgi.URI;
 
 public interface RemoteServiceReference extends Serializable {
 

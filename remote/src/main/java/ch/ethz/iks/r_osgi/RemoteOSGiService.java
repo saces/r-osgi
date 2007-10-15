@@ -28,12 +28,9 @@
  */
 package ch.ethz.iks.r_osgi;
 
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.UnknownHostException;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.types.Timestamp;
 
 /**
@@ -231,5 +228,7 @@ public interface RemoteOSGiService {
 	public void removeRedundantEndpoint(URI service, URI redundant);
 
 	public void setEndpointPolicy(URI service, int policy);
+	
+	public URI getLocalPeer();
 
 }

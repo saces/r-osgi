@@ -29,7 +29,7 @@
 package ch.ethz.iks.r_osgi.channels;
 
 import java.io.IOException;
-import java.net.URI;
+import ch.ethz.iks.r_osgi.URI;
 
 import ch.ethz.iks.r_osgi.Remoting;
 
@@ -69,4 +69,5 @@ public interface NetworkChannelFactory {
 	
 	void deactivate(final Remoting remoting) throws IOException;
 
+	URI getURI();
 }

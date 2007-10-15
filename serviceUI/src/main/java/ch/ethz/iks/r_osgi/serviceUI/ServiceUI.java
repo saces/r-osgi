@@ -52,15 +52,12 @@ import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.ItemListener;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteServiceEvent;
 import ch.ethz.iks.r_osgi.RemoteServiceListener;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
@@ -237,11 +234,10 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 												super.setVisible(visible);
 											}
 										}.setVisible(true);
-
 									} catch (RemoteOSGiException e1) {
 										e1.printStackTrace();
-									} catch (URISyntaxException e1) {
-										e1.printStackTrace();
+									} catch (UnknownHostException e2) {
+										e2.printStackTrace();
 									}
 									setVisible(false);
 								}

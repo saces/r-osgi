@@ -1,6 +1,5 @@
 package ch.ethz.iks.r_osgi.sample.client;
 
-import java.net.URI;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import org.osgi.framework.BundleActivator;
@@ -11,6 +10,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteServiceEvent;
 import ch.ethz.iks.r_osgi.RemoteServiceListener;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;

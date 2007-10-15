@@ -36,8 +36,8 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URI;
 import org.osgi.service.log.LogService;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
@@ -54,7 +54,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 
 	static final String PROTOCOL = "r-osgi";
 	private Remoting remoting;
-	private Thread thread;
+	private TCPThread thread;
 
 	/**
 	 * get a new connection.
@@ -92,6 +92,12 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	public void deactivate(final Remoting remoting) throws IOException {
 		thread.interrupt();
 		this.remoting = null;
+	}
+
+	public URI getURI() {
+		return URI.create(PROTOCOL + "://"
+				+ thread.socket.getInetAddress().getHostName() + ":"
+				+ RemoteOSGiServiceImpl.R_OSGI_PORT);
 	}
 
 	/**
@@ -156,7 +162,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			}
 			this.endpoint = endpoint;
 			this.remoteEndpoint = endpointURI;
-			open(new Socket(InetAddress.getByName(endpointURI.getHost()), port));
+			open(new Socket(endpointURI.getHost(), port));
 			new ReceiverThread().start();
 		}
 

@@ -1,17 +1,15 @@
 package ch.ethz.iks.r_osgi.sample.http.client;
 
-import java.net.InetAddress;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Hashtable;
-
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
@@ -64,7 +62,8 @@ public class HttpTransportTest implements BundleActivator {
 			System.out.println("============================================");
 			System.out.println("CONFIGURED FOR TESTS IN THE ETH NETWORK ... ");
 			System.out.println("============================================");
-			services = remote.connect(new URI("https://flowsgi.inf.ethz.ch:8443"));
+			services = remote.connect(new URI(
+					"https://flowsgi.inf.ethz.ch:8443"));
 			System.out.println("CONNECTED. AVAILABLE SERVICES ARE "
 					+ Arrays.asList(services));
 		}

@@ -28,11 +28,9 @@
  */
 package ch.ethz.iks.r_osgi.channels;
 
-import java.net.URI;
 import java.util.Dictionary;
-
 import org.osgi.framework.ServiceRegistration;
-
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 
 /**

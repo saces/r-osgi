@@ -1,12 +1,9 @@
 package ch.ethz.iks.r_osgi.service_discovery.slp;
 
-import java.net.URI;
 import java.util.Dictionary;
-import java.util.Hashtable;
-
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
-
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.slp.Advertiser;
 import ch.ethz.iks.slp.ServiceLocationException;
 import ch.ethz.iks.slp.ServiceURL;

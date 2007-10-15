@@ -1,11 +1,9 @@
 package ch.ethz.iks.r_osgi.impl;
 
-import java.net.URI;
 import java.util.Dictionary;
 import java.util.List;
-
 import org.osgi.framework.ServiceRegistration;
-
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
