@@ -36,6 +36,9 @@ class EndpointMultiplexer implements ChannelEndpoint {
 	}
 
 	public void setPolicy(final URI service, int policy) {
+		System.err.println();
+		System.err.println("SETTING POLICY FOR SERVICE " + service + " TO "
+				+ policy);
 		policies.put(service.toString(), new Integer(policy));
 	}
 
@@ -79,8 +82,6 @@ class EndpointMultiplexer implements ChannelEndpoint {
 
 	public Object invokeMethod(String serviceURI, String methodSignature,
 			Object[] args) throws Throwable {
-		System.out.println("MULTIPLEXER: invoke " + serviceURI + " - "
-				+ methodSignature);
 		final Mapping mapping = (Mapping) mappings.get(serviceURI);
 		if (mapping == null) {
 			return primary.invokeMethod(serviceURI, methodSignature, args);
@@ -100,9 +101,6 @@ class EndpointMultiplexer implements ChannelEndpoint {
 						if (!primary.isConnected()) {
 							throw new RemoteOSGiException("channel went down");
 						}
-						System.out.println("primary is " + primary);
-						System.out.println("mapping is "
-								+ mapping.getMapped(primary));
 						return primary.invokeMethod(mapping.getMapped(primary),
 								methodSignature, args);
 					} catch (RemoteOSGiException e) {
@@ -174,8 +172,6 @@ class EndpointMultiplexer implements ChannelEndpoint {
 		}
 
 		private String getMapped(final ChannelEndpoint endpoint) {
-			//System.out.println("REQUESTED " + endpoint);
-			//System.out.println("HAVE " + uriMapping);
 			return (String) uriMapping.get(endpoint);
 		}
 
@@ -188,8 +184,15 @@ class EndpointMultiplexer implements ChannelEndpoint {
 		}
 
 		private ChannelEndpoint getAny() {
-			return (ChannelEndpoint) redundant.get(random.nextInt(redundant
-					.size()));
+			System.err.println();
+			System.err.println("RANDOMIZING...");
+			System.err.println();
+			int ran = random.nextInt(redundant.size() + 1);
+			if (ran == 0) {
+				return primary;
+			} else {
+				return (ChannelEndpoint) redundant.get(ran - 1);
+			}
 		}
 
 	}
