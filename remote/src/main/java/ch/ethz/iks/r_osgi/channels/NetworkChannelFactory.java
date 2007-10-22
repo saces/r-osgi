@@ -66,8 +66,7 @@ public interface NetworkChannelFactory {
 			final URI endpointURI) throws IOException;
 
 	void activate(final Remoting remoting) throws IOException;
-	
+
 	void deactivate(final Remoting remoting) throws IOException;
 
-	URI getURI();
 }

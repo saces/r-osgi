@@ -735,21 +735,21 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	public void addRedundantEndpoint(URI service, URI redundant) {
 		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
 				.get(service.toString());
-		multiplexer.addEndpoint((ChannelEndpoint) channels
+		multiplexer.addEndpoint(service, redundant, (ChannelEndpoint) channels
 				.get(getChannelURI(redundant)));
 	}
 
 	public void removeRedundantEndpoint(URI service, URI redundant) {
 		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
 				.get(service.toString());
-		multiplexer.removeEndpoint((ChannelEndpoint) channels
-				.get(getChannelURI(redundant)));
+		multiplexer.removeEndpoint(service, redundant,
+				(ChannelEndpoint) channels.get(getChannelURI(redundant)));
 	}
 
 	public void setEndpointPolicy(URI service, int policy) {
 		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
 				.get(service.toString());
-		multiplexer.setPolicy(policy);
+		multiplexer.setPolicy(service, policy);
 
 	}
 
@@ -914,16 +914,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	}
 
 	public void createEndpoint(final NetworkChannel channel) {
-		ChannelEndpoint ep = new ChannelEndpointImpl(channel);
+		new ChannelEndpointImpl(channel);
 	}
 
 	public URI getLocalPeer() {
-		final ServiceReference ref = networkChannelFactoryTracker
-				.getServiceReference();
-		if (ref == null) {
-			return null;
-		}
-		NetworkChannelFactory factory = (NetworkChannelFactory) networkChannelFactoryTracker.getService(ref);
-		return factory.getURI();
+		// TODO Auto-generated method stub
+		return null;
 	}
+
 }

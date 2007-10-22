@@ -122,5 +122,7 @@ public interface ChannelEndpoint {
 	 * dispose of the channel endpoint.
 	 */
 	void dispose();
+	
+	boolean isConnected();
 
 }

@@ -295,6 +295,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	public Object invokeMethod(final String service,
 			final String methodSignature, final Object[] args) throws Throwable {
+		if (networkChannel == null) {
+			throw new RemoteOSGiException("Network channel went down");
+		}
 		final InvokeMethodMessage invokeMsg = new InvokeMethodMessage(URI
 				.create(service), methodSignature, args);
 
@@ -330,7 +333,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		for (int i = 0; i < bundles.length; i++) {
 			try {
 				if (bundles[i].getState() != Bundle.UNINSTALLED) {
-					bundles[i].uninstall();
+					// bundles[i].uninstall();
 				}
 			} catch (Throwable t) {
 				// don't care
@@ -377,7 +380,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @return
 	 */
 	RemoteServiceReference[] getRemoteReferences(final Filter filter) {
-		System.out.println("LOOKING FOR SERVICES ON " + networkChannel.getRemoteEndpoint() + " (local=" + networkChannel.getLocalEndpoint() + ")");		
+		System.out.println("LOOKING FOR SERVICES ON "
+				+ networkChannel.getRemoteEndpoint() + " (local="
+				+ networkChannel.getLocalEndpoint() + ")");
 		final List result = new ArrayList();
 		final RemoteServiceReferenceImpl[] refs = (RemoteServiceReferenceImpl[]) remoteServices
 				.values().toArray(
@@ -465,7 +470,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						service, deliv);
 
 				// TODO: remove debug output
+				System.out.println();
 				System.out.println(bundleLocation);
+				System.out.println();
 
 				// install the proxy bundle
 				final Bundle bundle = RemoteOSGiServiceImpl.context
@@ -607,6 +614,20 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		return timeOffset;
 	}
 
+	private RemoteServiceRegistration getService(final String serviceID) {
+		final RemoteServiceRegistration reg = RemoteOSGiServiceImpl
+				.getService(serviceID);
+
+		if (reg == null) {
+			throw new IllegalStateException("Could not get " + serviceID);
+		}
+		if (reg instanceof ProxiedServiceRegistration) {
+			localServices.put(serviceID, reg);
+		}
+		return reg;
+
+	}
+
 	private RemoteServiceReference[] processLease(LeaseMessage lease) {
 		final RemoteServiceReferenceImpl[] refs = lease.getServices(this);
 		for (short i = 0; i < refs.length; i++) {
@@ -687,10 +708,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final LeaseMessage lease = (LeaseMessage) msg;
 			processLease(lease);
 
-			// TODO: remove debug output
-			System.out.println(toString() + " REPLYING WITH LEASE CONTAINING "
-					+ RemoteOSGiServiceImpl.getServices());
-
 			return lease.replyWith(RemoteOSGiServiceImpl.getServices(),
 					RemoteOSGiServiceImpl.getTopics());
 		}
@@ -699,18 +716,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				final FetchServiceMessage fetchReq = (FetchServiceMessage) msg;
 				final String serviceID = fetchReq.getServiceID();
 
-				final RemoteServiceRegistration reg = RemoteOSGiServiceImpl
-						.getService(fetchReq.getServiceID());
-
-				if (reg == null) {
-					throw new IllegalStateException("Could not get "
-							+ fetchReq.getServiceID());
-				}
+				final RemoteServiceRegistration reg = getService(serviceID);
 
 				if (reg instanceof ProxiedServiceRegistration) {
-
-					localServices.put(serviceID, reg);
-
 					RemoteOSGiMessage m = ((ProxiedServiceRegistration) reg)
 							.deliver(fetchReq);
 
@@ -719,6 +727,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					return new DeliverBundleMessage(fetchReq,
 							(BundledServiceRegistration) reg);
 				}
+
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
 			}
@@ -786,12 +795,19 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		case RemoteOSGiMessageImpl.INVOKE_METHOD: {
 			final InvokeMethodMessage invMsg = (InvokeMethodMessage) msg;
 			try {
-				final ProxiedServiceRegistration serv = (ProxiedServiceRegistration) localServices
+				ProxiedServiceRegistration serv = (ProxiedServiceRegistration) localServices
 						.get(invMsg.getServiceID());
 				if (serv == null) {
-					throw new IllegalStateException("Could not get "
-							+ invMsg.getServiceID() + ", known services "
-							+ localServices);
+					final RemoteServiceRegistration reg = getService(invMsg
+							.getServiceID());
+					if (reg == null
+							|| !(reg instanceof ProxiedServiceRegistration)) {
+						throw new IllegalStateException(toString()
+								+ "Could not get " + invMsg.getServiceID()
+								+ ", known services " + localServices);
+					} else {
+						serv = (ProxiedServiceRegistration) reg;
+					}
 				}
 
 				// get the invocation arguments and the local method
@@ -856,6 +872,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public boolean isConnected() {
+		return networkChannel != null;
 	}
 
 	public String toString() {
