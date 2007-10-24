@@ -365,8 +365,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	public Dictionary getProperties(final String service) {
 		// TODO: remove debug output
-		// System.out.println("requested properties for " + url);
-		// System.out.println("having references " + remoteServices);
+		System.out.println("requested properties for " + service);
+		System.out.println("having references " + remoteServices);
 		return getRemoteReference(service).getProperties();
 	}
 
@@ -479,7 +479,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						.installBundle("file:" + bundleLocation);
 
 				// store the bundle for state updates and cleanup
-				proxyBundles.put(service.toString(), bundle);
+				proxyBundles.put(service.getFragment(), bundle);
 
 				// start the bundle
 				bundle.start();
@@ -749,7 +749,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						(String[]) suMsg.getContent()[0], serviceID,
 						(Dictionary) suMsg.getContent()[1], this);
 
-				remoteServices.put(serviceID, ref);
+				remoteServices.put(getRemoteEndpoint().resolve("#" + serviceID)
+						.toString(), ref);
 
 				RemoteOSGiServiceImpl
 						.notifyRemoteServiceListeners(new RemoteServiceEvent(
@@ -781,13 +782,23 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						be.printStackTrace();
 					}
 					proxiedServices.remove(serviceID);
+					remoteServices.remove(getRemoteEndpoint().resolve(
+							"#" + serviceID).toString());
+				} else {
+					System.err.println("WARNING: FOUND NO PROXY BUNDLE FOR "
+							+ serviceID);
+					System.err.println("REGISTERED PROXIES: "
+							+ proxyBundles.toString());
 				}
 				final RemoteServiceReference ref = (RemoteServiceReference) remoteServices
 						.remove(getRemoteEndpoint().resolve("#" + serviceID)
 								.toString());
-				RemoteOSGiServiceImpl
-						.notifyRemoteServiceListeners(new RemoteServiceEvent(
-								RemoteServiceEvent.UNREGISTERING, ref));
+				// FIXME: why is this null?
+				if (ref != null) {
+					RemoteOSGiServiceImpl
+							.notifyRemoteServiceListeners(new RemoteServiceEvent(
+									RemoteServiceEvent.UNREGISTERING, ref));
+				}
 				return null;
 			}
 			}

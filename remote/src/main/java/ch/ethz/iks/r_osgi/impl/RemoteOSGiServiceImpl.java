@@ -375,8 +375,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							+ "=*)"), new ServiceTrackerCustomizer() {
 
 				public Object addingService(final ServiceReference reference) {
-					System.out.println("adding " + reference);
-
+					// FIXME: Surrogates have to be monitored separately!!!
 					final ServiceReference service = Arrays.asList(
 							(String[]) reference
 									.getProperty(Constants.OBJECTCLASS))
@@ -467,9 +466,19 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 				public void removedService(ServiceReference reference,
 						Object service) {
-					final RemoteServiceRegistration reg = (RemoteServiceRegistration) serviceRegistrations
-							.remove(reference);
+					
+					final ServiceReference sref = Arrays.asList(
+							(String[]) reference
+									.getProperty(Constants.OBJECTCLASS))
+							.contains(SurrogateRegistration.class.getName()) ? (ServiceReference) reference
+							.getProperty(SurrogateRegistration.SERVICE_REFERENCE)
+							: reference;
 
+					final RemoteServiceRegistration reg = (RemoteServiceRegistration) serviceRegistrations
+							.remove(sref);
+
+					System.err.println("SERVICE REMOVED " + reference + " REMOTE_REG IS " + reg);
+					
 					final Object[] handler = serviceDiscoveryHandlerTracker
 							.getServices();
 					if (handler != null) {

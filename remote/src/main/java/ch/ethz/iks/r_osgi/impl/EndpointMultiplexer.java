@@ -94,8 +94,13 @@ class EndpointMultiplexer implements ChannelEndpoint {
 				final int policy = p.intValue();
 				if (policy == LOADBALANCING_ANY) {
 					final ChannelEndpoint endpoint = mapping.getAny();
-					return endpoint.invokeMethod(mapping.getMapped(endpoint),
-							methodSignature, args);
+					try {
+						return endpoint.invokeMethod(mapping
+								.getMapped(endpoint), methodSignature, args);
+					} catch (RemoteOSGiException e) {
+						// TODO: do the failover
+						throw e;
+					}
 				} else {
 					try {
 						if (!primary.isConnected()) {
@@ -184,9 +189,6 @@ class EndpointMultiplexer implements ChannelEndpoint {
 		}
 
 		private ChannelEndpoint getAny() {
-			System.err.println();
-			System.err.println("RANDOMIZING...");
-			System.err.println();
 			int ran = random.nextInt(redundant.size() + 1);
 			if (ran == 0) {
 				return primary;
