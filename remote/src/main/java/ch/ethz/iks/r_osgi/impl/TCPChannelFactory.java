@@ -199,7 +199,12 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			this.localEndpoint = URI.create(getProtocol() + "://"
 					+ socket.getLocalAddress().getHostName() + ":"
 					+ socket.getLocalPort());
-			this.socket.setKeepAlive(true);
+			try {
+				this.socket.setKeepAlive(true);				
+			} catch (Throwable t) {
+				// for 1.2 VMs that do not support the setKeepAlive
+			}
+			this.socket.setTcpNoDelay(true);
 			this.output = new ObjectOutputStream(new BufferedOutputStream(
 					socket.getOutputStream()));
 			output.flush();

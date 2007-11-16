@@ -31,14 +31,10 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.URI;
 import java.util.Arrays;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
-import ch.ethz.iks.r_osgi.RemoteOSGiService;
-import ch.ethz.iks.util.SmartSerializer;
 
 /**
  * <p>
