@@ -94,7 +94,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 	/**
 	 * the services provided by the OSGi framework holding the remote channel
-	 * endpoint. List of RemoteServiceReferences
+	 * endpoint. Map of service URI -> RemoteServiceReferences
 	 */
 	private Map remoteServices = new HashMap(0);
 
@@ -266,11 +266,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				receiveQueue.notifyAll();
 				return;
 			} else {
-				RemoteOSGiMessage reply = handleMessage(msg);
+				final RemoteOSGiMessage reply = handleMessage(msg);
 				if (reply != null) {
 					try {
 						networkChannel.sendMessage(reply);
 					} catch (IOException e) {
+						// TODO: remove debug output
 						e.printStackTrace();
 					}
 				}
@@ -364,9 +365,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @category ChannelEndpoint
 	 */
 	public Dictionary getProperties(final String service) {
-		// TODO: remove debug output
-		System.out.println("requested properties for " + service);
-		System.out.println("having references " + remoteServices);
 		return getRemoteReference(service).getProperties();
 	}
 
@@ -380,14 +378,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @return
 	 */
 	RemoteServiceReference[] getRemoteReferences(final Filter filter) {
-		System.out.println("LOOKING FOR SERVICES ON "
-				+ networkChannel.getRemoteEndpoint() + " (local="
-				+ networkChannel.getLocalEndpoint() + ")");
 		final List result = new ArrayList();
 		final RemoteServiceReferenceImpl[] refs = (RemoteServiceReferenceImpl[]) remoteServices
 				.values().toArray(
 						new RemoteServiceReferenceImpl[remoteServices.size()]);
-		System.out.println("CANDIDATES " + Arrays.asList(refs));
 		if (filter == null) {
 			return refs;
 		} else {
@@ -468,11 +462,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				// generate a proxy bundle for the service
 				bundleLocation = new ProxyGenerator().generateProxyBundle(
 						service, deliv);
-
-				// TODO: remove debug output
-				System.out.println();
-				System.out.println(bundleLocation);
-				System.out.println();
 
 				// install the proxy bundle
 				final Bundle bundle = RemoteOSGiServiceImpl.context
@@ -612,6 +601,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			timeOffset.update(timeMsg.getTimeSeries());
 		}
 		return timeOffset;
+	}
+
+	boolean isActive(final String uri) {
+		return remoteServices.get(uri) != null;
 	}
 
 	private RemoteServiceRegistration getService(final String serviceID) {
@@ -774,6 +767,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				return null;
 			}
 			case LeaseUpdateMessage.SERVICE_REMOVED: {
+				// FIXME: hack
+				if (networkChannel == null) {
+					System.out.println("==============================");
+					System.err.println("RECEIVED " + msg);
+					System.err.println("WHILE CHANNEL IS NULL...");
+					
+					return null;
+				}
 				final Bundle bundle = (Bundle) proxyBundles.remove(serviceID);
 				if (bundle != null) {
 					try {
@@ -784,11 +785,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					proxiedServices.remove(serviceID);
 					remoteServices.remove(getRemoteEndpoint().resolve(
 							"#" + serviceID).toString());
-				} else {
-					System.err.println("WARNING: FOUND NO PROXY BUNDLE FOR "
-							+ serviceID);
-					System.err.println("REGISTERED PROXIES: "
-							+ proxyBundles.toString());
 				}
 				final RemoteServiceReference ref = (RemoteServiceReference) remoteServices
 						.remove(getRemoteEndpoint().resolve("#" + serviceID)

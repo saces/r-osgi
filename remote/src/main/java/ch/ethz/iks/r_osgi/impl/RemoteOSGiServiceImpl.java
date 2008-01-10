@@ -466,7 +466,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 				public void removedService(ServiceReference reference,
 						Object service) {
-					
+
 					final ServiceReference sref = Arrays.asList(
 							(String[]) reference
 									.getProperty(Constants.OBJECTCLASS))
@@ -477,8 +477,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 					final RemoteServiceRegistration reg = (RemoteServiceRegistration) serviceRegistrations
 							.remove(sref);
 
-					System.err.println("SERVICE REMOVED " + reference + " REMOTE_REG IS " + reg);
-					
+					System.err.println("SERVICE REMOVED " + reference
+							+ " REMOTE_REG IS " + reg);
+
 					final Object[] handler = serviceDiscoveryHandlerTracker
 							.getServices();
 					if (handler != null) {
@@ -642,7 +643,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 						final NetworkChannelFactory factory = (NetworkChannelFactory) networkChannelFactoryTracker
 								.getService(refs[i]);
 						channel = new ChannelEndpointImpl(factory, endpoint);
-						System.out.println("CREATED NEW " + channel);
 						return channel.sendLease(getServices(), getTopics());
 					}
 				}
@@ -720,11 +720,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * @see ch.ethz.iks.r_osgi.Remoting#getEndpoint(java.lang.String)
 	 * @category Remoting
 	 */
-	public ChannelEndpoint getEndpoint(String uri) {
-		// TODO: remove debug output
-		System.out.println("REQUESTED ENDPOINT FOR " + uri);
-		System.out.println("MULTIPLEXER " + multiplexers);
-		System.out.println("CHANNELS " + channels);
+	public ChannelEndpoint getEndpoint(final String uri) {
 		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
 				.get(uri);
 		if (multiplexer == null) {
@@ -879,8 +875,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		ChannelEndpointImpl[] endpoints = (ChannelEndpointImpl[]) channels
 				.values().toArray(new ChannelEndpointImpl[channels.size()]);
 		for (int i = 0; i < endpoints.length; i++) {
-			System.out
-					.println("SENDING UPDATE TO " + endpoints[i] + ": " + msg);
 			endpoints[i].updateLease(msg);
 		}
 	}
@@ -918,7 +912,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 						.getRemoteReference()).getProperties())) {
 			final RemoteServiceListener listener = (RemoteServiceListener) remoteServiceListenerTracker
 					.getService(ref);
-			listener.remoteServiceEvent(event);
+			if (listener != null) {
+				listener.remoteServiceEvent(event);
+			}
 		}
 	}
 
@@ -927,8 +923,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	}
 
 	public URI getLocalPeer() {
-		// TODO Auto-generated method stub
-		return null;
+		final NetworkChannelFactory factory = (NetworkChannelFactory) networkChannelFactoryTracker
+				.getService();
+		return factory == null ? null : factory.getURI();
 	}
 
 }

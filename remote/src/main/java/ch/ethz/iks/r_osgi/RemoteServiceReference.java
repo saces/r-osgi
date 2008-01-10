@@ -13,4 +13,6 @@ public interface RemoteServiceReference extends Serializable {
 
 	public String[] getPropertyKeys();
 	
+	public boolean isActive();
+	
 }

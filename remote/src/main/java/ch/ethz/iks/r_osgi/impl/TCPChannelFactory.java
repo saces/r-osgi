@@ -94,6 +94,9 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		this.remoting = null;
 	}
 
+	/*
+	 * 
+	 */
 	public URI getURI() {
 		return URI.create(PROTOCOL + "://"
 				+ thread.socket.getInetAddress().getHostName() + ":"
@@ -200,7 +203,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 					+ socket.getLocalAddress().getHostName() + ":"
 					+ socket.getLocalPort());
 			try {
-				this.socket.setKeepAlive(true);				
+				this.socket.setKeepAlive(true);
 			} catch (Throwable t) {
 				// for 1.2 VMs that do not support the setKeepAlive
 			}

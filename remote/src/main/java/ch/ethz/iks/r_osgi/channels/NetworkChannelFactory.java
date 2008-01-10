@@ -68,5 +68,7 @@ public interface NetworkChannelFactory {
 	void activate(final Remoting remoting) throws IOException;
 
 	void deactivate(final Remoting remoting) throws IOException;
+	
+	URI getURI();
 
 }

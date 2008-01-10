@@ -23,8 +23,9 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 
 	private transient ChannelEndpointImpl channel;
 
-	RemoteServiceReferenceImpl(final String[] serviceInterfaces, final String fragment,
-			final Dictionary properties, final ChannelEndpointImpl channel) {
+	RemoteServiceReferenceImpl(final String[] serviceInterfaces,
+			final String fragment, final Dictionary properties,
+			final ChannelEndpointImpl channel) {
 		this.serviceInterfaces = serviceInterfaces;
 		this.uri = channel.getRemoteEndpoint().resolve("#" + fragment);
 		this.properties = properties;
@@ -72,5 +73,9 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 	public String toString() {
 		return "RemoteServiceReference{" + uri + "-"
 				+ Arrays.asList(serviceInterfaces) + "}";
+	}
+
+	public boolean isActive() {
+		return channel.isConnected() && channel.isActive(uri.toString());
 	}
 }

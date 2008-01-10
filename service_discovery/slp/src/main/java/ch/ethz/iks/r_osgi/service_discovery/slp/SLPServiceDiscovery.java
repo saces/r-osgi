@@ -243,28 +243,24 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
 						final List lostServices = new ArrayList(knownServices);
 
 						// find all services of type osgi
-						try {
-							final ServiceLocationEnumeration services = locator
-									.findServices(OSGI, null, null);
+						final ServiceLocationEnumeration services = locator
+								.findServices(OSGI, null, null);
 
-							while (services.hasMoreElements()) {
-								final ServiceURL service = (ServiceURL) services
-										.next();
+						while (services.hasMoreElements()) {
+							final ServiceURL service = (ServiceURL) services
+									.next();
 
-								// FIXME: this is not true anymore !!!
-								// if (service.getHost().equals(MY_ADDRESS)) {
-								// continue;
-								// }
-								if (!knownServices.contains(service)) {
-									announceService(service);
-									knownServices.add(service);
-								}
-								// seen, so remove from lost list
-								lostServices.remove(service);
-
+							// FIXME: this is not true anymore !!!
+							// if (service.getHost().equals(MY_ADDRESS)) {
+							// continue;
+							// }
+							if (!knownServices.contains(service)) {
+								announceService(service);
+								knownServices.add(service);
 							}
-						} catch (InvalidSyntaxException ise) {
-							// does not happen
+							// seen, so remove from lost list
+							lostServices.remove(service);
+
 						}
 
 						// notify the listeners for all lost services
