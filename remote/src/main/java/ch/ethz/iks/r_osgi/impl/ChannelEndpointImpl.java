@@ -467,6 +467,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				final Bundle bundle = RemoteOSGiServiceImpl.context
 						.installBundle("file:" + bundleLocation);
 
+				System.out.println("BUNDLE LOCATION: " + bundleLocation);
+				
 				// store the bundle for state updates and cleanup
 				proxyBundles.put(service.getFragment(), bundle);
 

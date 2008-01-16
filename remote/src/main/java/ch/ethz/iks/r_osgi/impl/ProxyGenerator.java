@@ -416,6 +416,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 						"ch/ethz/iks/r_osgi/SmartProxy")) {
 					addLifecycleSupport = true;
 				}
+				
 			} else {
 				// we have an interface
 				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
@@ -714,12 +715,13 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 */
 	public MethodVisitor visitMethod(final int access, final String name,
 			final String desc, final String signature, final String[] exceptions) {
-		int methodAccess = access;
 
+		if (implemented.contains(name + desc) || "<init>()V".equals(name + desc)) {
+			return null;
+		}
+
+		int methodAccess = access;
 		if ((methodAccess & ACC_ABSTRACT) != 0) {
-			if (implemented.contains(name + desc)) {
-				return null;
-			}
 
 			final Type[] args = Type.getArgumentTypes(desc);
 			boolean needsBoxing = false;
@@ -885,6 +887,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				final String name, final String signature,
 				final String superName, final String[] interfaces) {
 			// rewriting
+
 			super.cv.visit(version, access, checkRewrite(name), signature,
 					checkRewrite(superName), interfaces);
 		}

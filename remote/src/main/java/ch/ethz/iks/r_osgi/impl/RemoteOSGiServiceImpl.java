@@ -928,4 +928,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		return factory == null ? null : factory.getURI();
 	}
 
+	public void ungetRemoteService(RemoteServiceReference remoteServiceReference) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

@@ -231,4 +231,6 @@ public interface RemoteOSGiService {
 	
 	public URI getLocalPeer();
 
+	void ungetRemoteService(RemoteServiceReference remoteServiceReference);
+
 }

@@ -51,7 +51,7 @@
 		<dependency>
 			<groupId>ch.ethz.iks.slp</groupId>
 			<artifactId>jslp-osgi</artifactId>
-			<version>0.99.2</version>
+			<version>1.0.0.RC2</version>
 			<scope>provided</scope>
 		</dependency>		
 		<dependency>

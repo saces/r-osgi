@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
+
 import ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl;
 
 /**

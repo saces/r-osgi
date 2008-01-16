@@ -32,6 +32,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+
 import ch.ethz.iks.util.SmartSerializer;
 
 /**

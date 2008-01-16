@@ -15,9 +15,9 @@ import ch.ethz.iks.r_osgi.SurrogateRegistration;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 
 public class Activator implements BundleActivator, SurrogateRegistration {
-	
+
 	private ServiceRegistration registration;
-	
+
 	public void start(BundleContext context) throws Exception {
 
 		// register the sample service and enable R-OSGi remote access by
@@ -25,20 +25,21 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 		final Hashtable properties = new Hashtable();
 		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
 				RemoteOSGiService.SERVICE_PROXY_POLICY);
-		//properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class
-		//		.getName());		
+		properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class
+				.getName());
 
 		// properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
 		// RemoteOSGiService.TRANSFER_BUNDLE_POLICY);
 
-		final ServiceRegistration reg = context
-				.registerService(ServiceInterface.class.getName(),
-						new ServiceImpl(), null);
+		final ServiceRegistration reg = context.registerService(
+				ServiceInterface.class.getName(), new ServiceImpl(), null);
 
-		properties.put(SurrogateRegistration.SERVICE_REFERENCE, reg.getReference());
-		
-		registration = context.registerService(SurrogateRegistration.class.getName(), this, properties);
-		
+		properties.put(SurrogateRegistration.SERVICE_REFERENCE, reg
+				.getReference());
+
+		registration = context.registerService(SurrogateRegistration.class
+				.getName(), this, properties);
+
 		System.out.println("Registered service "
 				+ ServiceInterface.class.getName());
 
@@ -87,7 +88,7 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 							System.err.println("Unknown command");
 						}
 					}, new Hashtable());
-			
+
 			System.out.println("PRESS ANY KEY TO CAUSE A PROPERTY UPDATE");
 			System.in.read();
 			Dictionary newProps = new Hashtable();

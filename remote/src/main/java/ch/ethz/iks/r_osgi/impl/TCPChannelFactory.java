@@ -211,8 +211,11 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			this.output = new ObjectOutputStream(new BufferedOutputStream(
 					socket.getOutputStream()));
 			output.flush();
+			// TODO: remove debug output
+			System.out.println("OUTPUT ESTABLISHED");
 			input = new ObjectInputStream(new BufferedInputStream(socket
 					.getInputStream()));
+			System.out.println("INPUT ESTABLISHED");
 		}
 
 		/**
@@ -287,6 +290,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 						"{TCP Channel} sending " + message);
 			}
+			// TODO: remove debug output
+			System.out.println("{TCP Channel} sending " + message);
 			message.send(output);
 		}
 
@@ -314,6 +319,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 							RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 									"{TCP Channel} received " + msg);
 						}
+						// TODO: remove debug output
+						System.out.println("{TCP Channel} received " + msg);
 						endpoint.receivedMessage(msg);
 					} catch (Throwable t) {
 						// TODO: remove debug output

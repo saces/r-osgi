@@ -3,10 +3,12 @@ Bundle-ManifestVersion: 2
 Bundle-Name: R-OSGi Sample Service
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.sample.service
 Bundle-Version: 0.9.91
-Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
-Bundle-Localization: plugin
+Bundle-Vendor: Jan S. Rellermeyer
 Import-Package: ch.ethz.iks.r_osgi.sample.api;version="0.9.91",
  org.osgi.framework;version="1.3.0",
  org.osgi.service.event;version="1.0.1"
+Export-Package: ch.ethz.iks.r_osgi.sample.service
 Require-Bundle: ch.ethz.iks.r_osgi.remote;bundle-version="0.9.91"
+Eclipse-LazyStart: true
 Bundle-Activator: ch.ethz.iks.r_osgi.sample.service.Activator
+
