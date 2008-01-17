@@ -3,15 +3,14 @@ Bundle-ManifestVersion: 2
 Bundle-Name: R_OSGi
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.remote
 Bundle-Version: 0.9.91
-Bundle-Localization: plugin
 Export-Package: ch.ethz.iks.r_osgi;version="0.9.91";uses:="ch.ethz.iks.r_osgi.types,ch.ethz.iks.r_osgi.channels,org.osgi.framework",
  ch.ethz.iks.r_osgi.channels;version="0.9.91";uses:="org.osgi.framework,ch.ethz.iks.r_osgi",
  ch.ethz.iks.r_osgi.service_discovery;version="0.9.91",
  ch.ethz.iks.r_osgi.types;version="0.9.91";uses:="org.osgi.framework",
  ch.ethz.iks.util;version="0.9.91",
- org.objectweb.asm;version="2.2.0"
+ org.objectweb.asm;version="3.0.0"
 Bundle-ClassPath: .,
- asm-2.2.jar
+ asm-3.0.jar
 Bundle-Activator: ch.ethz.iks.r_osgi.impl.RemoteOSGiActivator
 DynamicImport-Package: *
 Import-Package: org.osgi.framework, org.osgi.util.tracker, org.osgi.service.event, org.osgi.service.log 

@@ -273,7 +273,8 @@ final class CodeAnalyzer implements ClassVisitor {
 			if (exportsMap.containsKey(pkg)) {
 				proxyExports.add(pkg);
 			}
-			reader.accept(this, true);
+			reader.accept(this, ClassReader.SKIP_DEBUG + ClassReader.SKIP_CODE
+					+ ClassReader.SKIP_FRAMES);
 		} catch (IOException ioe) {
 			throw new ClassNotFoundException(className);
 		}
@@ -469,6 +470,9 @@ final class CodeAnalyzer implements ClassVisitor {
 		 */
 		public AnnotationVisitor visitAnnotation(final String desc,
 				final boolean visible) {
+			if (!visited.contains(desc)) {
+				visitType(Type.getType("L" + desc + ";"));
+			}
 			return null;
 		}
 
@@ -508,6 +512,12 @@ final class CodeAnalyzer implements ClassVisitor {
 		 */
 		public void visitFieldInsn(final int opcode, final String owner,
 				final String name, final String desc) {
+			if (!visited.contains(owner)) {
+				visitType(Type.getType("L" + owner + ";"));
+			}
+			if (!visited.contains(desc)) {
+				visitType(Type.getType("L" + desc + ";"));
+			}
 		}
 
 		/**
@@ -570,6 +580,9 @@ final class CodeAnalyzer implements ClassVisitor {
 		public void visitLocalVariable(final String name, final String desc,
 				final String signature, final Label start, final Label end,
 				final int index) {
+			if (!visited.contains(desc)) {
+				visitType(Type.getType("L" + desc + ";"));
+			}
 		}
 
 		/**
@@ -598,6 +611,9 @@ final class CodeAnalyzer implements ClassVisitor {
 			if (!visited.contains(owner)) {
 				visitType(Type.getType("L" + owner + ";"));
 			}
+			if (!visited.contains(desc)) {
+				visitType(Type.getType("L" + desc + ";"));
+			}
 		}
 
 		/**
@@ -606,6 +622,9 @@ final class CodeAnalyzer implements ClassVisitor {
 		 *      int)
 		 */
 		public void visitMultiANewArrayInsn(final String desc, final int dims) {
+			if (!visited.contains(desc)) {
+				visitType(Type.getType("L" + desc + ";"));
+			}
 		}
 
 		/**
@@ -615,6 +634,9 @@ final class CodeAnalyzer implements ClassVisitor {
 		 */
 		public AnnotationVisitor visitParameterAnnotation(final int parameter,
 				final String desc, final boolean visible) {
+			if (!visited.contains(desc)) {
+				visitType(Type.getType("L" + desc + ";"));
+			}
 			return null;
 		}
 
@@ -656,6 +678,16 @@ final class CodeAnalyzer implements ClassVisitor {
 		 * @see org.objectweb.asm.MethodVisitor#visitVarInsn(int, int)
 		 */
 		public void visitVarInsn(final int opcode, final int var) {
+		}
+
+		/**
+		 * 
+		 * @see org.objectweb.asm.MethodVisitor#visitFrame(int, int,
+		 *      java.lang.Object[], int, java.lang.Object[])
+		 */
+		public void visitFrame(int arg0, int arg1, Object[] arg2, int arg3,
+				Object[] arg4) {
+
 		}
 
 	}

@@ -189,8 +189,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		sourceID = generateSourceID(uri);
 		implemented = new HashSet();
 		injections = deliv.getInjections();
-		byte[] bytes = deliv.getSmartProxyName() == null ? generateProxyClass(deliv
-				.getInterfaceNames(), deliv.getInterfaceClass())
+		byte[] bytes = deliv.getSmartProxyName() == null ? generateProxyClass(
+				deliv.getInterfaceNames(), deliv.getInterfaceClass())
 				: generateProxyClass(deliv.getInterfaceNames(), deliv
 						.getInterfaceClass(), deliv.getSmartProxyName(), deliv
 						.getProxyClass());
@@ -254,8 +254,10 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 						.length());
 				name = implName + rest;
 				ClassReader reader = new ClassReader(data);
-				ClassWriter writer = new ClassWriter(false);
-				reader.accept(new ClassRewriter(writer), true);
+				ClassWriter writer = new ClassWriter(0);
+				reader
+						.accept(new ClassRewriter(writer),
+								ClassReader.SKIP_DEBUG);
 				rewritten = writer.toByteArray();
 			} else {
 				rewritten = data;
@@ -304,8 +306,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 		try {
 			final ClassReader reader = new ClassReader(interfaceClass);
-			writer = new ClassWriter(true);
-			reader.accept(this, null, false);
+			writer = new ClassWriter(0);
+			reader.accept(this, null, ClassReader.SKIP_DEBUG);
 			interfaceClassNames = null;
 			final byte[] bytes = writer.toByteArray();
 			return bytes;
@@ -338,8 +340,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		smartProxyClassName = proxyName;
 		smartProxyClassNameDashed = smartProxyClassName.replace('.', '/');
 		ClassReader reader = new ClassReader(proxyClass);
-		writer = new ClassWriter(false);
-		reader.accept(this, null, false);
+		writer = new ClassWriter(0);
+		reader.accept(this, null, ClassReader.SKIP_DEBUG);
 		recurseInterfaceHierarchy();
 		interfaceClassNames = null;
 		byte[] bytes = writer.toByteArray();
@@ -361,7 +363,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					reader = new ClassReader(bytes);
 				}
 
-				reader.accept(this, null, false);
+				reader.accept(this, null, ClassReader.SKIP_DEBUG);
 			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -417,7 +419,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 						"ch/ethz/iks/r_osgi/SmartProxy")) {
 					addLifecycleSupport = true;
 				}
-				
+
 			} else {
 				// we have an interface
 				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
@@ -717,7 +719,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	public MethodVisitor visitMethod(final int access, final String name,
 			final String desc, final String signature, final String[] exceptions) {
 
-		if (implemented.contains(name + desc) || "<init>()V".equals(name + desc)) {
+		if (implemented.contains(name + desc)
+				|| "<init>()V".equals(name + desc)) {
 			return null;
 		}
 

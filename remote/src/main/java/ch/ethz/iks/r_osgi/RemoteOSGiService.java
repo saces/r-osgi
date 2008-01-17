@@ -208,6 +208,9 @@ public interface RemoteOSGiService {
 	 */
 	Object getRemoteService(final RemoteServiceReference ref);
 
+	
+	void ungetRemoteService(RemoteServiceReference remoteServiceReference);
+	
 	/**
 	 * transform a timestamp into the peer's local time.
 	 * 
@@ -231,6 +234,6 @@ public interface RemoteOSGiService {
 	
 	public URI getLocalPeer();
 
-	void ungetRemoteService(RemoteServiceReference remoteServiceReference);
+	
 
 }

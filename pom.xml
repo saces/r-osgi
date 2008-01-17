@@ -1,4 +1,4 @@
-<?xml version="1.0"?><project>
+<?xml version="1.0" encoding="UTF-8"?><project>
   <modelVersion>4.0.0</modelVersion>
   <groupId>ch.ethz.iks.r-osgi</groupId>
   <artifactId>project</artifactId>
@@ -29,8 +29,8 @@
   <licenses>
     <license>
       <name>BSD license</name>
+      <url>LICENSE.txt</url>
       <distribution>repo</distribution>
- 	  <url>LICENSE.txt</url>      
     </license>
   </licenses>
   <scm>
@@ -48,43 +48,9 @@
     <module>sample/api</module>
     <module>sample/client</module>
     <module>sample/service</module>
-    <!-- <module>http/channel</module> -->
-    <!-- <module>http/servlet</module> -->
-    <!-- <module>sample/http/client</module> -->
-    <!-- <module>sample/http/service</module> -->
     <module>sample/clockservice</module>
     <module>serviceUI</module>
   </modules>
-  <dependencies>
-	<dependency>
-	  <groupId>org.osgi</groupId>
-	  <artifactId>org.osgi</artifactId>
-	  <version>3.0</version>
-	  <scope>provided</scope>
-	</dependency>  
-    <dependency>
-      <groupId>asm</groupId>
-      <artifactId>asm</artifactId>
-      <version>2.2</version>
-      <scope>provided</scope>
-    </dependency>    
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.2</version>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
-  <reporting>
-    <plugins>
-      <plugin>
-        <artifactId>maven-site-plugin</artifactId>
-        <configuration>
-          <templateFile>${basedir}/maven-site-r-osgi.vm</templateFile>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
   <repositories>
     <repository>
       <id>iks-repository</id>
@@ -92,11 +58,11 @@
       <url>http://www.flowsgi.inf.ethz.ch/repository/maven2/</url>
     </repository>
     <repository>
-          <id>safehaus-repository</id>
-          <name>Safehaus Repository</name>
-          <url>http://m2.safehaus.org</url>
+      <id>safehaus-repository</id>
+      <name>Safehaus Repository</name>
+      <url>http://m2.safehaus.org</url>
     </repository>
-  </repositories> 
+  </repositories>
   <pluginRepositories>
     <pluginRepository>
       <id>maven</id>
@@ -109,15 +75,52 @@
       <url>http://people.apache.org/repo/m2-snapshot-repository</url>
     </pluginRepository>
   </pluginRepositories>
+  <dependencies>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi</artifactId>
+      <version>3.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <!--
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>2.2</version>
+      <scope>provided</scope>
+    </dependency>
+    -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>3.0</version>
+    </dependency>
+  </dependencies>
+  <reporting>
+    <plugins>
+      <plugin>
+        <artifactId>maven-site-plugin</artifactId>
+        <configuration>
+          <templateFile>${basedir}/maven-site-r-osgi.vm</templateFile>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
   <distributionManagement>
-    <site>
-      <id>sourceforge-site</id>
-      <url>scp://shell.sourceforge.net/home/groups/r/r-/r-osgi/htdocs/</url>
-    </site>
     <repository>
       <id>iks-snapshots</id>
       <name>ETH Zurich IKS Snapshots</name>
       <url>scp://flowsgi.inf.ethz.ch/repository/maven2</url>
     </repository>
+    <site>
+      <id>sourceforge-site</id>
+      <url>scp://shell.sourceforge.net/home/groups/r/r-/r-osgi/htdocs/</url>
+    </site>
   </distributionManagement>
 </project>
