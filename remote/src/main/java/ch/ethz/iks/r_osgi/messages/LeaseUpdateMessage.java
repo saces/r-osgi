@@ -1,4 +1,4 @@
-package ch.ethz.iks.r_osgi.impl;
+package ch.ethz.iks.r_osgi.messages;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -11,15 +11,15 @@ import ch.ethz.iks.util.SmartSerializer;
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
  */
-class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
+public class LeaseUpdateMessage extends RemoteOSGiMessage {
 
-	static final short TOPIC_UPDATE = 0;
+	public static final short TOPIC_UPDATE = 0;
 
-	static final short SERVICE_ADDED = 1;
+	public static final short SERVICE_ADDED = 1;
 
-	static final short SERVICE_MODIFIED = 2;
+	public static final short SERVICE_MODIFIED = 2;
 
-	static final short SERVICE_REMOVED = 3;
+	public static final short SERVICE_REMOVED = 3;
 
 	/**
 	 * 
@@ -29,12 +29,7 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 	/**
 	 * 
 	 */
-	private Object content1;
-
-	/**
-	 * 
-	 */
-	private Object content2;
+	private Object[] content;
 
 	/**
 	 * 
@@ -42,32 +37,13 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 	private String serviceID;
 
 	/**
-	 * creates a new LeaseUpdateMessage for service updates.
-	 * 
-	 */
-	LeaseUpdateMessage(final short type, final RemoteServiceRegistration reg) {
-		funcID = LEASE_UPDATE;
-		if (reg == null) {
-			throw new IllegalArgumentException("REG IS NULL");
-		}
-		this.type = type;
-		this.serviceID = String.valueOf(reg.getServiceID());
-		this.content1 = reg.getInterfaceNames();
-		this.content2 = reg.getProperties();
-	}
-
-	/**
 	 * creates a new LeaseUpdateMessage for topic updates.
 	 * 
 	 * @param addedTopics
 	 * @param removedTopics
 	 */
-	LeaseUpdateMessage(final String[] addedTopics, final String[] removedTopics) {
-		funcID = LEASE_UPDATE;
-		this.type = TOPIC_UPDATE;
-		this.serviceID = "";
-		this.content1 = addedTopics == null ? new String[0] : addedTopics;
-		this.content2 = removedTopics == null ? new String[0] : removedTopics;
+	public LeaseUpdateMessage() {
+		super(LEASE_UPDATE);
 	}
 
 	/**
@@ -92,11 +68,10 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 	 *             in case of IO failures.
 	 */
 	LeaseUpdateMessage(final ObjectInputStream input) throws IOException {
-		funcID = LEASE_UPDATE;
+		super(LEASE_UPDATE);
 		type = input.readShort();
 		serviceID = input.readUTF();
-		content1 = SmartSerializer.deserialize(input);
-		content2 = SmartSerializer.deserialize(input);
+		content = (Object[]) SmartSerializer.deserialize(input);
 	}
 
 	/**
@@ -106,25 +81,36 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 	 *            the ObjectOutputStream.
 	 * @throws IOException
 	 *             in case of IO failures.
-	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
+	 * @see ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		out.writeShort(type);
 		out.writeUTF(serviceID);
-		SmartSerializer.serialize(content1, out);
-		SmartSerializer.serialize(content2, out);
+		SmartSerializer.serialize(content, out);
 	}
 
-	short getType() {
+	public short getType() {
 		return type;
 	}
-	
-	String getServiceID() {
+
+	public void setType(short type) {
+		this.type = type;
+	}
+
+	public String getServiceID() {
 		return serviceID;
 	}
 
-	Object[] getContent() {
-		return new Object[] { content1, content2 };
+	public void setServiceID(final String serviceID) {
+		this.serviceID = serviceID;
+	}
+
+	public Object[] getPayload() {
+		return content;
+	}
+
+	public void setPayload(final Object[] content) {
+		this.content = content;
 	}
 
 	/**
@@ -143,14 +129,14 @@ class LeaseUpdateMessage extends RemoteOSGiMessageImpl {
 		buffer.append(type);
 		if (type == TOPIC_UPDATE) {
 			buffer.append(", topics added: ");
-			buffer.append(Arrays.asList((String[]) content1));
+			buffer.append(Arrays.asList((String[]) content[0]));
 			buffer.append(", topics removed: ");
-			buffer.append(Arrays.asList((String[]) content2));
+			buffer.append(Arrays.asList((String[]) content[1]));
 		} else {
 			buffer.append(", service interfaces: ");
-			buffer.append(Arrays.asList((String[]) content1));
+			buffer.append(Arrays.asList((String[]) content[0]));
 			buffer.append(", properties: ");
-			buffer.append(content2);			
+			buffer.append(content[1]);
 		}
 		return buffer.toString();
 	}

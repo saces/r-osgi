@@ -26,14 +26,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi.impl;
+package ch.ethz.iks.r_osgi.messages;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Dictionary;
-
 
 /**
  * Lease message. Is exchanged when a channel is established. Leases are the
@@ -42,14 +41,14 @@ import java.util.Dictionary;
  * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.6
  */
-final class LeaseMessage extends RemoteOSGiMessageImpl {
+public final class LeaseMessage extends RemoteOSGiMessage {
 
 	/**
 	 * the services that the peer offers.
 	 */
 	private String[][] serviceInterfaces;
 
-	private String[] fragments;
+	private String[] serviceIDs;
 
 	private Dictionary[] serviceProperties;
 
@@ -66,10 +65,8 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * @param topics
 	 *            the topics the peer is interested in.
 	 */
-	public LeaseMessage(final RemoteServiceRegistration[] regs, final String[] topics) {
-		this.funcID = LEASE;
-		parseRegistrations(regs);
-		this.topics = topics == null ? new String[0] : topics;
+	public LeaseMessage() {
+		super(LEASE);
 	}
 
 	/**
@@ -94,15 +91,15 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 *             if something goes wrong.
 	 */
 	LeaseMessage(final ObjectInputStream input) throws IOException {
-		funcID = LEASE;
-		final int serviceCount = input.readShort();	
-		fragments = new String[serviceCount];
+		super(LEASE);
+		final int serviceCount = input.readShort();
+		serviceIDs = new String[serviceCount];
 		serviceInterfaces = new String[serviceCount][];
 		serviceProperties = new Dictionary[serviceCount];
 		try {
 			for (short i = 0; i < serviceCount; i++) {
-				fragments[i] = input.readUTF();
-				serviceInterfaces[i] = readStringArray(input);				
+				serviceIDs[i] = input.readUTF();
+				serviceInterfaces[i] = readStringArray(input);
 				serviceProperties[i] = (Dictionary) input.readObject();
 			}
 		} catch (ClassNotFoundException e) {
@@ -111,18 +108,28 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		this.topics = readStringArray(input);
 	}
 
-	/**
-	 * get the services.
-	 * 
-	 * @return the services.
-	 */
-	RemoteServiceReferenceImpl[] getServices(final ChannelEndpointImpl channel) {
-		final RemoteServiceReferenceImpl[] refs = new RemoteServiceReferenceImpl[fragments.length];
-		for (short i = 0; i < fragments.length; i++) {
-			refs[i] = new RemoteServiceReferenceImpl(serviceInterfaces[i], 
-					fragments[i], serviceProperties[i], channel);
-		}
-		return refs;
+	public String[][] getServiceInterfaces() {
+		return serviceInterfaces;
+	}
+
+	public void setServiceInterfaces(final String[][] serviceInterfaces) {
+		this.serviceInterfaces = serviceInterfaces;
+	}
+
+	public String[] getServiceIDs() {
+		return serviceIDs;
+	}
+
+	public void setServiceIDs(final String[] serviceIDs) {
+		this.serviceIDs = serviceIDs;
+	}
+
+	public Dictionary[] getServiceProperties() {
+		return serviceProperties;
+	}
+
+	public void setServiceProperties(final Dictionary[] serviceProperties) {
+		this.serviceProperties = serviceProperties;
 	}
 
 	/**
@@ -130,24 +137,12 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 * 
 	 * @return the topics.
 	 */
-	String[] getTopics() {
+	public String[] getTopics() {
 		return topics;
 	}
 
-	/**
-	 * reply to this message by publishing the peers own services and topic
-	 * interests.
-	 * 
-	 * @param services
-	 *            the services of this peer.
-	 * @param topics
-	 *            the topics of interest of this peer.
-	 * @return the reply lease message.
-	 */
-	LeaseMessage replyWith(final RemoteServiceRegistration[] refs, final String[] topics) {
-		parseRegistrations(refs);
+	public void setTopics(final String[] topics) {
 		this.topics = topics;
-		return this;
 	}
 
 	/**
@@ -157,15 +152,14 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 	 *            the output stream
 	 * @throws IOException
 	 *             in case of IO errors.
-	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
+	 * @see ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		final int slen = serviceInterfaces.length;
 		out.writeShort(slen);
 		for (short i = 0; i < slen; i++) {
-			out.writeUTF(fragments[i]);
-			writeStringArray(out, serviceInterfaces[i]);			
-			// TODO: smart serializer
+			out.writeUTF(serviceIDs[i]);
+			writeStringArray(out, serviceInterfaces[i]);
 			out.writeObject(serviceProperties[i]);
 		}
 		writeStringArray(out, topics);
@@ -185,7 +179,7 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		for (int i = 0; i < serviceInterfaces.length; i++) {
 			buffer.append(Arrays.asList(serviceInterfaces[i]));
 			buffer.append("-");
-			buffer.append(fragments[i]);
+			buffer.append(serviceIDs[i]);
 			if (i < serviceInterfaces.length) {
 				buffer.append(", ");
 			}
@@ -195,15 +189,4 @@ final class LeaseMessage extends RemoteOSGiMessageImpl {
 		return buffer.toString();
 	}
 
-	private void parseRegistrations(
-			final RemoteServiceRegistration[] regs) {
-		fragments = new String[regs.length];
-		serviceInterfaces = new String[regs.length][];
-		serviceProperties = new Dictionary[regs.length];
-		for (short i = 0; i < regs.length; i++) {
-			fragments[i] = String.valueOf(regs[i].getServiceID());
-			serviceInterfaces[i] = regs[i].getInterfaceNames();
-			serviceProperties[i] = regs[i].getProperties();
-		}
-	}
 }

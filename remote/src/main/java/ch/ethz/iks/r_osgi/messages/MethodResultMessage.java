@@ -26,70 +26,63 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi.impl;
+package ch.ethz.iks.r_osgi.messages;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import ch.ethz.iks.r_osgi.URI;
 
-import java.util.Arrays;
 import ch.ethz.iks.util.SmartSerializer;
 
 /**
  * <p>
- * InvokeMethodMessage is used to invoke a method of a remote service.
+ * MethodResultMessage is used to return the result of a method invocation to
+ * the invoking remote peer.
  * </p>
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.1
  */
-class InvokeMethodMessage extends RemoteOSGiMessageImpl {
+public class MethodResultMessage extends RemoteOSGiMessage {
 
-	private String serviceID;
-	
 	/**
-	 * the signature of the method that is requested to be invoked.
+	 * the error flag.
 	 */
-	private String methodSignature;
+	private byte errorFlag;
 
 	/**
-	 * the argument array of the method call.
+	 * the return value.
 	 */
-	private Object[] arguments;
+	private Object result;
 
 	/**
-	 * creates a new InvokeMethodMessage.
+	 * the exception.
+	 */
+	private Throwable exception;
+
+	/**
+	 * creates a new MethodResultMessage from InvokeMethodMessage and set the
+	 * exception.
 	 * 
-	 * @param service
-	 *            the URI of the service.
-	 * @param methodSignature
-	 *            the method signature.
-	 * @param params
-	 *            the parameter that are passed to the method.
+	 * @param inv
+	 *            the <code>InvokeMethodMessage</code>.
+	 * @param exception
+	 *            the exception.
 	 */
-	InvokeMethodMessage(final URI service, final String methodSignature,
-			final Object[] params) {
-		funcID = INVOKE_METHOD;
-		serviceID = service.getFragment();
-		this.methodSignature = methodSignature;
-		this.arguments = params;
+	public MethodResultMessage() {
+		super(METHOD_RESULT);
 	}
 
 	/**
-	 * creates a new InvokeMethodMessage from network packet:
+	 * creates a new MethodResultMessage from network packet:
 	 * 
 	 * <pre>
 	 *       0                   1                   2                   3
 	 *       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |       R-OSGi header (function = InvokeMsg = 3)                |
+	 *      |       R-OSGi header (function = Service = 2)                  |
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |   length of &lt;url&gt;     |    &lt;url&gt; String       \
-	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |    length of &lt;MethodSignature&gt;     |     &lt;MethodSignature&gt; String       \
-	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |   number of param blocks      |     Param blocks (if any)     \
+	 *      |  error flag   | result or Exception                           \
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>.
 	 * 
@@ -99,14 +92,15 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 * @throws IOException
 	 *             in case of IO failures.
 	 */
-	InvokeMethodMessage(final ObjectInputStream input) throws IOException {
-		funcID = INVOKE_METHOD;
-		serviceID = input.readUTF();
-		methodSignature = input.readUTF();
-		final short argLength = input.readShort();
-		arguments = new Object[argLength];
-		for (short i = 0; i < argLength; i++) {
-			arguments[i] = SmartSerializer.deserialize(input);
+	MethodResultMessage(final ObjectInputStream input) throws IOException {
+		super(METHOD_RESULT);
+		errorFlag = input.readByte();
+		if (errorFlag == 0) {
+			result = SmartSerializer.deserialize(input);
+			exception = null;
+		} else {
+			exception = (Throwable) SmartSerializer.deserialize(input);
+			result = null;
 		}
 	}
 
@@ -117,37 +111,55 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 *            the ObjectOutputStream.
 	 * @throws IOException
 	 *             in case of IO failures.
-	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
+	 * @see ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		out.writeUTF(serviceID);
-		out.writeUTF(methodSignature);
-		out.writeShort(arguments.length);
-		for (short i = 0; i < arguments.length; i++) {
-			SmartSerializer.serialize(arguments[i], out);
+		if (exception == null) {
+			out.writeByte(0);
+			SmartSerializer.serialize(result, out);
+		} else {
+			out.writeByte(1);
+			SmartSerializer.serialize(exception, out);
 		}
 	}
 
-	public String getServiceID() {
-		return serviceID;
-	}
-	
 	/**
-	 * get the parameters for the invoked method.
+	 * did the method invocation cause an exception ?
 	 * 
-	 * @return the parameters.
+	 * @return <code>true</code>, if an exception has been thrown on the
+	 *         remote side. In this case, the exception can be retrieved through
+	 *         the <code>getException</code> method.
 	 */
-	Object[] getArgs() {
-		return arguments;
+	public boolean causedException() {
+		return (errorFlag == 1);
 	}
 
 	/**
-	 * get the method signature.
+	 * get the result object.
 	 * 
-	 * @return the method signature.
+	 * @return the return value of the invoked message.
 	 */
-	String getMethodSignature() {
-		return methodSignature;
+	public Object getResult() {
+		return result;
+	}
+
+	public void setResult(final Object result) {
+		this.result = result;
+		this.errorFlag = 0;
+	}
+
+	/**
+	 * get the exception.
+	 * 
+	 * @return the exception or <code>null</code> if non was thrown.
+	 */
+	public Throwable getException() {
+		return exception;
+	}
+
+	public void setException(final Throwable t) {
+		this.exception = t;
+		this.errorFlag = 1;
 	}
 
 	/**
@@ -158,14 +170,17 @@ class InvokeMethodMessage extends RemoteOSGiMessageImpl {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[INVOKE_METHOD] - XID: ");
+		buffer.append("[METHOD_RESULT] - XID: ");
 		buffer.append(xid);
-		buffer.append(", serviceID: ");
-		buffer.append(serviceID);
-		buffer.append(", methodName: ");
-		buffer.append(methodSignature);
-		buffer.append(", params: ");
-		buffer.append(Arrays.asList(getArgs()));
+		buffer.append(", errorFlag: ");
+		buffer.append(errorFlag);
+		if (causedException()) {
+			buffer.append(", exception: ");
+			buffer.append(exception.getMessage());
+		} else {
+			buffer.append(", result: ");
+			buffer.append(result);
+		}
 		return buffer.toString();
 	}
 }

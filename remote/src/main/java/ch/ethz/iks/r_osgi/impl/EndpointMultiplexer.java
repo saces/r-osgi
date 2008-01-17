@@ -10,7 +10,7 @@ import java.util.Random;
 import org.osgi.framework.ServiceRegistration;
 import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
-import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
+import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 
 class EndpointMultiplexer implements ChannelEndpoint {

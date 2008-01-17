@@ -26,82 +26,103 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi.impl;
+package ch.ethz.iks.r_osgi.messages;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import ch.ethz.iks.r_osgi.RemoteServiceReference;
+import java.util.Arrays;
 
+import ch.ethz.iks.util.SmartSerializer;
 
 /**
  * <p>
- * FetchServiceMessage is used to signal the service provider that a remote peer
- * wants to get a service that has been registered for remoting.
+ * TimeSyncMessage measures the time offset between two peers.
  * </p>
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
- * @since 0.1
+ * @since 0.2
  */
-class FetchServiceMessage extends RemoteOSGiMessageImpl {
-
-	private String serviceID;
-	
+public class TimeOffsetMessage extends RemoteOSGiMessage {
 	/**
-	 * hidden default constructor.
+	 * the time series. Both peers append their timestamps and the series is
+	 * then evaluated to determine the offset
 	 */
-	private FetchServiceMessage() {
+	private Long[] timeSeries;
+
+	/**
+	 * creates a new empty TimeSyncMessage.
+	 */
+	public TimeOffsetMessage() {
+		super(TIME_OFFSET);
+		timeSeries = new Long[0];
 	}
 
 	/**
-	 * creates a new FetchServiceMessage from <code>ServiceURL</code>.
-	 * 
-	 * @param service
-	 *            the URI service of the service that is fetched.
-	 */
-	FetchServiceMessage(final RemoteServiceReference ref) {
-		funcID = FETCH_SERVICE;
-		serviceID = ref.getURI().getFragment();
-	}
-
-	/**
-	 * creates a new FetchServiceMessage from network packet.
+	 * creates a new TimeSyncMessage from network packet:
 	 * 
 	 * <pre>
-	 *     0                   1                   2                   3
-	 *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    |       R-OSGi header (function = Fetch = 1)                    |
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    |   length of &lt;url&gt;     |     &lt;url&gt; String      \
-	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 * </pre>
+	 *        0                   1                   2                   3
+	 *        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *       |       R-OSGi header (function = TimeOffset = 7)               |
+	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *       |                   Marshalled Long[]                           \
+	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 * </pre>.
 	 * 
 	 * @param input
 	 *            an <code>ObjectInputStream</code> that provides the body of
 	 *            a R-OSGi network packet.
 	 * @throws IOException
-	 *             if something goes wrong.
+	 *             in case of IO failures.
 	 */
-	FetchServiceMessage(final ObjectInputStream input) throws IOException {
-		serviceID = input.readUTF();
+	public TimeOffsetMessage(final ObjectInputStream input) throws IOException {
+		super(TIME_OFFSET);
+		timeSeries = (Long[]) SmartSerializer.deserialize(input);
 	}
 
 	/**
-	 * gets the body of the message as raw bytes.
+	 * write the body of the message to a stream.
 	 * 
 	 * @param out
-	 *            the <code>ObjectOutputStream</code>
+	 *            the ObjectOutputStream.
 	 * @throws IOException
 	 *             in case of IO failures.
-	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
+	 * @see ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		out.writeUTF(serviceID);
+		SmartSerializer.serialize(timeSeries, out);
 	}
-	
-	public String getServiceID() {
-		return serviceID;
+
+	/**
+	 * add the current time to the time series.
+	 */
+	public void timestamp() {
+		int len = timeSeries.length;
+		final Long[] newSeries = new Long[len + 1];
+		System.arraycopy(timeSeries, 0, newSeries, 0, len);
+		newSeries[len] = new Long(System.currentTimeMillis());
+		timeSeries = newSeries;
+	}
+
+	/**
+	 * for retransmissions: replace the last timestamp with the current one. The
+	 * sending method must increase the XID to signal that this is a "new"
+	 * message rather than a strict retransmission.
+	 */
+	public void restamp(int newXID) {
+		this.xid = newXID;
+		timeSeries[timeSeries.length - 1] = new Long(System.currentTimeMillis());
+	}
+
+	/**
+	 * returns the time series.
+	 * 
+	 * @return the time series as <code>Long</code> array.
+	 */
+	public final Long[] getTimeSeries() {
+		return timeSeries;
 	}
 
 	/**
@@ -112,11 +133,11 @@ class FetchServiceMessage extends RemoteOSGiMessageImpl {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[FETCH_MESSAGE]");
-		buffer.append("- XID: ");
+		buffer.append("[TIME_OFFSET, ");
+		buffer.append("] - XID: ");
 		buffer.append(xid);
-		buffer.append(", serviceID: ");
-		buffer.append("#" + serviceID);
+		buffer.append("timeSeries: ");
+		buffer.append(Arrays.asList(timeSeries));
 		return buffer.toString();
 	}
 }

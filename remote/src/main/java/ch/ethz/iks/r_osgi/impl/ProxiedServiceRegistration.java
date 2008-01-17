@@ -31,12 +31,11 @@ package ch.ethz.iks.r_osgi.impl;
 import java.lang.reflect.Method;
 import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Hashtable;
-
 import org.objectweb.asm.Type;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
+import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
 
 /**
  * RemoteService encapsulates a service registered for remoting.
@@ -52,7 +51,7 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 	private final Object serviceObject;
 
 	private final HashMap methodTable = new HashMap(0);
-	
+
 	private DeliverServiceMessage deliverServiceMessage;
 
 	/**
@@ -109,7 +108,10 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 					(String[]) ref.getProperty(RemoteOSGiService.INJECTIONS),
 					(String) ref
 							.getProperty(RemoteOSGiServiceImpl.PRESENTATION));
+			deliverServiceMessage.setServiceID(((Long) ref
+					.getProperty(Constants.SERVICE_ID)).toString());
 		} catch (Exception e) {
+			// TODO: log
 			e.printStackTrace();
 		}
 	}
@@ -127,8 +129,7 @@ final class ProxiedServiceRegistration extends RemoteServiceRegistration {
 		return (Method) methodTable.get(signature);
 	}
 
-	DeliverServiceMessage deliver(final FetchServiceMessage fetchReq) {
-		deliverServiceMessage.init(getServiceID(), fetchReq);
+	DeliverServiceMessage getDeliverServiceMessage() {
 		return deliverServiceMessage;
 	}
 }

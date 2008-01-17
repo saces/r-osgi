@@ -26,7 +26,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi.impl;
+package ch.ethz.iks.r_osgi.messages;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -37,6 +37,7 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
+import ch.ethz.iks.r_osgi.impl.ChannelEndpointImpl;
 import ch.ethz.iks.util.SmartSerializer;
 
 /**
@@ -48,9 +49,15 @@ import ch.ethz.iks.util.SmartSerializer;
  * @author Jan S. Rellermeyer, ETH Zürich
  * @since 0.2
  */
-final class RemoteEventMessage extends RemoteOSGiMessageImpl {
+public final class RemoteEventMessage extends RemoteOSGiMessage {
 
 	/**
+	 * the event property contains the sender's uri.
+	 */
+	public static final String EVENT_SENDER_URI = "sender.uri";
+
+	/**
+	 * 
 	 * the event topic. E.g. <code>ch.ethz.iks.SampleEvent</code>.
 	 */
 	private String topic;
@@ -71,17 +78,8 @@ final class RemoteEventMessage extends RemoteOSGiMessageImpl {
 	 *             if the destination address of the event cannot be resolved or
 	 *             if marshalling of the event fails.
 	 */
-	RemoteEventMessage(final Event event, final URI localEndpoint)
-			throws Exception {
-		funcID = REMOTE_EVENT;
-		String[] propertyNames = event.getPropertyNames();
-		final Dictionary props = new Hashtable();
-		for (int i = 0; i < propertyNames.length; i++) {
-			props.put(propertyNames[i], event.getProperty(propertyNames[i]));
-		}
-		props.put(RemoteOSGiServiceImpl.EVENT_SENDER_URI, localEndpoint);
-		topic = event.getTopic();
-		properties = props;
+	public RemoteEventMessage() throws Exception {
+		super(REMOTE_EVENT);
 	}
 
 	/**
@@ -106,36 +104,43 @@ final class RemoteEventMessage extends RemoteOSGiMessageImpl {
 	 *             in case of IO failures.
 	 */
 	RemoteEventMessage(final ObjectInputStream input) throws IOException {
+		super(REMOTE_EVENT);
 		topic = input.readUTF();
 		properties = (Dictionary) SmartSerializer.deserialize(input);
 	}
 
-	/**
-	 * get the <code>Event</code>.
-	 * 
-	 * @param connection
-	 *            the remote connection.
-	 * @return the <code>Event</code>.
-	 * @throws RemoteOSGiException
-	 */
-	Event getEvent(final ChannelEndpointImpl connection)
-			throws RemoteOSGiException {
-		final Long remoteTs;
-		if ((remoteTs = (Long) properties.get(EventConstants.TIMESTAMP)) != null) {
-			// transform the event timestamps
-			properties.put(EventConstants.TIMESTAMP, connection.getOffset()
-					.transform(remoteTs));
-		}
-		return new Event(topic, properties);
+	public String getTopic() {
+		return topic;
 	}
 
+	public void setTopic(final String topic) {
+		this.topic = topic;
+	}
+
+	public Dictionary getProperties() {
+		return properties;
+	}
+
+	public void setProperties(final Dictionary properties) {
+		this.properties = properties;
+	}
+
+	/*
+	 * Event getEvent(final ChannelEndpointImpl connection) throws
+	 * RemoteOSGiException { final Long remoteTs; if ((remoteTs = (Long)
+	 * properties.get(EventConstants.TIMESTAMP)) != null) { // transform the
+	 * event timestamps properties.put(EventConstants.TIMESTAMP,
+	 * connection.getOffset() .transform(remoteTs)); } return new Event(topic,
+	 * properties); }
+	 */
+
 	/**
-	 * get the sender.
+	 * convenience methot to get the sender.
 	 * 
-	 * @return the sender URL as string.
+	 * @return the sender URI as string.
 	 */
 	String getSender() {
-		return (String) properties.get(RemoteOSGiServiceImpl.EVENT_SENDER_URI);
+		return (String) properties.get(EVENT_SENDER_URI);
 	}
 
 	/**

@@ -59,6 +59,7 @@ import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
+import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
 import ch.ethz.iks.r_osgi.types.ServiceUIComponent;
 
 /**
@@ -188,10 +189,10 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		sourceID = generateSourceID(uri);
 		implemented = new HashSet();
 		injections = deliv.getInjections();
-		byte[] bytes = deliv.getProxyName() == null ? generateProxyClass(deliv
+		byte[] bytes = deliv.getSmartProxyName() == null ? generateProxyClass(deliv
 				.getInterfaceNames(), deliv.getInterfaceClass())
 				: generateProxyClass(deliv.getInterfaceNames(), deliv
-						.getInterfaceClass(), deliv.getProxyName(), deliv
+						.getInterfaceClass(), deliv.getSmartProxyName(), deliv
 						.getProxyClass());
 
 		int pos = implName.lastIndexOf('/');

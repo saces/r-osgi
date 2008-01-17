@@ -63,6 +63,7 @@ import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
+import ch.ethz.iks.r_osgi.messages.LeaseUpdateMessage;
 import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryHandler;
 import ch.ethz.iks.r_osgi.types.Timestamp;
 import ch.ethz.iks.util.CollectionUtils;
@@ -111,11 +112,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	static final String DISCOVERY_INTERVAL_PROPERTY = "ch.ethz.iks.r_osgi.remote.discoveryInterval";
 
 	/**
-	 * the event property contains the sender's uri.
-	 */
-	static final String EVENT_SENDER_URI = "sender.uri";
-
-	/**
 	 * marker for channel-registered event handlers so that they don't
 	 * contribute to the peer's topic space.
 	 */
@@ -145,11 +141,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * service reference -> remote service registration.
 	 */
 	private static Map serviceRegistrations = new HashMap(1);
-
-	/**
-	 * thread loop variable.
-	 */
-	private static boolean running = true;
 
 	/**
 	 * next transaction id.
@@ -278,7 +269,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 						public Object addingService(ServiceReference reference) {
 							final String[] theTopics = (String[]) reference
 									.getProperty(EventConstants.EVENT_TOPIC);
-							updateLeases(new LeaseUpdateMessage(theTopics, null));
+							final LeaseUpdateMessage lu = new LeaseUpdateMessage();
+							lu.setType(LeaseUpdateMessage.TOPIC_UPDATE);
+							lu.setServiceID("");
+							lu.setPayload(new Object[] { theTopics, null });
+							updateLeases(lu);
+
 							return Arrays.asList(theTopics);
 						}
 
@@ -299,8 +295,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 									.toArray(addedTopics);
 							oldTopicList.removeAll(removed);
 							oldTopicList.addAll(added);
-							updateLeases(new LeaseUpdateMessage(addedTopics,
-									removedTopics));
+							final LeaseUpdateMessage lu = new LeaseUpdateMessage();
+							lu.setType(LeaseUpdateMessage.TOPIC_UPDATE);
+							lu.setServiceID("");
+							lu.setPayload(new Object[] { addedTopics,
+									removedTopics });
+							updateLeases(lu);
 						}
 
 						public void removedService(ServiceReference reference,
@@ -308,8 +308,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							final List oldTopicsList = (List) oldTopics;
 							final String[] removedTopics = (String[]) oldTopicsList
 									.toArray(new String[oldTopicsList.size()]);
-							updateLeases(new LeaseUpdateMessage(null,
-									removedTopics));
+							final LeaseUpdateMessage lu = new LeaseUpdateMessage();
+							lu.setType(LeaseUpdateMessage.TOPIC_UPDATE);
+							lu.setServiceID("");
+							lu.setPayload(new Object[] { null, removedTopics });
+							updateLeases(lu);
 						}
 					});
 			eventHandlerTracker.open();
@@ -441,9 +444,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 																		.getServiceID()));
 							}
 						}
-
-						updateLeases(new LeaseUpdateMessage(
-								LeaseUpdateMessage.SERVICE_ADDED, reg));
+						final LeaseUpdateMessage lu = new LeaseUpdateMessage();
+						lu.setType(LeaseUpdateMessage.SERVICE_ADDED);
+						lu.setServiceID(String.valueOf(reg.getServiceID()));
+						lu.setPayload(new Object[] { reg.getInterfaceNames(),
+								reg.getProperties() });
+						updateLeases(lu);
 						return service;
 					} catch (ClassNotFoundException e) {
 						e.printStackTrace();
@@ -460,8 +466,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 					}
 					final RemoteServiceRegistration reg = (RemoteServiceRegistration) serviceRegistrations
 							.get(reference);
-					updateLeases(new LeaseUpdateMessage(
-							LeaseUpdateMessage.SERVICE_MODIFIED, reg));
+					final LeaseUpdateMessage lu = new LeaseUpdateMessage();
+					lu.setType(LeaseUpdateMessage.SERVICE_MODIFIED);
+					lu.setServiceID(String.valueOf(reg.getServiceID()));
+					lu.setPayload(new Object[] { null, reg.getProperties() });
 				}
 
 				public void removedService(ServiceReference reference,
@@ -489,8 +497,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 						}
 					}
 
-					updateLeases(new LeaseUpdateMessage(
-							LeaseUpdateMessage.SERVICE_REMOVED, reg));
+					final LeaseUpdateMessage lu = new LeaseUpdateMessage();
+					lu.setType(LeaseUpdateMessage.SERVICE_REMOVED);
+					lu.setServiceID(String.valueOf(reg.getServiceID()));
+					lu.setPayload(new Object[] { null, null });
 				}
 
 			});
@@ -930,7 +940,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	public void ungetRemoteService(RemoteServiceReference remoteServiceReference) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

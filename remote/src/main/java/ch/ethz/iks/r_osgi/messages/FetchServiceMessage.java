@@ -26,103 +26,78 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi.impl;
+package ch.ethz.iks.r_osgi.messages;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
-
-import ch.ethz.iks.util.SmartSerializer;
 
 /**
  * <p>
- * TimeSyncMessage measures the time offset between two peers.
+ * FetchServiceMessage is used to signal the service provider that a remote peer
+ * wants to get a service that has been registered for remoting.
  * </p>
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
- * @since 0.2
+ * @since 0.1
  */
-class TimeOffsetMessage extends RemoteOSGiMessageImpl {
-	/**
-	 * the time series. Both peers append their timestamps and the series is
-	 * then evaluated to determine the offset
-	 */
-	private Long[] timeSeries;
+public class FetchServiceMessage extends RemoteOSGiMessage {
+
+	private String serviceID;
 
 	/**
-	 * creates a new empty TimeSyncMessage.
+	 * creates a new FetchServiceMessage from <code>ServiceURL</code>.
+	 * 
+	 * @param service
+	 *            the URI service of the service that is fetched.
 	 */
-	TimeOffsetMessage() {
-		funcID = TIME_OFFSET;
-		timeSeries = new Long[0];
+	public FetchServiceMessage() {
+		super(FETCH_SERVICE);
 	}
 
 	/**
-	 * creates a new TimeSyncMessage from network packet:
+	 * creates a new FetchServiceMessage from network packet.
 	 * 
 	 * <pre>
-	 *        0                   1                   2                   3
-	 *        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *       |       R-OSGi header (function = TimeOffset = 7)               |
-	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *       |                   Marshalled Long[]                           \
-	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 * </pre>.
+	 *     0                   1                   2                   3
+	 *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *    |       R-OSGi header (function = Fetch = 1)                    |
+	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *    |   length of &lt;url&gt;     |     &lt;url&gt; String      \
+	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 * </pre>
 	 * 
 	 * @param input
 	 *            an <code>ObjectInputStream</code> that provides the body of
 	 *            a R-OSGi network packet.
 	 * @throws IOException
-	 *             in case of IO failures.
+	 *             if something goes wrong.
 	 */
-	public TimeOffsetMessage(final ObjectInputStream input) throws IOException {
-		funcID = TIME_OFFSET;
-		timeSeries = (Long[]) SmartSerializer.deserialize(input);
+	FetchServiceMessage(final ObjectInputStream input) throws IOException {
+		super(FETCH_SERVICE);
+		serviceID = input.readUTF();
 	}
 
 	/**
-	 * write the body of the message to a stream.
+	 * gets the body of the message as raw bytes.
 	 * 
 	 * @param out
-	 *            the ObjectOutputStream.
+	 *            the <code>ObjectOutputStream</code>
 	 * @throws IOException
 	 *             in case of IO failures.
-	 * @see ch.ethz.iks.r_osgi.impl.RemoteOSGiMessageImpl#getBody()
+	 * @see ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		SmartSerializer.serialize(timeSeries, out);
+		out.writeUTF(serviceID);
 	}
 
-	/**
-	 * add the current time to the time series.
-	 */
-	void timestamp() {
-		int len = timeSeries.length;
-		final Long[] newSeries = new Long[len + 1];
-		System.arraycopy(timeSeries, 0, newSeries, 0, len);
-		newSeries[len] = new Long(System.currentTimeMillis());
-		timeSeries = newSeries;
+	public String getServiceID() {
+		return serviceID;
 	}
 
-	/**
-	 * for retransmissions: replace the last timestamp with the current one. The
-	 * sending method must increase the XID to signal that this is a "new"
-	 * message rather than a strict retransmission.
-	 */
-	void restamp(int newXID) {
-		this.xid = newXID;
-		timeSeries[timeSeries.length - 1] = new Long(System.currentTimeMillis());
-	}
-
-	/**
-	 * returns the time series.
-	 * 
-	 * @return the time series as <code>Long</code> array.
-	 */
-	final Long[] getTimeSeries() {
-		return timeSeries;
+	public void setServiceID(final String serviceID) {
+		this.serviceID = serviceID;
 	}
 
 	/**
@@ -133,11 +108,11 @@ class TimeOffsetMessage extends RemoteOSGiMessageImpl {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[TIME_OFFSET, ");
-		buffer.append("] - XID: ");
+		buffer.append("[FETCH_MESSAGE]");
+		buffer.append("- XID: ");
 		buffer.append(xid);
-		buffer.append("timeSeries: ");
-		buffer.append(Arrays.asList(timeSeries));
+		buffer.append(", serviceID: ");
+		buffer.append(serviceID);
 		return buffer.toString();
 	}
 }

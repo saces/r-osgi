@@ -49,7 +49,6 @@ import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.log.LogService;
 import ch.ethz.iks.r_osgi.URI;
-import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceEvent;
@@ -57,6 +56,16 @@ import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
+import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
+import ch.ethz.iks.r_osgi.messages.DeliverBundleMessage;
+import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
+import ch.ethz.iks.r_osgi.messages.FetchServiceMessage;
+import ch.ethz.iks.r_osgi.messages.InvokeMethodMessage;
+import ch.ethz.iks.r_osgi.messages.LeaseMessage;
+import ch.ethz.iks.r_osgi.messages.LeaseUpdateMessage;
+import ch.ethz.iks.r_osgi.messages.MethodResultMessage;
+import ch.ethz.iks.r_osgi.messages.RemoteEventMessage;
+import ch.ethz.iks.r_osgi.messages.TimeOffsetMessage;
 
 /**
  * <p>
@@ -163,7 +172,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * connected by this channel have non-disjoint topic spaces.
 	 */
 	private static final String NO_LOOPS = "(!("
-			+ RemoteOSGiServiceImpl.EVENT_SENDER_URI + "=*))";
+			+ RemoteEventMessage.EVENT_SENDER_URI + "=*))";
 
 	/**
 	 * create a new channel endpoint.
@@ -208,7 +217,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	RemoteServiceReference[] sendLease(
 			final RemoteServiceRegistration[] myServices,
 			final String[] myTopics) {
-		final LeaseMessage l = new LeaseMessage(myServices, myTopics);
+		final LeaseMessage l = new LeaseMessage();
+		populateLease(l, myServices, myTopics);
 		final LeaseMessage lease = (LeaseMessage) sendMessage(l);
 		return processLease(lease);
 	}
@@ -299,8 +309,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (networkChannel == null) {
 			throw new RemoteOSGiException("Network channel went down");
 		}
-		final InvokeMethodMessage invokeMsg = new InvokeMethodMessage(URI
-				.create(service), methodSignature, args);
+		final InvokeMethodMessage invokeMsg = new InvokeMethodMessage();
+		invokeMsg.setServiceID(URI.create(service).getFragment());
+		invokeMsg.setMethodSignature(methodSignature);
+		invokeMsg.setArgs(args);
 
 		try {
 			// send the message and get a MethodResultMessage in return
@@ -447,11 +459,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			RemoteOSGiException {
 
 		// build the FetchServiceMessage
-		final FetchServiceMessage fetchReq = new FetchServiceMessage(ref);
+		final FetchServiceMessage fetchReq = new FetchServiceMessage();
+		fetchReq.setServiceID(ref.getURI().getFragment());
 
 		// send the FetchServiceMessage and get a DeliverServiceMessage in
 		// return
-		final RemoteOSGiMessageImpl msg = sendMessage(fetchReq);
+		final RemoteOSGiMessage msg = sendMessage(fetchReq);
 		String bundleLocation = null;
 		try {
 			if (msg instanceof DeliverServiceMessage) {
@@ -468,7 +481,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						.installBundle("file:" + bundleLocation);
 
 				System.out.println("BUNDLE LOCATION: " + bundleLocation);
-				
+
 				// store the bundle for state updates and cleanup
 				proxyBundles.put(service.getFragment(), bundle);
 
@@ -482,7 +495,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				bundleLocation = "streamed";
 				Bundle bundle = RemoteOSGiServiceImpl.context.installBundle(ref
 						.getURI().toString(), new ByteArrayInputStream(delivB
-						.getBundle()));
+						.getBytes()));
 				bundle.start();
 			}
 		} catch (BundleException e) {
@@ -496,13 +509,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 	}
 
-	private void send(final RemoteOSGiMessageImpl msg) {
+	private void send(final RemoteOSGiMessage msg) {
 		if (networkChannel == null) {
 			return;
 		}
 
-		if (msg.xid == 0) {
-			msg.xid = RemoteOSGiServiceImpl.nextXid();
+		if (msg.getXID() == 0) {
+			msg.setXID(RemoteOSGiServiceImpl.nextXid());
 		}
 
 		try {
@@ -537,11 +550,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 	}
 
-	private RemoteOSGiMessageImpl sendMessage(final RemoteOSGiMessageImpl msg) {
-		if (msg.xid == 0) {
-			msg.xid = RemoteOSGiServiceImpl.nextXid();
+	private RemoteOSGiMessage sendMessage(final RemoteOSGiMessage msg) {
+		if (msg.getXID() == 0) {
+			msg.setXID(RemoteOSGiServiceImpl.nextXid());
 		}
-		final Integer xid = new Integer(msg.xid);
+		final Integer xid = new Integer(msg.getXID());
 		synchronized (receiveQueue) {
 			receiveQueue.put(xid, WAITING);
 		}
@@ -567,7 +580,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					throw new RemoteOSGiException(
 							"Method Invocation failed, timeout exceeded.");
 				} else {
-					return (RemoteOSGiMessageImpl) reply;
+					return (RemoteOSGiMessage) reply;
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -583,7 +596,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @throws RemoteOSGiException
 	 *             in case of network errors.
 	 */
-	TimeOffset getOffset() throws RemoteOSGiException {
+	public TimeOffset getOffset() throws RemoteOSGiException {
 		if (timeOffset == null) {
 			// if unknown, perform a initial offset measurement round of 4
 			// messages
@@ -623,9 +636,33 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 	}
 
-	private RemoteServiceReference[] processLease(LeaseMessage lease) {
-		final RemoteServiceReferenceImpl[] refs = lease.getServices(this);
-		for (short i = 0; i < refs.length; i++) {
+	private void populateLease(final LeaseMessage lease,
+			final RemoteServiceRegistration[] regs, final String[] topics) {
+		final String[] serviceIDs = new String[regs.length];
+		final String[][] serviceInterfaces = new String[regs.length][];
+		final Dictionary[] serviceProperties = new Dictionary[regs.length];
+
+		for (short i = 0; i < regs.length; i++) {
+			serviceIDs[i] = String.valueOf(regs[i].getServiceID());
+			serviceInterfaces[i] = regs[i].getInterfaceNames();
+			serviceProperties[i] = regs[i].getProperties();
+		}
+		lease.setServiceIDs(serviceIDs);
+		lease.setServiceInterfaces(serviceInterfaces);
+		lease.setServiceProperties(serviceProperties);
+		lease.setTopics(topics);
+	}
+
+	private RemoteServiceReference[] processLease(final LeaseMessage lease) {
+		final String[] serviceIDs = lease.getServiceIDs();
+		final String[][] serviceInterfaces = lease.getServiceInterfaces();
+		final Dictionary[] serviceProperties = lease.getServiceProperties();
+
+		final RemoteServiceReferenceImpl[] refs = new RemoteServiceReferenceImpl[serviceIDs.length];
+		for (short i = 0; i < serviceIDs.length; i++) {
+			refs[i] = new RemoteServiceReferenceImpl(serviceInterfaces[i],
+					serviceIDs[i], serviceProperties[i], this);
+
 			remoteServices.put(refs[i].getURI().toString(), refs[i]);
 			RemoteOSGiServiceImpl
 					.notifyRemoteServiceListeners(new RemoteServiceEvent(
@@ -699,14 +736,15 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		switch (msg.getFuncID()) {
 		// requests
-		case RemoteOSGiMessageImpl.LEASE: {
+		case RemoteOSGiMessage.LEASE: {
 			final LeaseMessage lease = (LeaseMessage) msg;
 			processLease(lease);
 
-			return lease.replyWith(RemoteOSGiServiceImpl.getServices(),
+			populateLease(lease, RemoteOSGiServiceImpl.getServices(),
 					RemoteOSGiServiceImpl.getTopics());
+			return lease;
 		}
-		case RemoteOSGiMessageImpl.FETCH_SERVICE: {
+		case RemoteOSGiMessage.FETCH_SERVICE: {
 			try {
 				final FetchServiceMessage fetchReq = (FetchServiceMessage) msg;
 				final String serviceID = fetchReq.getServiceID();
@@ -714,20 +752,22 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				final RemoteServiceRegistration reg = getService(serviceID);
 
 				if (reg instanceof ProxiedServiceRegistration) {
-					RemoteOSGiMessage m = ((ProxiedServiceRegistration) reg)
-							.deliver(fetchReq);
-
+					final DeliverServiceMessage m = ((ProxiedServiceRegistration) reg)
+							.getDeliverServiceMessage();
+					m.setXID(fetchReq.getXID());
+					m.setServiceID(fetchReq.getServiceID());
 					return m;
 				} else if (reg instanceof BundledServiceRegistration) {
-					return new DeliverBundleMessage(fetchReq,
-							(BundledServiceRegistration) reg);
+					DeliverBundleMessage m = new DeliverBundleMessage();
+					m.setXID(msg.getXID());
+					m.setBytes(((BundledServiceRegistration) reg).getBundle());
 				}
 
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
 			}
 		}
-		case RemoteOSGiMessageImpl.LEASE_UPDATE: {
+		case RemoteOSGiMessage.LEASE_UPDATE: {
 			LeaseUpdateMessage suMsg = (LeaseUpdateMessage) msg;
 
 			final String serviceID = suMsg.getServiceID();
@@ -735,14 +775,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 			switch (stateUpdate) {
 			case LeaseUpdateMessage.TOPIC_UPDATE: {
-				updateTopics((String[]) suMsg.getContent()[0], (String[]) suMsg
-						.getContent()[1]);
+				updateTopics((String[]) suMsg.getPayload()[0], (String[]) suMsg
+						.getPayload()[1]);
 				return null;
 			}
 			case LeaseUpdateMessage.SERVICE_ADDED: {
 				final RemoteServiceReferenceImpl ref = new RemoteServiceReferenceImpl(
-						(String[]) suMsg.getContent()[0], serviceID,
-						(Dictionary) suMsg.getContent()[1], this);
+						(String[]) suMsg.getPayload()[0], serviceID,
+						(Dictionary) suMsg.getPayload()[1], this);
 
 				remoteServices.put(getRemoteEndpoint().resolve("#" + serviceID)
 						.toString(), ref);
@@ -753,7 +793,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				return null;
 			}
 			case LeaseUpdateMessage.SERVICE_MODIFIED: {
-				final Dictionary newProps = (Dictionary) suMsg.getContent()[1];
+				final Dictionary newProps = (Dictionary) suMsg.getPayload()[1];
 				final ServiceRegistration reg = (ServiceRegistration) proxiedServices
 						.get(serviceID);
 				if (reg != null) {
@@ -774,7 +814,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					System.out.println("==============================");
 					System.err.println("RECEIVED " + msg);
 					System.err.println("WHILE CHANNEL IS NULL...");
-					
+
 					return null;
 				}
 				final Bundle bundle = (Bundle) proxyBundles.remove(serviceID);
@@ -801,7 +841,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 			}
 		}
-		case RemoteOSGiMessageImpl.INVOKE_METHOD: {
+		case RemoteOSGiMessage.INVOKE_METHOD: {
 			final InvokeMethodMessage invMsg = (InvokeMethodMessage) msg;
 			try {
 				ProxiedServiceRegistration serv = (ProxiedServiceRegistration) localServices
@@ -828,18 +868,25 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				try {
 					final Object result = method.invoke(
 							serv.getServiceObject(), arguments);
-					return new MethodResultMessage(invMsg, result);
+					final MethodResultMessage m = new MethodResultMessage();
+					m.setXID(invMsg.getXID());
+					m.setResult(result);
+					return m;
 				} catch (InvocationTargetException t) {
 					throw t.getTargetException();
 				}
 			} catch (Throwable t) {
-				return new MethodResultMessage(invMsg, t);
+				final MethodResultMessage m = new MethodResultMessage();
+				m.setXID(invMsg.getXID());
+				m.setException(t);
+				return m;
 			}
 		}
-		case RemoteOSGiMessageImpl.REMOTE_EVENT: {
+		case RemoteOSGiMessage.REMOTE_EVENT: {
 			final RemoteEventMessage eventMsg = (RemoteEventMessage) msg;
 
-			final Event event = eventMsg.getEvent(this);
+			final Event event = new Event(eventMsg.getTopic(), eventMsg
+					.getProperties());
 
 			// and deliver the event to the local framework
 			if (RemoteOSGiServiceImpl.eventAdminTracker.getTrackingCount() > 0) {
@@ -852,7 +899,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 			return null;
 		}
-		case RemoteOSGiMessageImpl.TIME_OFFSET: {
+		case RemoteOSGiMessage.TIME_OFFSET: {
 			// add timestamp to the message and return the message to sender
 			((TimeOffsetMessage) msg).timestamp();
 			return msg;
@@ -872,7 +919,19 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		public void handleEvent(final Event event) {
 			try {
-				send(new RemoteEventMessage(event, getLocalEndpoint()));
+				final RemoteEventMessage msg = new RemoteEventMessage();
+				msg.setTopic(event.getTopic());
+				final String[] propertyNames = event.getPropertyNames();
+				final Dictionary props = new Hashtable();
+				for (int i = 0; i < propertyNames.length; i++) {
+					props.put(propertyNames[i], event
+							.getProperty(propertyNames[i]));
+				}
+				props.put(RemoteEventMessage.EVENT_SENDER_URI,
+						getLocalEndpoint());
+				msg.setProperties(props);
+				send(msg);
+
 				if (RemoteOSGiServiceImpl.MSG_DEBUG) {
 					RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 							"Forwarding Event " + event);

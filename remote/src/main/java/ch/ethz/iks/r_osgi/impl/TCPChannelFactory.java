@@ -38,11 +38,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import org.osgi.service.log.LogService;
 import ch.ethz.iks.r_osgi.URI;
-import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
+import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
 
 /**
  * channel factory for (persistent) TCP transport. This is the default protocol.

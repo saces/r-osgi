@@ -42,6 +42,8 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+
+import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
 import ch.ethz.iks.util.StringUtils;
 
 /**
@@ -234,9 +236,12 @@ final class CodeAnalyzer implements ClassVisitor {
 			}
 		}
 
-		DeliverServiceMessage message = new DeliverServiceMessage(ifaces,
-				smartProxy, (HashMap) injections.clone(), importDeclaration
-						.toString(), exportDeclaration.toString());
+		final DeliverServiceMessage message = new DeliverServiceMessage();
+		message.setInterfaceNames(ifaces);
+		message.setSmartProxyName(smartProxy);
+		message.setInjections((HashMap) injections.clone());
+		message.setImports(importDeclaration.toString());
+		message.setExports(exportDeclaration.toString());
 		visited.clear();
 		injections.clear();
 		closure.clear();

@@ -26,7 +26,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi.impl;
+package ch.ethz.iks.r_osgi.messages;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -55,33 +55,33 @@ import ch.ethz.iks.r_osgi.RemoteOSGiException;
  * @author Jan S. Rellermeyer, ETH Zurich.
  * @since 0.1
  */
-final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
+public final class DeliverServiceMessage extends RemoteOSGiMessage {
 
 	/**
 	 * The class name of the interface that describes the service.
 	 */
-	private final String[] serviceInterfaceNames;
+	private String[] serviceInterfaceNames;
 
 	/**
 	 * Optionally, the class name of a smart proxy class.
 	 */
-	private final String smartProxyName;
+	private String smartProxyName;
 
 	/**
 	 * the injections.
 	 */
-	private final HashMap injections;
+	private Map injections;
 
 	/**
 	 * the imports.
 	 */
-	private final String imports;
+	private String imports;
 
 	/**
 	 * the exports.
 	 */
-	private final String exports;
-	
+	private String exports;
+
 	private String serviceID;
 
 	/**
@@ -101,26 +101,8 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * @throws RemoteOSGiException
 	 *             in case of Exceptions during class serialization.
 	 */
-	DeliverServiceMessage(final String serviceInterfaceNames[],
-			final String smartProxyName, final HashMap injections,
-			final String imports, final String exports)
-			throws RemoteOSGiException {
-		funcID = DELIVER_SERVICE;		
-		this.serviceInterfaceNames = serviceInterfaceNames;
-		this.smartProxyName = smartProxyName;
-		this.injections = injections;
-		this.imports = imports;
-		this.exports = exports;		
-	}
-
-	/**
-	 * 
-	 * @param fetchReq
-	 * @param attributes
-	 */
-	void init(final long serviceID, final FetchServiceMessage fetchReq) {
-		this.serviceID = String.valueOf(serviceID);
-		this.xid = fetchReq.xid;
+	public DeliverServiceMessage() {
+		super(DELIVER_SERVICE);
 	}
 
 	/**
@@ -153,7 +135,9 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 *             in case of parse errors.
 	 */
 	DeliverServiceMessage(final ObjectInputStream input) throws IOException {
-		// the fragment that describes the service
+		super(DELIVER_SERVICE);
+
+		// the serviceID
 		serviceID = input.readUTF();
 		// imports
 		imports = input.readUTF();
@@ -196,25 +180,37 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 		}
 	}
 
-	String getServiceID() {
+	public String getServiceID() {
 		return serviceID;
 	}
-	
+
+	public void setServiceID(String serviceID) {
+		this.serviceID = serviceID;
+	}
+
+	public void setInjections(final Map injections) {
+		this.injections = injections;
+	}
+
 	/**
 	 * get the interface name of the delivered service.
 	 * 
 	 * @return the class name of the interface.
 	 */
-	String[] getInterfaceNames() {
+	public String[] getInterfaceNames() {
 		return serviceInterfaceNames;
 	}
 
+	public void setInterfaceNames(final String[] interfaceNames) {
+		this.serviceInterfaceNames = interfaceNames;
+	}
+
 	/**
-	 * get the interface class.
+	 * convenience method to get the bytes of the interface class.
 	 * 
 	 * @return the interface class.
 	 */
-	byte[] getInterfaceClass() {
+	public byte[] getInterfaceClass() {
 		return (byte[]) injections.get(serviceInterfaceNames[0].replace('.',
 				'/')
 				+ ".class");
@@ -225,16 +221,23 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * 
 	 * @return the class name of the smart proxy or null of undefined.
 	 */
-	String getProxyName() {
+	public String getSmartProxyName() {
 		return smartProxyName;
 	}
 
+	public void setSmartProxyName(final String smartProxyName) {
+		this.smartProxyName = smartProxyName;
+	}
+
 	/**
-	 * get the smart proxy class.
+	 * convenience method to get the bytes of the smart proxy class.
 	 * 
 	 * @return the class or null if undefined.
 	 */
-	byte[] getProxyClass() {
+	public byte[] getProxyClass() {
+		if (smartProxyName == null) {
+			return null;
+		}
 		return (byte[]) injections.get(smartProxyName.replace('.', '/')
 				+ ".class");
 	}
@@ -244,7 +247,7 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * 
 	 * @return a <code>List</code> of class names.
 	 */
-	Map getInjections() {
+	public Map getInjections() {
 		return injections;
 	}
 
@@ -253,8 +256,12 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * 
 	 * @return the imports.
 	 */
-	String getImports() {
+	public String getImports() {
 		return imports;
+	}
+
+	public void setImports(final String imports) {
+		this.imports = imports;
 	}
 
 	/**
@@ -262,8 +269,12 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 	 * 
 	 * @return the exports.
 	 */
-	String getExports() {
+	public String getExports() {
 		return exports;
+	}
+
+	public void setExports(final String exports) {
+		this.exports = exports;
 	}
 
 	/**
@@ -276,6 +287,8 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("[DELIVER_SERVICE] - XID: ");
 		buffer.append(xid);
+		buffer.append(", serviceID: ");
+		buffer.append(serviceID);
 		buffer.append(", serviceInterfaceName: ");
 		buffer.append(Arrays.asList(serviceInterfaceNames));
 		if (smartProxyName != null) {
@@ -288,4 +301,5 @@ final class DeliverServiceMessage extends RemoteOSGiMessageImpl {
 		}
 		return buffer.toString();
 	}
+
 }

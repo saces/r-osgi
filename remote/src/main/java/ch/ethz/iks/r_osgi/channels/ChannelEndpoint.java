@@ -31,7 +31,7 @@ package ch.ethz.iks.r_osgi.channels;
 import java.util.Dictionary;
 import org.osgi.framework.ServiceRegistration;
 import ch.ethz.iks.r_osgi.URI;
-import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
+import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
 
 /**
  * The endpoint of a channel to a connected remote peer.

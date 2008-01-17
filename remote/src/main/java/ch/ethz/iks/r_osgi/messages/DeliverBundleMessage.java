@@ -26,12 +26,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi.impl;
+package ch.ethz.iks.r_osgi.messages;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-
 
 /**
  * <p>
@@ -41,19 +40,12 @@ import java.io.IOException;
  * @author Jan S. Rellermeyer, ETH Zurich.
  * @since 0.5
  */
-final class DeliverBundleMessage extends RemoteOSGiMessageImpl {
+public final class DeliverBundleMessage extends RemoteOSGiMessage {
 
 	/**
 	 * The raw bytes of the bundle.
 	 */
 	private byte[] bytes;
-
-	/**
-	 * Hidden default constructor.
-	 */
-	private DeliverBundleMessage() {
-
-	}
 
 	/**
 	 * Create a new DeliverBundleMessage for a service registered with
@@ -66,11 +58,8 @@ final class DeliverBundleMessage extends RemoteOSGiMessageImpl {
 	 * @throws IOException
 	 *             in case of IO errors.
 	 */
-	DeliverBundleMessage(final FetchServiceMessage fetchReq,
-			final BundledServiceRegistration reg) throws IOException {
-		xid = fetchReq.getXID();
-		funcID = DELIVER_BUNDLE;
-		this.bytes = reg.getBundle();
+	public DeliverBundleMessage() {
+		super(DELIVER_BUNDLE);
 	}
 
 	/**
@@ -93,6 +82,8 @@ final class DeliverBundleMessage extends RemoteOSGiMessageImpl {
 	 *             in case of parse errors.
 	 */
 	DeliverBundleMessage(final ObjectInputStream input) throws IOException {
+		super(DELIVER_BUNDLE);
+
 		// read the bytes
 		bytes = readBytes(input);
 	}
@@ -115,8 +106,12 @@ final class DeliverBundleMessage extends RemoteOSGiMessageImpl {
 	 * 
 	 * @return the raw bytes of the bundle.
 	 */
-	byte[] getBundle() {
+	public byte[] getBytes() {
 		return bytes;
+	}
+
+	public void setBytes(final byte[] bytes) {
+		this.bytes = bytes;
 	}
 
 	/**

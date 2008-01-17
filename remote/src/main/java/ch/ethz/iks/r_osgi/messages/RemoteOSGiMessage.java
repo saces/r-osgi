@@ -26,13 +26,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi.impl;
+package ch.ethz.iks.r_osgi.messages;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.net.SocketException;
-import ch.ethz.iks.r_osgi.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 
 /**
@@ -43,7 +42,57 @@ import ch.ethz.iks.r_osgi.RemoteOSGiException;
  * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.1
  */
-public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
+public abstract class RemoteOSGiMessage {
+
+	/**
+	 * type code for lease messages.
+	 */
+	public static final short LEASE = 1;
+
+	/**
+	 * type code for fetch service messages.
+	 */
+	public static final short FETCH_SERVICE = 2;
+
+	/**
+	 * type code for deliver service messages.
+	 */
+	public static final short DELIVER_SERVICE = 3;
+
+	/**
+	 * type code for deliver bundle messages.
+	 */
+	public static final short DELIVER_BUNDLE = 4;
+
+	/**
+	 * type code for invoke method messages.
+	 */
+	public static final short INVOKE_METHOD = 5;
+
+	/**
+	 * type code for method result messages.
+	 */
+	public static final short METHOD_RESULT = 6;
+
+	/**
+	 * type code for remote event messages.
+	 */
+	public static final short REMOTE_EVENT = 7;
+
+	/**
+	 * type code for time offset messages.
+	 */
+	public static final short TIME_OFFSET = 8;
+
+	/**
+	 * type code for service attribute updates.
+	 */
+	public static final short LEASE_UPDATE = 9;
+
+	/**
+	 * the type code or functionID in SLP notation.
+	 */
+	private short funcID;
 
 	/**
 	 * the transaction id.
@@ -53,7 +102,8 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	/**
 	 * hides the default constructor.
 	 */
-	RemoteOSGiMessageImpl() {
+	RemoteOSGiMessage(final short funcID) {
+		this.funcID = funcID;
 	}
 
 	/**
@@ -65,6 +115,21 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 	 */
 	public final int getXID() {
 		return xid;
+	}
+
+	public void setXID(int xid) {
+		this.xid = xid;
+	}
+
+	/**
+	 * Get the function ID (type code) of the message.
+	 * 
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#getFuncID()
+	 * @return the type code.
+	 * @since 0.6
+	 */
+	public final short getFuncID() {
+		return funcID;
 	}
 
 	/**
@@ -95,7 +160,7 @@ public abstract class RemoteOSGiMessageImpl extends RemoteOSGiMessage {
 			input.readByte(); // version, currently unused
 			short funcID = input.readByte();
 			short xid = input.readShort();
-			RemoteOSGiMessageImpl msg;
+			RemoteOSGiMessage msg;
 			switch (funcID) {
 			case LEASE:
 				msg = new LeaseMessage(input);
