@@ -172,7 +172,8 @@ public class InvokeMethodMessage extends RemoteOSGiMessage {
 		buffer.append(", methodName: ");
 		buffer.append(methodSignature);
 		buffer.append(", params: ");
-		buffer.append(Arrays.asList(getArgs()));
+		buffer.append(arguments == null ? "" : Arrays.asList(arguments)
+				.toString());
 		return buffer.toString();
 	}
 }

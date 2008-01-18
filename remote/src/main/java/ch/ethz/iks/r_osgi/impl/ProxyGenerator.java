@@ -694,7 +694,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 */
 	public FieldVisitor visitField(final int access, final String name,
 			final String desc, final String signature, final Object value) {
-		if (name == "endpoint") {
+		if (name.equals("endpoint")) {
 			return null;
 		}
 		return writer.visitField(access, name, checkRewriteDesc(desc),
@@ -839,7 +839,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					method.visitTypeInsn(CHECKCAST, a.toString()
 							+ returnType.getInternalName() + ";");
 					System.out.println("INTERNAL NAME "
-							+ returnType.getInternalName().toString());
+							+ returnType.getInternalName());
 				}
 				method.visitInsn(ARETURN);
 				break;

@@ -53,7 +53,7 @@
 			<artifactId>jslp-osgi</artifactId>
 			<version>1.0.0.RC2</version>
 			<scope>provided</scope>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>ch.ethz.iks.r-osgi</groupId>
 			<artifactId>remote</artifactId>

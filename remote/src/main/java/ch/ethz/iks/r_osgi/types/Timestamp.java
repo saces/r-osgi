@@ -28,6 +28,8 @@
  */
 package ch.ethz.iks.r_osgi.types;
 
+import java.util.Random;
+
 /**
  * <p>
  * Encapsulates a timestamp that can be used as attribute for a service or as
@@ -51,7 +53,7 @@ public final class Timestamp implements Comparable {
 	 * the offset of the logical clock. Initialized by a pseudo- random number
 	 * to simplify causal ordering among different peers.
 	 */
-	private static int counter = (int) (Math.random() * 1000);
+	private static int counter = new Random().nextInt(1000);
 
 	/**
 	 * the actual timestamp, stored as <code>long</code>.

@@ -281,8 +281,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				}
 			} catch (IOException ioe) {
 				dispose();
-				return;
 			}
+			return;
 		}
 		final Integer xid = new Integer(msg.getXID());
 		synchronized (receiveQueue) {
@@ -922,11 +922,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					DeliverBundleMessage m = new DeliverBundleMessage();
 					m.setXID(msg.getXID());
 					m.setBytes(((BundledServiceRegistration) reg).getBundle());
+					return m;
 				}
 
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
 			}
+			return null;
 		}
 		case RemoteOSGiMessage.LEASE_UPDATE: {
 			LeaseUpdateMessage suMsg = (LeaseUpdateMessage) msg;

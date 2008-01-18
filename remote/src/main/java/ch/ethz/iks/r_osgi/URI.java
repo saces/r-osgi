@@ -116,7 +116,7 @@ public class URI implements Serializable {
 			return scheme.equals(otherURI.scheme)
 					&& host.equals(otherURI.host)
 					&& port == otherURI.port
-					&& ((fragment == null && otherURI.fragment == null) || fragment
+					&& ((fragment == null && otherURI.fragment == null) || fragment != null && fragment
 							.equals(otherURI.fragment));
 		} else {
 			return false;

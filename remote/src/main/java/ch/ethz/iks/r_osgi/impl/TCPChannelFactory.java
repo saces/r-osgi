@@ -237,8 +237,6 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		public void reconnect() throws IOException {
 			connected = false;
-			final InetAddress host = socket.getInetAddress();
-			final int port = socket.getPort();
 			try {
 				if (socket != null) {
 					socket.close();
@@ -246,7 +244,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			} catch (Exception e) {
 				socket = null;
 			}
-			open(new Socket(host, port));
+			
+			open(new Socket(remoteEndpoint.getHost(), remoteEndpoint.getPort()));
 			this.connected = true;
 			new ReceiverThread().start();
 		}

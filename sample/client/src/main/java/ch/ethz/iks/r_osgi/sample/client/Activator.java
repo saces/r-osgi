@@ -25,13 +25,9 @@ public class Activator implements BundleActivator {
 
 	private RemoteOSGiService remote;
 
-	private RemoteServiceListener listener;
-
 	private ServiceInterface service;
 
 	private Thread clientThread;
-
-	private boolean running = true;
 
 	private static final boolean discovery = false;
 
@@ -99,7 +95,6 @@ public class Activator implements BundleActivator {
 	}
 
 	public void stop(final BundleContext context) throws Exception {
-		running = false;
 		// if the thread exists, interrupt it
 		if (clientThread != null) {
 			clientThread.interrupt();

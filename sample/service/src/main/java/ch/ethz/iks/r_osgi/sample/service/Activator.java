@@ -40,8 +40,6 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 		registration = context.registerService(SurrogateRegistration.class
 				.getName(), this, properties);
 
-		System.out.println("Registered service "
-				+ ServiceInterface.class.getName());
 
 		final ServiceReference ref = context
 				.getServiceReference(EventAdmin.class.getName());
@@ -103,7 +101,7 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 	}
 
 	public void stop(BundleContext context) throws Exception {
-
+		registration.unregister();
 	}
 
 }

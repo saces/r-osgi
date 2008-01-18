@@ -183,7 +183,7 @@ class TimeOffset {
 	 * @return <code>true</code> if expired, <code>false</code> otherwise.
 	 */
 	boolean isExpired() {
-		return (System.currentTimeMillis() - lastUpdate > lifetime * 60000);
+		return (System.currentTimeMillis() - lastUpdate > lifetime * 60000L);
 	}
 
 	/**

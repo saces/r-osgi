@@ -38,7 +38,7 @@ import ch.ethz.iks.r_osgi.types.ServiceUIComponent;
 
 public class ClockUI extends Panel implements ServiceUIComponent {
 
-	private Clock clock;
+	private transient Clock clock;
 
 	private static final SimpleDateFormat hhmm = new SimpleDateFormat("HH:mm");
 
@@ -62,24 +62,6 @@ public class ClockUI extends Panel implements ServiceUIComponent {
 	private final Label label;
 
 	private final List alarmList;
-
-	public static void main(String[] args) {
-		java.awt.Frame frame = new java.awt.Frame();
-		Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-		int width = size.width < 250 ? size.width : 250;
-		int heigth = size.height < 300 ? size.height - 10 : 300;
-		frame.setSize(width, heigth);
-
-		frame.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {
-				System.exit(0);
-			}
-		});
-		final ClockUI ui = new ClockUI();
-		ui.initComponent(null, null);
-		frame.add(ui);
-		frame.show();
-	}
 
 	public ClockUI() {
 		final GridBagLayout gbl = new GridBagLayout();

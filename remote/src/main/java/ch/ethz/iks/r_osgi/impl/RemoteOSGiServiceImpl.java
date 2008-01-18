@@ -319,7 +319,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 			if (DEBUG) {
 				log.log(LogService.LOG_DEBUG, "Local topic space "
-						+ getTopics());
+						+ Arrays.asList(getTopics()));
 			}
 
 			remoteServiceListenerTracker = new ServiceTracker(context,
@@ -566,7 +566,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			fetchService(ref);
 			sref = getFetchedServiceReference(ref);
 		}
-		return ref == null ? null : context.getService(sref);
+		return sref == null ? null : context.getService(sref);
 	}
 
 	/**
@@ -610,8 +610,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 		return channel.getRemoteReferences(context
 				.createFilter(filter != null ? "(&(" + filter + ")("
-						+ Constants.OBJECTCLASS + "=" + clazz.toString() + ")"
-						: "(" + Constants.OBJECTCLASS + "=" + clazz.toString()
+						+ Constants.OBJECTCLASS + "=" + clazz + ")"
+						: "(" + Constants.OBJECTCLASS + "=" + clazz
 								+ ")"));
 	}
 
