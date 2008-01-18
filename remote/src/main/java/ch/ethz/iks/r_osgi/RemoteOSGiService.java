@@ -89,26 +89,11 @@ public interface RemoteOSGiService {
 	 * (default)
 	 * 
 	 * @since 0.5
+	 * @deprecated With the new model, service proxies is the only supported
+	 *             policy. Any value set to the R_OSGi_REGISTRATION policy will
+	 *             have the effect of SERVICE_PROXY_POLICY;
 	 */
 	String SERVICE_PROXY_POLICY = "service_proxy";
-
-	/**
-	 * policy "transfer_bundle" transfers the whole bundle to the remote peer.
-	 * In other words, it creates a copy of the bundle containing the service
-	 * and installs this bundle on the other side.
-	 * 
-	 * @since 0.5
-	 */
-	String TRANSFER_BUNDLE_POLICY = "transfer_bundle";
-
-	/**
-	 * the auxiliary header entry for bundles running on strange frameworks that
-	 * mess up the bundle location so that R-OSGi cannot grab the bundle from
-	 * there.
-	 * 
-	 * @since 0.5
-	 */
-	String BUNDLE_URL = "bundle_url";
 
 	/**
 	 * Can be set to use a smart proxy. Smart proxies have to be abstract
@@ -208,9 +193,8 @@ public interface RemoteOSGiService {
 	 */
 	Object getRemoteService(final RemoteServiceReference ref);
 
-	
 	void ungetRemoteService(RemoteServiceReference remoteServiceReference);
-	
+
 	/**
 	 * transform a timestamp into the peer's local time.
 	 * 
@@ -231,9 +215,7 @@ public interface RemoteOSGiService {
 	public void removeRedundantEndpoint(URI service, URI redundant);
 
 	public void setEndpointPolicy(URI service, int policy);
-	
-	public URI getLocalPeer();
 
-	
+	public URI getLocalPeer();
 
 }

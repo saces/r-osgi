@@ -790,11 +790,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (reg == null) {
 			throw new IllegalStateException("Could not get " + serviceID);
 		}
-		if (reg instanceof ProxiedServiceRegistration) {
-			localServices.put(serviceID, reg);
-		}
+		localServices.put(serviceID, reg);
 		return reg;
-
 	}
 
 	private void populateLease(final LeaseMessage lease,
@@ -906,29 +903,15 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			return lease;
 		}
 		case RemoteOSGiMessage.FETCH_SERVICE: {
-			try {
-				final FetchServiceMessage fetchReq = (FetchServiceMessage) msg;
-				final String serviceID = fetchReq.getServiceID();
+			final FetchServiceMessage fetchReq = (FetchServiceMessage) msg;
+			final String serviceID = fetchReq.getServiceID();
 
-				final RemoteServiceRegistration reg = getService(serviceID);
+			final RemoteServiceRegistration reg = getService(serviceID);
 
-				if (reg instanceof ProxiedServiceRegistration) {
-					final DeliverServiceMessage m = ((ProxiedServiceRegistration) reg)
-							.getDeliverServiceMessage();
-					m.setXID(fetchReq.getXID());
-					m.setServiceID(fetchReq.getServiceID());
-					return m;
-				} else if (reg instanceof BundledServiceRegistration) {
-					DeliverBundleMessage m = new DeliverBundleMessage();
-					m.setXID(msg.getXID());
-					m.setBytes(((BundledServiceRegistration) reg).getBundle());
-					return m;
-				}
-
-			} catch (IOException ioe) {
-				ioe.printStackTrace();
-			}
-			return null;
+			final DeliverServiceMessage m = reg.getDeliverServiceMessage();
+			m.setXID(fetchReq.getXID());
+			m.setServiceID(fetchReq.getServiceID());
+			return m;
 		}
 		case RemoteOSGiMessage.LEASE_UPDATE: {
 			LeaseUpdateMessage suMsg = (LeaseUpdateMessage) msg;
@@ -1007,18 +990,17 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		case RemoteOSGiMessage.INVOKE_METHOD: {
 			final InvokeMethodMessage invMsg = (InvokeMethodMessage) msg;
 			try {
-				ProxiedServiceRegistration serv = (ProxiedServiceRegistration) localServices
+				RemoteServiceRegistration serv = (RemoteServiceRegistration) localServices
 						.get(invMsg.getServiceID());
 				if (serv == null) {
 					final RemoteServiceRegistration reg = getService(invMsg
 							.getServiceID());
-					if (reg == null
-							|| !(reg instanceof ProxiedServiceRegistration)) {
+					if (reg == null) {
 						throw new IllegalStateException(toString()
 								+ "Could not get " + invMsg.getServiceID()
 								+ ", known services " + localServices);
 					} else {
-						serv = (ProxiedServiceRegistration) reg;
+						serv = reg;
 					}
 				}
 

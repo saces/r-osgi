@@ -1,6 +1,6 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
- * Department of Computer Science, ETH Zurich.
+ * Institute for Pervasive Computing, ETH Zurich.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,24 @@
  */
 package ch.ethz.iks.r_osgi.impl;
 
+import java.lang.reflect.Method;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
+
+import org.objectweb.asm.Type;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
+import ch.ethz.iks.r_osgi.RemoteOSGiService;
+import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
 
 /**
- * abstract class of remote service registrations.
+ * RemoteService encapsulates a service registered for remoting.
  * 
- * @author Jan S. Rellermeyer, ETH Zurich
- * @since 0.5
+ * @author Jan S. Rellermeyer
  */
-class RemoteServiceRegistration {
+final class RemoteServiceRegistration {
+
 	/**
 	 * the local service reference.
 	 */
@@ -53,18 +59,78 @@ class RemoteServiceRegistration {
 	private final String[] interfaceNames;
 
 	/**
-	 * constructor.
+	 * the service object.
+	 */
+	private final Object serviceObject;
+
+	private final HashMap methodTable = new HashMap(0);
+
+	private DeliverServiceMessage deliverServiceMessage;
+
+	/**
+	 * creates a new RemoteService object.
 	 * 
-	 * @param reference
-	 *            the service reference.
+	 * @param ref
+	 *            the <code>ServiceReference</code>.
+	 * @param interfaceNames
+	 *            the names of the service interfaces.
+	 * @param smartProxy
+	 *            an optional abstract class as smart proxy.
+	 * @param injectionClasses
+	 *            optional class injections.
+	 * @throws ClassNotFoundException
+	 *             if one of the interface classes cannot be found.
 	 * @throws ServiceLocationException
 	 */
-	RemoteServiceRegistration(final ServiceReference service) {
+	RemoteServiceRegistration(final ServiceReference ref,
+			final ServiceReference service) throws ClassNotFoundException {
+
 		this.reference = service;
 		this.serviceID = ((Long) service.getProperty(Constants.SERVICE_ID))
 				.longValue();
 		this.interfaceNames = (String[]) service
 				.getProperty(Constants.OBJECTCLASS);
+
+		// get the service object
+		this.serviceObject = RemoteOSGiServiceImpl.context.getService(service);
+		if (serviceObject == null) {
+			throw new IllegalStateException("Service is not present.");
+		}
+
+		// get the interface classes
+		final ClassLoader bundleLoader = serviceObject.getClass()
+				.getClassLoader();
+		final String[] interfaceNames = (String[]) service
+				.getProperty(Constants.OBJECTCLASS);
+		final int interfaceCount = interfaceNames.length;
+		final Class[] serviceInterfaces = new Class[interfaceCount];
+
+		// build up the method table for each interface
+		for (int i = 0; i < interfaceCount; i++) {
+			serviceInterfaces[i] = bundleLoader.loadClass(interfaceNames[i]);
+			final Method[] methods = serviceInterfaces[i].getMethods();
+			for (int j = 0; j < methods.length; j++) {
+				methodTable.put(methods[j].getName()
+						+ Type.getMethodDescriptor(methods[j]), methods[j]);
+			}
+		}
+
+		final Dictionary headers = service.getBundle().getHeaders();
+		final CodeAnalyzer inspector = new CodeAnalyzer(bundleLoader,
+				(String) headers.get(Constants.IMPORT_PACKAGE),
+				(String) headers.get(Constants.EXPORT_PACKAGE));
+		try {
+			deliverServiceMessage = inspector.analyze(interfaceNames,
+					(String) ref.getProperty(RemoteOSGiService.SMART_PROXY),
+					(String[]) ref.getProperty(RemoteOSGiService.INJECTIONS),
+					(String) ref
+							.getProperty(RemoteOSGiServiceImpl.PRESENTATION));
+			deliverServiceMessage.setServiceID(((Long) ref
+					.getProperty(Constants.SERVICE_ID)).toString());
+		} catch (Exception e) {
+			// TODO: log
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -125,4 +191,20 @@ class RemoteServiceRegistration {
 		return (int) serviceID;
 	}
 
+	/**
+	 * get the service object.
+	 * 
+	 * @return the service object.
+	 */
+	Object getServiceObject() {
+		return serviceObject;
+	}
+
+	Method getMethod(final String signature) {
+		return (Method) methodTable.get(signature);
+	}
+
+	DeliverServiceMessage getDeliverServiceMessage() {
+		return deliverServiceMessage;
+	}
 }

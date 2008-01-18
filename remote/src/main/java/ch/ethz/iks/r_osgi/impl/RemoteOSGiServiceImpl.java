@@ -28,7 +28,6 @@
  */
 package ch.ethz.iks.r_osgi.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -133,7 +132,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	static boolean DEBUG;
 
 	/**
-	 * the address of this peer, according to what jSLP reports.
+	 * the address of this peer
 	 */
 	static String MY_ADDRESS;
 
@@ -180,11 +179,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * the bundle context.
 	 */
 	static BundleContext context;
-
-	/**
-	 * the storage location.
-	 */
-	private final String storage;
 
 	/**
 	 * Channel ID --> ChannelEndpoint.
@@ -243,11 +237,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 		// initialize the transactionID with a random value
 		nextXid = (short) Math.round(Math.random() * Short.MAX_VALUE);
-
-		// get private storage
-		final File dir = context.getDataFile("storage");
-		dir.mkdirs();
-		storage = dir.getAbsolutePath();
 
 		// initialize service trackers
 		eventAdminTracker = new ServiceTracker(context, EventAdmin.class
@@ -387,37 +376,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							: reference;
 
 					try {
-						final RemoteServiceRegistration reg;
+						final RemoteServiceRegistration reg = new RemoteServiceRegistration(
+								reference, service);
 
-						final String policy = (String) reference
-								.getProperty(RemoteOSGiService.R_OSGi_REGISTRATION);
-						if (policy
-								.equals(RemoteOSGiService.TRANSFER_BUNDLE_POLICY)) {
-
-							// for the moment, don't accept registrations from
-							// bundles that
-							// have already been fetched from a remote peer.
-							if (service.getBundle().getLocation().startsWith(
-									"r-osgi://")) {
-								return service;
-							}
-
-							reg = new BundledServiceRegistration(reference,
-									service, storage);
-
-							if (log != null) {
-								log.log(LogService.LOG_INFO, "REGISTERING "
-										+ reg + " WITH TRANSFER BUNDLE POLICY");
-							}
-						} else {
-							// default: proxied service
-							reg = new ProxiedServiceRegistration(reference,
-									service);
-
-							if (log != null) {
-								log.log(LogService.LOG_INFO, "REGISTERING "
-										+ reg + " AS PROXIED SERVICES");
-							}
+						if (log != null) {
+							log.log(LogService.LOG_INFO, "REGISTERING " + reg
+									+ " AS PROXIED SERVICES");
 						}
 
 						serviceRegistrations.put(service, reg);
@@ -610,9 +574,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 		return channel.getRemoteReferences(context
 				.createFilter(filter != null ? "(&(" + filter + ")("
-						+ Constants.OBJECTCLASS + "=" + clazz + ")"
-						: "(" + Constants.OBJECTCLASS + "=" + clazz
-								+ ")"));
+						+ Constants.OBJECTCLASS + "=" + clazz + ")" : "("
+						+ Constants.OBJECTCLASS + "=" + clazz + ")"));
 	}
 
 	/**
