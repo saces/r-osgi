@@ -111,7 +111,7 @@ public class TimeOffsetMessage extends RemoteOSGiMessage {
 	 * sending method must increase the XID to signal that this is a "new"
 	 * message rather than a strict retransmission.
 	 */
-	public void restamp(int newXID) {
+	public void restamp(short newXID) {
 		this.xid = newXID;
 		timeSeries[timeSeries.length - 1] = new Long(System.currentTimeMillis());
 	}
@@ -123,6 +123,10 @@ public class TimeOffsetMessage extends RemoteOSGiMessage {
 	 */
 	public final Long[] getTimeSeries() {
 		return timeSeries;
+	}
+
+	public final void setTimeSeries(final Long[] series) {
+		this.timeSeries = series;
 	}
 
 	/**

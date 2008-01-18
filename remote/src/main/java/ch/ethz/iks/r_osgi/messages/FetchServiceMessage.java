@@ -64,7 +64,7 @@ public class FetchServiceMessage extends RemoteOSGiMessage {
 	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *    |       R-OSGi header (function = Fetch = 1)                    |
 	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *    |   length of &lt;url&gt;     |     &lt;url&gt; String      \
+	 *    |   length of &lt;serviceID&gt;     |     &lt;serviceID&gt; String      \
 	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 

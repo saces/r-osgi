@@ -107,7 +107,7 @@ public abstract class RemoteOSGiMessage {
 	/**
 	 * the transaction id.
 	 */
-	protected int xid;
+	protected short xid;
 
 	/**
 	 * hides the default constructor.
@@ -123,11 +123,11 @@ public abstract class RemoteOSGiMessage {
 	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#getXID()
 	 * @since 0.6
 	 */
-	public final int getXID() {
+	public final short getXID() {
 		return xid;
 	}
 
-	public void setXID(int xid) {
+	public void setXID(short xid) {
 		this.xid = xid;
 	}
 
