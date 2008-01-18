@@ -88,6 +88,16 @@ public abstract class RemoteOSGiMessage {
 	 * type code for service attribute updates.
 	 */
 	public static final short LEASE_UPDATE = 9;
+	
+	/**
+	 * type code for stream request messages.
+	 */
+	public static final short STREAM_REQUEST = 10;
+
+	/**
+	 * type code for stream result messages.
+	 */
+	public static final short STREAM_RESULT = 11;
 
 	/**
 	 * the type code or functionID in SLP notation.
@@ -188,6 +198,12 @@ public abstract class RemoteOSGiMessage {
 				break;
 			case LEASE_UPDATE:
 				msg = new LeaseUpdateMessage(input);
+				break;
+			case STREAM_REQUEST:
+				msg = new StreamRequestMessage(input);
+				break;
+			case STREAM_RESULT:
+				msg = new StreamResultMessage(input);
 				break;
 			default:
 				throw new RemoteOSGiException("funcID " + funcID

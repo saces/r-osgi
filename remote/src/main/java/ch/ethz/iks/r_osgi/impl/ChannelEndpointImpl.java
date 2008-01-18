@@ -30,6 +30,8 @@ package ch.ethz.iks.r_osgi.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Filter;
@@ -48,15 +51,15 @@ import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.log.LogService;
-import ch.ethz.iks.r_osgi.URI;
+
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceEvent;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
-import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.messages.DeliverBundleMessage;
 import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
 import ch.ethz.iks.r_osgi.messages.FetchServiceMessage;
@@ -65,6 +68,9 @@ import ch.ethz.iks.r_osgi.messages.LeaseMessage;
 import ch.ethz.iks.r_osgi.messages.LeaseUpdateMessage;
 import ch.ethz.iks.r_osgi.messages.MethodResultMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteEventMessage;
+import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
+import ch.ethz.iks.r_osgi.messages.StreamRequestMessage;
+import ch.ethz.iks.r_osgi.messages.StreamResultMessage;
 import ch.ethz.iks.r_osgi.messages.TimeOffsetMessage;
 
 /**
@@ -149,6 +155,16 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * map of service url -> proxy class
 	 */
 	private final HashMap proxies = new HashMap(0);
+
+	/**
+	 * map of stream id -> stream instance
+	 */
+	private final HashMap streams = new HashMap(0);
+
+	/**
+	 * next stream placeholder id.
+	 */
+	private short nextStreamID = 0;
 
 	/**
 	 * the handler registration, if the remote topic space is not empty.
@@ -309,6 +325,15 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (networkChannel == null) {
 			throw new RemoteOSGiException("Network channel went down");
 		}
+		// check arguments for streams and replace with placeholder
+		for (int i = 0; i < args.length; i++) {
+			if (args[i] instanceof InputStream) {
+				args[i] = getInputStreamPlaceholder((InputStream) args[i]);
+			} else if (args[i] instanceof OutputStream) {
+				args[i] = getOutputStreamPlaceholder((OutputStream) args[i]);
+			}
+		}
+
 		final InvokeMethodMessage invokeMsg = new InvokeMethodMessage();
 		invokeMsg.setServiceID(URI.create(service).getFragment());
 		invokeMsg.setMethodSignature(methodSignature);
@@ -320,7 +345,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			if (result.causedException()) {
 				throw result.getException();
 			}
-			return result.getResult();
+			Object resultObj = result.getResult();
+			if (resultObj instanceof InputStreamHandle) {
+				resultObj = getInputStreamProxy((InputStreamHandle) resultObj);
+			}
+			if (resultObj instanceof OutputStreamHandle) {
+				resultObj = getOutputStreamProxy((OutputStreamHandle) resultObj);
+			}
+			return resultObj;
 		} catch (RemoteOSGiException e) {
 			throw new RemoteOSGiException("Method invocation of "
 					+ methodSignature + " failed.", e);
@@ -360,6 +392,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		localServices.clear();
 		proxiedServices.clear();
 		proxyBundles.clear();
+		closeStreams();
+		streams.clear();
 		handlerReg = null;
 		reconnecting = true;
 		synchronized (receiveQueue) {
@@ -618,6 +652,133 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		return timeOffset;
 	}
 
+	/**
+	 * read a byte from the input stream on the peer identified by id.
+	 * 
+	 * @param streamID
+	 *            the ID of the stream.
+	 * @return result of the read operation.
+	 * @throws IOException
+	 *             when an IOException occurs.
+	 */
+	int readStream(final short streamID) throws IOException {
+		final StreamRequestMessage requestMsg = new StreamRequestMessage();
+		requestMsg.setOp(StreamRequestMessage.READ);
+		requestMsg.setStreamID(streamID);
+		final StreamResultMessage resultMsg = doStreamOp(requestMsg);
+		return resultMsg.getResult();
+	}
+
+	/**
+	 * read to an array from the input stream on the peer identified by id.
+	 * 
+	 * @param streamID
+	 *            the ID of the stream.
+	 * @param b
+	 *            the array to write the result to.
+	 * @param off
+	 *            the offset for the destination array.
+	 * @param len
+	 *            the number of bytes to read.
+	 * @return number of bytes actually read.
+	 * @throws IOException
+	 *             when an IOException occurs.
+	 */
+	int readStream(final short streamID, final byte[] b, final int off,
+			final int len) throws IOException {
+		// handle special cases as defined in InputStream
+		if (b == null) {
+			throw new NullPointerException();
+		}
+		if ((off < 0) || (len < 0) || (len + off > b.length)) {
+			throw new IndexOutOfBoundsException();
+		}
+		if (len == 0) {
+			return 0;
+		}
+		final StreamRequestMessage requestMsg = new StreamRequestMessage();
+		requestMsg.setOp(StreamRequestMessage.READ_ARRAY);
+		requestMsg.setStreamID(streamID);
+		requestMsg.setLenOrVal(len);
+		final StreamResultMessage resultMsg = doStreamOp(requestMsg);
+		final int length = resultMsg.getLen();
+		// check the length first, could be -1 indicating EOF
+		if (length > 0) {
+			final byte[] readdata = resultMsg.getData();
+			// copy result to byte array at correct offset
+			System.arraycopy(readdata, 0, b, off, length);
+		}
+		return length;
+	}
+
+	/**
+	 * write a byte to the output stream on the peer identified by id.
+	 * 
+	 * @param streamID
+	 *            the ID of the stream.
+	 * @throws IOException
+	 *             when an IOException occurs.
+	 */
+	void writeStream(final short streamID, int b) throws IOException {
+		final StreamRequestMessage requestMsg = new StreamRequestMessage();
+		requestMsg.setOp(StreamRequestMessage.WRITE);
+		requestMsg.setStreamID(streamID);
+		requestMsg.setLenOrVal(b);
+		// wait for the stream operation to finish
+		doStreamOp(requestMsg);
+	}
+
+	/**
+	 * write bytes from array to output stream on the peer identified by id.
+	 * 
+	 * @param streamID
+	 *            the ID of the stream.
+	 * @param b
+	 *            the source array.
+	 * @param off
+	 *            offset into the source array.
+	 * @param len
+	 *            number of bytes to copy.
+	 * @throws IOException
+	 *             when an IOException occurs.
+	 */
+	void writeStream(final short streamID, final byte[] b, final int off,
+			final int len) throws IOException {
+		// handle special cases as defined in OutputStream
+		if (b == null) {
+			throw new NullPointerException();
+		}
+		if ((off < 0) || (len < 0) || (len + off > b.length)) {
+			throw new IndexOutOfBoundsException();
+		}
+		final byte[] data = new byte[len];
+		System.arraycopy(b, off, data, 0, len);
+
+		final StreamRequestMessage requestMsg = new StreamRequestMessage();
+		requestMsg.setOp(StreamRequestMessage.WRITE_ARRAY);
+		requestMsg.setStreamID(streamID);
+		requestMsg.setData(data);
+		requestMsg.setLenOrVal(len);
+		// wait for the stream operation to finish
+		doStreamOp(requestMsg);
+	}
+
+	private StreamResultMessage doStreamOp(StreamRequestMessage requestMsg)
+			throws IOException {
+		try {
+			// send the message and get a StreamResultMessage in return
+			final StreamResultMessage result = (StreamResultMessage) sendMessage(requestMsg);
+			if (result.causedException()) {
+				throw result.getException();
+			}
+			return result;
+		} catch (RemoteOSGiException e) {
+			throw new RemoteOSGiException("Invocation of operation "
+					+ requestMsg.getOp() + " on stream "
+					+ requestMsg.getStreamID() + " failed.", e);
+		}
+	}
+
 	boolean isActive(final String uri) {
 		return remoteServices.get(uri) != null;
 	}
@@ -861,13 +1022,28 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 				// get the invocation arguments and the local method
 				final Object[] arguments = invMsg.getArgs();
+				// check args for stream placeholders and replace with proxies
+				for (int i = 0; i < arguments.length; i++) {
+					if (arguments[i] instanceof InputStreamHandle) {
+						arguments[i] = getInputStreamProxy((InputStreamHandle) arguments[i]);
+					} else if (arguments[i] instanceof OutputStreamHandle) {
+						arguments[i] = getOutputStreamProxy((OutputStreamHandle) arguments[i]);
+					}
+				}
+
 				final Method method = serv.getMethod(invMsg
 						.getMethodSignature());
 
 				// invoke method
 				try {
-					final Object result = method.invoke(
-							serv.getServiceObject(), arguments);
+					Object result = method.invoke(serv.getServiceObject(),
+							arguments);
+					// check if result is an instance of a stream
+					if (result instanceof InputStream) {
+						result = getInputStreamPlaceholder((InputStream) result);
+					} else if (result instanceof OutputStream) {
+						result = getOutputStreamPlaceholder((OutputStream) result);
+					}
 					final MethodResultMessage m = new MethodResultMessage();
 					m.setXID(invMsg.getXID());
 					m.setResult(result);
@@ -904,8 +1080,150 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			((TimeOffsetMessage) msg).timestamp();
 			return msg;
 		}
+			// TODO constants are def. in RemoteOSGiMessage -> move all to Impl?
+		case RemoteOSGiMessage.STREAM_REQUEST: {
+			final StreamRequestMessage reqMsg = (StreamRequestMessage) msg;
+			try {
+				// fetch stream object
+				final Object stream = streams.get(new Integer(reqMsg
+						.getStreamID()));
+				if (stream == null) {
+					throw new IllegalStateException(
+							"Could not get stream with ID "
+									+ reqMsg.getStreamID());
+				}
+				// invoke operation on stream
+				switch (reqMsg.getOp()) {
+				case StreamRequestMessage.READ: {
+					final int result = ((InputStream) stream).read();
+					final StreamResultMessage m = new StreamResultMessage();
+					m.setXID(reqMsg.getXID());
+					m.setResult((short) result);
+					return m;
+				}
+				case StreamRequestMessage.READ_ARRAY: {
+					final byte[] b = new byte[reqMsg.getLenOrVal()];
+					final int len = ((InputStream) stream).read(b, 0, reqMsg
+							.getLenOrVal());
+					final StreamResultMessage m = new StreamResultMessage();
+					m.setXID(reqMsg.getXID());
+					m.setResult(StreamResultMessage.RESULT_ARRAY);
+					m.setData(b);
+					m.setLen(len);
+					return m;
+				}
+				case StreamRequestMessage.WRITE: {
+					((OutputStream) stream).write(reqMsg.getLenOrVal());
+					final StreamResultMessage m = new StreamResultMessage();
+					m.setXID(reqMsg.getXID());
+					m.setResult(StreamResultMessage.RESULT_WRITE_OK);
+					return m;
+				}
+				case StreamRequestMessage.WRITE_ARRAY: {
+					((OutputStream) stream).write(reqMsg.getData());
+					final StreamResultMessage m = new StreamResultMessage();
+					m.setXID(reqMsg.getXID());
+					m.setResult(StreamResultMessage.RESULT_WRITE_OK);
+					return m;
+				}
+				default:
+					throw new RemoteOSGiException(
+							"Unimplemented op code for stream request " + msg);
+				}
+			} catch (IOException e) {
+				final StreamResultMessage m = new StreamResultMessage();
+				m.setXID(reqMsg.getXID());
+				m.setResult(StreamResultMessage.RESULT_EXCEPTION);
+				m.setException(e);
+				return m;
+			}
+		}
 		default:
 			throw new RemoteOSGiException("Unimplemented message " + msg);
+		}
+	}
+
+	/**
+	 * creates a placeholder for an InputStream that can be sent to the other
+	 * party and will be converted to an InputStream proxy there.
+	 * 
+	 * @param origIS
+	 *            the instance of InputStream that needs to be remoted
+	 * @return the placeholder object that is sent to the actual client
+	 */
+	private InputStreamHandle getInputStreamPlaceholder(final InputStream origIS) {
+		InputStreamHandle sp = new InputStreamHandle(nextStreamID());
+		streams.put(new Integer(sp.getStreamID()), origIS);
+		return sp;
+	}
+
+	/**
+	 * creates a proxy for the input stream that corresponds to the placeholder
+	 * 
+	 * @param placeholder
+	 *            the placeholder for the remote input stream
+	 * @return the proxy for the input stream
+	 */
+	private InputStream getInputStreamProxy(InputStreamHandle placeholder) {
+		return new InputStreamProxy(placeholder.getStreamID(), this);
+	}
+
+	/**
+	 * creates a placeholder for an OutputStream that can be sent to the other
+	 * party and will be converted to an OutputStream proxy there.
+	 * 
+	 * @param origOS
+	 *            the instance of OutputStream that needs to be remoted
+	 * @return the placeholder object that is sent to the actual client
+	 */
+	private OutputStreamHandle getOutputStreamPlaceholder(
+			final OutputStream origOS) {
+		OutputStreamHandle sp = new OutputStreamHandle(nextStreamID());
+		streams.put(new Integer(sp.getStreamID()), origOS);
+		return sp;
+	}
+
+	/**
+	 * creates a proxy for the output stream that corresponds to the placeholder
+	 * 
+	 * @param placeholder
+	 *            the placeholder for the remote output stream
+	 * @return the proxy for the output stream
+	 */
+	private OutputStream getOutputStreamProxy(OutputStreamHandle placeholder) {
+		return new OutputStreamProxy(placeholder.getStreamID(), this);
+	}
+
+	/**
+	 * get the next stream wrapper id.
+	 * 
+	 * @return the next stream wrapper id.
+	 */
+	private synchronized short nextStreamID() {
+		if (nextStreamID == -1) {
+			nextStreamID = 0;
+		}
+		return (++nextStreamID);
+	}
+
+	/**
+	 * closes all streams that are still open.
+	 */
+	private void closeStreams() {
+		Object[] s = streams.values().toArray();
+		try {
+			for (int i = 0; i < s.length; i++) {
+				if (s[i] instanceof InputStream) {
+					((InputStream) s[i]).close();
+				} else if (s[i] instanceof OutputStream) {
+					((OutputStream) s[i]).close();
+				} else {
+					RemoteOSGiServiceImpl.log
+							.log(LogService.LOG_WARNING,
+									"Object in input streams map was not an instance of a stream.");
+				}
+			}
+		} catch (IOException e) {
 		}
 	}
 
