@@ -151,7 +151,7 @@ final class BundledServiceRegistration extends RemoteServiceRegistration {
 		while ((len = fis.read(chunk, 0, BUFFER_SIZE)) > 0) {
 			out.write(chunk, 0, len);
 		}
-		fis.close()
+		fis.close();
 		return out.toByteArray();
 	}
 }
