@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>ch.ethz.iks.r-osgi</groupId>
 		<artifactId>project</artifactId>
-		<version>1.0_RC1</version>
+		<version>1.0.0.RC1</version>
 	</parent>
 	<groupId>ch.ethz.iks.r-osgi.http</groupId>
 	<artifactId>http.servlet</artifactId>

@@ -94,15 +94,6 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		this.remoting = null;
 	}
 
-	/*
-	 * 
-	 */
-	public URI getURI() {
-		return URI.create(PROTOCOL + "://"
-				+ thread.socket.getInetAddress().getHostName() + ":"
-				+ RemoteOSGiServiceImpl.R_OSGI_PORT);
-	}
-
 	/**
 	 * the inner class representing a channel with TCP transport. The TCP
 	 * connection uses the TCP keepAlive option to reduce reconnection overhead.
@@ -212,10 +203,10 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 					socket.getOutputStream()));
 			output.flush();
 			// TODO: remove debug output
-			//System.out.println("OUTPUT ESTABLISHED");
+			// System.out.println("OUTPUT ESTABLISHED");
 			input = new ObjectInputStream(new BufferedInputStream(socket
 					.getInputStream()));
-			//System.out.println("INPUT ESTABLISHED");
+			// System.out.println("INPUT ESTABLISHED");
 		}
 
 		/**
@@ -244,7 +235,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			} catch (Exception e) {
 				socket = null;
 			}
-			
+
 			open(new Socket(remoteEndpoint.getHost(), remoteEndpoint.getPort()));
 			this.connected = true;
 			new ReceiverThread().start();
@@ -290,7 +281,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 						"{TCP Channel} sending " + message);
 			}
 			// TODO: remove debug output
-			//System.out.println("{TCP Channel} sending " + message);
+			// System.out.println("{TCP Channel} sending " + message);
 			message.send(output);
 		}
 
@@ -319,7 +310,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 									"{TCP Channel} received " + msg);
 						}
 						// TODO: remove debug output
-						//System.out.println("{TCP Channel} received " + msg);
+						// System.out.println("{TCP Channel} received " + msg);
 						endpoint.receivedMessage(msg);
 					} catch (Throwable t) {
 						// TODO: remove debug output

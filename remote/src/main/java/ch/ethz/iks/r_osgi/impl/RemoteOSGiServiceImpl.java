@@ -895,11 +895,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		new ChannelEndpointImpl(channel);
 	}
 
-	public URI getLocalPeer() {
-		final NetworkChannelFactory factory = (NetworkChannelFactory) networkChannelFactoryTracker
-				.getService();
-		return factory == null ? null : factory.getURI();
-	}
+	/*
+	 * public URI getLocalPeer() { final NetworkChannelFactory factory =
+	 * (NetworkChannelFactory) networkChannelFactoryTracker .getService();
+	 * return factory == null ? null : factory.getURI(); }
+	 */
 
 	public void ungetRemoteService(RemoteServiceReference remoteServiceReference) {
 		// TODO Auto-generated method stub
