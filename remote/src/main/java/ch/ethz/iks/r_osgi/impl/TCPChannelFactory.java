@@ -33,7 +33,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import org.osgi.service.log.LogService;
@@ -156,7 +155,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			}
 			this.endpoint = endpoint;
 			this.remoteEndpoint = endpointURI;
-			open(new Socket(endpointURI.getHost(), port));
+			open(new Socket(endpointURI.getHostName(), port));
 			new ReceiverThread().start();
 		}
 
@@ -236,7 +235,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 				socket = null;
 			}
 
-			open(new Socket(remoteEndpoint.getHost(), remoteEndpoint.getPort()));
+			open(new Socket(remoteEndpoint.getHostName(), remoteEndpoint
+					.getPort()));
 			this.connected = true;
 			new ReceiverThread().start();
 		}

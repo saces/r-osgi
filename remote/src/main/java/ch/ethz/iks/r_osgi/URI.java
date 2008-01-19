@@ -13,6 +13,8 @@ public class URI implements Serializable {
 
 	private InetAddress host;
 
+	private String hostName;
+
 	private int port;
 
 	private String fragment;
@@ -52,6 +54,9 @@ public class URI implements Serializable {
 		System.out.println(uri3.equals(uri1));
 		System.out.println(uri3.hashCode());
 		System.out.println(uri1.hashCode());
+
+		URI btUri = new URI("btspp://0010DCE96CB8:1");
+		System.out.println(btUri);
 	}
 
 	private void parse(final String uriString) throws UnknownHostException {
@@ -72,19 +77,18 @@ public class URI implements Serializable {
 			port = Integer.parseInt(uriString.substring(p3 + 1, ce));
 			ce = p3;
 		}
-		host = InetAddress.getByName(uriString.substring(cs, ce));
+		hostName = uriString.substring(cs, ce);
+		if (scheme.startsWith("r-osgi") || scheme.startsWith("http")) {
+			host = InetAddress.getByName(hostName);
+		}
 	}
 
 	public String getScheme() {
 		return scheme;
 	}
 
-	public InetAddress getHost() {
-		return host;
-	}
-
 	public String getHostName() {
-		return host.getHostName();
+		return hostName;
 	}
 
 	public int getPort() {
@@ -100,7 +104,8 @@ public class URI implements Serializable {
 	}
 
 	public int hashCode() {
-		return scheme.hashCode() + host.hashCode() + port + (fragment != null ? fragment.hashCode() : 0);
+		return scheme.hashCode() + hostName.hashCode() + port
+				+ (fragment != null ? fragment.hashCode() : 0);
 	}
 
 	public String toString() {
@@ -114,10 +119,11 @@ public class URI implements Serializable {
 		} else if (other instanceof URI) {
 			final URI otherURI = (URI) other;
 			return scheme.equals(otherURI.scheme)
-					&& host.equals(otherURI.host)
+					&& (host == null ? hostName.equals(otherURI.hostName)
+							: host.equals(otherURI.host))
 					&& port == otherURI.port
-					&& ((fragment == null && otherURI.fragment == null) || fragment != null && fragment
-							.equals(otherURI.fragment));
+					&& ((fragment == null && otherURI.fragment == null) || fragment != null
+							&& fragment.equals(otherURI.fragment));
 		} else {
 			return false;
 		}
