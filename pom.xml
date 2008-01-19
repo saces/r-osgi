@@ -36,7 +36,6 @@
   <scm>
     <connection>scm:svn:https://r-osgi.svn.sourceforge.net/svnroot/r-osgi</connection>
     <developerConnection>scm:svn:rjan@https://r-osgi.svn.sourceforge.net/svnroot/r-osgi</developerConnection>
-    <tag>R-OSGi</tag>
     <url>http://r-osgi.svn.sourceforge.net/r-osgi</url>
   </scm>
   <organization>
