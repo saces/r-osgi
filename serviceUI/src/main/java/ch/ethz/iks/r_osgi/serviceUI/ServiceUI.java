@@ -176,6 +176,8 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 			public void actionPerformed(final ActionEvent e) {
 				new Dialog(new Frame(), "R-OSGi ServiceUI") {
 
+					static final long serialVersionUID = 1L;
+
 					public void setVisible(final boolean visible) {
 						if (visible) {
 							setLayout(new FlowLayout(FlowLayout.CENTER, 20, 20));
@@ -192,6 +194,8 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 												.connect(endpoint);
 										new Dialog(new Frame(),
 												"R-OSGi ServiceUI") {
+											private static final long serialVersionUID = -5207305068261925447L;
+
 											public void setVisible(
 													boolean visible) {
 												if (visible) {

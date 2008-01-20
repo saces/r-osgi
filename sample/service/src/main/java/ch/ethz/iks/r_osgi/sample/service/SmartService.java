@@ -23,10 +23,8 @@ public abstract class SmartService implements ServiceInterface {
 		System.out.println("checking for equality");
 		if (obj == null) {
 			return false;
-		} else if (!obj.equals(this)) {
-			return equalsRemote(obj);
 		} else {
-			return true;
+			return ( !obj.equals(this) ) ? equalsRemote(obj) : true;
 		}
 	}
 

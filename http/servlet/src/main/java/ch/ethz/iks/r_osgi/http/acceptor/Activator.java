@@ -46,7 +46,7 @@ public class Activator implements BundleActivator, ServiceListener {
 	 * 
 	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
 	 */
-	public void start(BundleContext context) throws Exception {
+	public void start(BundleContext context) {
 		this.context = context;
 		ServiceReference httpRef = context
 				.getServiceReference(HttpService.class.getName());
@@ -91,10 +91,9 @@ public class Activator implements BundleActivator, ServiceListener {
 		if (event.getType() == ServiceEvent.REGISTERED) {
 			try {
 				registerServlet(event.getServiceReference());
-			} catch (Exception e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 	}
-
 }

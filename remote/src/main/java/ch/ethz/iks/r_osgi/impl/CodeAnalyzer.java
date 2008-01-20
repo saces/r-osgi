@@ -40,6 +40,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
@@ -112,6 +113,8 @@ final class CodeAnalyzer implements ClassVisitor {
 	 */
 	private final MethodVisitor methodVisitor = new MethodAnalyzer();
 
+	private String currentClass;
+
 	/**
 	 * create a new code analyzer instance.
 	 * 
@@ -122,7 +125,7 @@ final class CodeAnalyzer implements ClassVisitor {
 	 * @param exports
 	 *            the exports of the service bundle.
 	 */
-	public CodeAnalyzer(final ClassLoader loader, final String imports,
+	CodeAnalyzer(final ClassLoader loader, final String imports,
 			final String exports) {
 		this.loader = loader;
 
@@ -200,6 +203,8 @@ final class CodeAnalyzer implements ClassVisitor {
 			proxyImports.add(packageOf(ifaces[i]));
 			proxyExports.add(packageOf(ifaces[i]));
 		}
+
+		// remove the obvious imports to save network bandwidth
 		proxyImports.remove("org.osgi.framework");
 		proxyImports.remove("ch.ethz.iks.r_osgi");
 		proxyImports.remove("ch.ethz.iks.r_osgi.types");
@@ -258,7 +263,8 @@ final class CodeAnalyzer implements ClassVisitor {
 	 *             if the classes bytecode cannot be found and accessed.
 	 */
 	private void visit(final String className) throws ClassNotFoundException {
-		final String classFile = className.replace('.', '/') + ".class";
+		currentClass = className.replace('.', '/');
+		final String classFile = currentClass + ".class";
 
 		final String pkg = packageOf(className);
 		if (importsMap.containsKey(pkg)) {
@@ -299,7 +305,7 @@ final class CodeAnalyzer implements ClassVisitor {
 	 */
 	private void visitType(final Type t) {
 
-		if (t.getSort() < 9) {
+		if (t.getSort() < Type.ARRAY) {
 			visited.add(t.getClassName());
 			return;
 		}
@@ -308,7 +314,7 @@ final class CodeAnalyzer implements ClassVisitor {
 			return;
 		}
 
-		if (t.getClassName().equals("null")) {
+		if ("null".equals(t.getClassName())) {
 			return;
 		}
 
@@ -318,6 +324,7 @@ final class CodeAnalyzer implements ClassVisitor {
 			return;
 		}
 
+		// do not inject java* classes
 		if (className.startsWith("java")) {
 			visited.add(iClassName);
 			return;
@@ -330,6 +337,7 @@ final class CodeAnalyzer implements ClassVisitor {
 			return;
 		}
 
+		// do not inject osgi classes
 		if (className.startsWith("org.osgi")) {
 			visited.add(iClassName);
 			return;
@@ -389,8 +397,9 @@ final class CodeAnalyzer implements ClassVisitor {
 	 */
 	public FieldVisitor visitField(final int access, final String name,
 			final String desc, final String signature, final Object value) {
-		// fields are not proxied, so we don't have to process them.
-		// TODO: we have to do it for smart proxies ...
+		if (!visited.contains(desc)) {
+			visitType(Type.getType(desc));
+		}
 		return null;
 	}
 
@@ -401,8 +410,9 @@ final class CodeAnalyzer implements ClassVisitor {
 	 */
 	public void visitInnerClass(final String name, final String outerName,
 			final String innerName, final int access) {
-		// inner classes are not proxied, so we don't have to process them.
-		// TODO: we have to do it for smart proxies ...
+		if (!name.equals(currentClass)) {
+			closure.add(name.replace('/', '.'));
+		}
 	}
 
 	/**
@@ -432,8 +442,11 @@ final class CodeAnalyzer implements ClassVisitor {
 			}
 		}
 
-		// TODO: omit, if method is abstract !!!
-		return methodVisitor;
+		if ((access & Opcodes.ACC_ABSTRACT) == 0) {
+			return methodVisitor;
+		} else {
+			return null;
+		}
 	}
 
 	/**

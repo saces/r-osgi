@@ -37,7 +37,7 @@ import java.io.Serializable;
  * @author Jan S. Rellermeyer, ETH Zurich.
  * @since 0.4
  */
-public final class BoxedPrimitive implements Serializable {
+public final class BoxedPrimitive {
 	/**
 	 * the serial UID.
 	 */

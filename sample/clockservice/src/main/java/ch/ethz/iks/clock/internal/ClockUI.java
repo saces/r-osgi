@@ -38,6 +38,8 @@ import ch.ethz.iks.r_osgi.types.ServiceUIComponent;
 
 public class ClockUI extends Panel implements ServiceUIComponent {
 
+	static final long serialVersionUID = 1L;
+
 	private transient Clock clock;
 
 	private static final SimpleDateFormat hhmm = new SimpleDateFormat("HH:mm");
@@ -201,10 +203,13 @@ public class ClockUI extends Panel implements ServiceUIComponent {
 						} else if (topic == "ch/ethz/iks/clock/ALARM") {
 							final Alarm a = (Alarm) event.getProperty("alarm");
 							new Dialog(new Frame(), a.getNotification()) {
+								static final long serialVersionUID = 1L;
+
 								public void show() {
 									setLayout(new BorderLayout());
-									
-									add(BorderLayout.CENTER, new Label(a.toString()));
+
+									add(BorderLayout.CENTER, new Label(a
+											.toString()));
 									final Button ok = new Button("OK");
 									ok.addActionListener(new ActionListener() {
 										public void actionPerformed(

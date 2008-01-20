@@ -14,19 +14,19 @@ import ch.ethz.iks.r_osgi.RemoteOSGiService;
 
 public class Activator implements BundleActivator {
 
-	public void start(BundleContext context) throws Exception {
-		final ServiceReference sref = context
-				.getServiceReference(EventAdmin.class.getName());
-		if (sref == null) {
-			throw new BundleException("No EventAdmin present.");
+	public void start(BundleContext context) throws BundleException {
+			final ServiceReference sref = context
+					.getServiceReference(EventAdmin.class.getName());
+			if (sref == null) {
+				throw new BundleException("No EventAdmin present.");
+			}
+			Dictionary properties = new Hashtable();
+			properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
+					RemoteOSGiService.SERVICE_PROXY_POLICY);
+			properties.put(RemoteOSGiService.PRESENTATION, "ch.ethz.iks.clock.internal.ClockUI");
+			context.registerService(Clock.class.getName(), new ClockImpl(
+					(EventAdmin) context.getService(sref)), properties);
 		}
-		Dictionary properties = new Hashtable();
-		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
-				RemoteOSGiService.SERVICE_PROXY_POLICY);
-		properties.put(RemoteOSGiService.PRESENTATION, "ch.ethz.iks.clock.internal.ClockUI");
-		context.registerService(Clock.class.getName(), new ClockImpl(
-				(EventAdmin) context.getService(sref)), properties);
-	}
 
 	public void stop(BundleContext context) throws Exception {
 

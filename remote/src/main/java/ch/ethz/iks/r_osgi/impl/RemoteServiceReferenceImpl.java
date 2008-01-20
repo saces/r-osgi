@@ -45,8 +45,9 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 	public String[] getPropertyKeys() {
 		final ArrayList result = new ArrayList(properties.size());
 		for (Enumeration e = properties.keys(); e.hasMoreElements(); result
-				.add((String) e.nextElement()))
-			;
+				.add((String) e.nextElement())) {
+		}
+
 		return (String[]) result.toArray(new String[properties.size()]);
 	}
 

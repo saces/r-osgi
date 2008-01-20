@@ -6,6 +6,8 @@ import java.util.Date;
 
 public class Alarm implements Serializable {
 
+	static final long serialVersionUID = 1L;
+
 	private final static SimpleDateFormat tf = new SimpleDateFormat("MM-dd HH:mm:ss");
 
 	private long time;
