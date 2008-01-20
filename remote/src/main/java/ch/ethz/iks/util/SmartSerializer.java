@@ -74,28 +74,28 @@ public final class SmartSerializer {
 	 */
 	private static List positiveList = new ArrayList(Arrays
 			.asList(new Object[] { "java.lang.Integer", "java.lang.Boolean",
-					"java.lang.Long", "java.lang.Short", "java.lang.Byte"}));
+					"java.lang.Long", "java.lang.Short", "java.lang.Byte" })); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 
 	private static final HashMap idToClass = new HashMap();
 
 	private static final HashMap classToId = new HashMap();
 	static {
-		idToClass.put("I", Integer.class);
-		classToId.put(Integer.class.getName(), "I");
-		idToClass.put("Z", Boolean.class);
-		classToId.put(Boolean.class.getName(), "Z");
-		idToClass.put("J", Long.class);
-		classToId.put(Long.class.getName(), "J");
-		idToClass.put("S", Short.class);
-		classToId.put(Short.class.getName(), "S");
-		idToClass.put("B", Byte.class);
-		classToId.put(Byte.class.getName(), "B");
-		idToClass.put("C", Character.class);
-		classToId.put(Character.class.getName(), "C");
-		idToClass.put("D", Double.class);
-		classToId.put(Double.class.getName(), "D");
-		idToClass.put("F", Float.class);
-		classToId.put(Float.class.getName(), "F");
+		idToClass.put("I", Integer.class); //$NON-NLS-1$
+		classToId.put(Integer.class.getName(), "I"); //$NON-NLS-1$
+		idToClass.put("Z", Boolean.class); //$NON-NLS-1$
+		classToId.put(Boolean.class.getName(), "Z"); //$NON-NLS-1$
+		idToClass.put("J", Long.class); //$NON-NLS-1$
+		classToId.put(Long.class.getName(), "J"); //$NON-NLS-1$
+		idToClass.put("S", Short.class); //$NON-NLS-1$
+		classToId.put(Short.class.getName(), "S"); //$NON-NLS-1$
+		idToClass.put("B", Byte.class); //$NON-NLS-1$
+		classToId.put(Byte.class.getName(), "B"); //$NON-NLS-1$
+		idToClass.put("C", Character.class); //$NON-NLS-1$
+		classToId.put(Character.class.getName(), "C"); //$NON-NLS-1$
+		idToClass.put("D", Double.class); //$NON-NLS-1$
+		classToId.put(Double.class.getName(), "D"); //$NON-NLS-1$
+		idToClass.put("F", Float.class); //$NON-NLS-1$
+		classToId.put(Float.class.getName(), "F"); //$NON-NLS-1$
 	}
 
 	/**
@@ -111,10 +111,10 @@ public final class SmartSerializer {
 	private static void serialize(final Hashtable htable,
 			final ObjectOutputStream out) throws IOException {
 		if (htable == null) {
-			out.writeUTF("");
+			out.writeUTF(""); //$NON-NLS-1$
 			return;
 		}
-		out.writeUTF("java.util.Hashtable");
+		out.writeUTF("java.util.Hashtable"); //$NON-NLS-1$
 		out.write(htable.size());
 		for (Enumeration keys = htable.keys(); keys.hasMoreElements();) {
 			Object key = keys.nextElement();
@@ -138,11 +138,11 @@ public final class SmartSerializer {
 	private static void serialize(final Object[] obj,
 			final ObjectOutputStream out) throws IOException {
 		if (obj == null) {
-			out.writeUTF("");
+			out.writeUTF(""); //$NON-NLS-1$
 			return;
 		}
 
-		out.writeUTF("A");
+		out.writeUTF("A"); //$NON-NLS-1$
 		out.writeUTF(obj.getClass().getComponentType().getName());
 		out.write(obj.length);
 		for (int i = 0; i < obj.length; i++) {
@@ -167,15 +167,13 @@ public final class SmartSerializer {
 				: object;
 
 		if (obj == null) {
-			out.writeUTF("");
+			out.writeUTF(""); //$NON-NLS-1$
 			return;
-		}
-
-		if (obj instanceof Hashtable) {
+		} else if (obj instanceof Hashtable) {
 			serialize((Hashtable) obj, out);
 			return;
 		} else if (obj instanceof String) {
-			out.writeUTF("S");
+			out.writeUTF("S"); //$NON-NLS-1$
 			out.writeUTF((String) obj);
 			return;
 		} else if (obj.getClass().isArray()
@@ -194,9 +192,9 @@ public final class SmartSerializer {
 			// fallback: Java Serialization
 			if (!(obj instanceof Serializable)) {
 				throw new RuntimeException(obj.getClass().getName()
-						+ " is not serializable");
+						+ " is not serializable"); //$NON-NLS-1$
 			}
-			out.writeUTF("R");
+			out.writeUTF("R"); //$NON-NLS-1$
 			out.writeObject((Serializable) obj);
 		}
 	}
@@ -213,17 +211,17 @@ public final class SmartSerializer {
 	public static Object deserialize(final ObjectInputStream in)
 			throws IOException {
 		final String type = in.readUTF().intern();
-		if (type == "") {
+		if (type == "") { //$NON-NLS-1$
 			return null;
-		} else if (type == "A") {
+		} else if (type == "A") { //$NON-NLS-1$
 			final String componentType = in.readUTF();
 			final int length = in.read();
 
 			try {
-				Class arrayClass = Class.forName(componentType);
+				final Class arrayClass = Class.forName(componentType);
 
-				Object[] objects = (Object[]) Array.newInstance(arrayClass,
-						length);
+				final Object[] objects = (Object[]) Array.newInstance(
+						arrayClass, length);
 				for (int i = 0; i < length; i++) {
 					objects[i] = deserialize(in);
 				}
@@ -232,10 +230,10 @@ public final class SmartSerializer {
 				e.printStackTrace();
 				throw new IOException(e.getMessage());
 			}
-		} else if (type == "S") {
+		} else if (type == "S") { //$NON-NLS-1$
 			// String object
 			return in.readUTF();
-		} else if (type == "java.util.Hashtable") {
+		} else if (type == "java.util.Hashtable") { //$NON-NLS-1$
 			Hashtable htable = new Hashtable();
 
 			final int size = in.read();
@@ -246,7 +244,7 @@ public final class SmartSerializer {
 				htable.put(key, value);
 			}
 			return htable;
-		} else if (type == "R") {
+		} else if (type == "R") { //$NON-NLS-1$
 			// JAVA SERIALIZED OBJECT
 			try {
 				return in.readObject();
@@ -267,7 +265,6 @@ public final class SmartSerializer {
 				throw new IOException(e.getMessage());
 			}
 		}
-
 	}
 
 }

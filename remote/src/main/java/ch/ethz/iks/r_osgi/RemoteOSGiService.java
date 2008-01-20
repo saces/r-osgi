@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -82,7 +82,7 @@ public interface RemoteOSGiService {
 	 * 
 	 * @since 0.5
 	 */
-	String R_OSGi_REGISTRATION = "service.remote.registration";
+	String R_OSGi_REGISTRATION = "service.remote.registration"; //$NON-NLS-1$
 
 	/**
 	 * policy "service_proxy" means: dynamically build a proxy at client side.
@@ -93,7 +93,7 @@ public interface RemoteOSGiService {
 	 *             policy. Any value set to the R_OSGi_REGISTRATION policy will
 	 *             have the effect of SERVICE_PROXY_POLICY;
 	 */
-	String SERVICE_PROXY_POLICY = "service_proxy";
+	String SERVICE_PROXY_POLICY = "service_proxy"; //$NON-NLS-1$
 
 	/**
 	 * Can be set to use a smart proxy. Smart proxies have to be abstract
@@ -105,7 +105,7 @@ public interface RemoteOSGiService {
 	 * 
 	 * @since 0.5
 	 */
-	String SMART_PROXY = "service.remote.smartproxy";
+	String SMART_PROXY = "service.remote.smartproxy"; //$NON-NLS-1$
 
 	/**
 	 * For special purposes, the service can decide to inject other classes into
@@ -119,7 +119,7 @@ public interface RemoteOSGiService {
 	 * 
 	 * @since 0.5
 	 */
-	String INJECTIONS = "service.remote.injections";
+	String INJECTIONS = "service.remote.injections"; //$NON-NLS-1$
 
 	/**
 	 * property for registration of a service UI component that gived the user a
@@ -132,7 +132,7 @@ public interface RemoteOSGiService {
 	 * 
 	 * @since 0.5
 	 */
-	String PRESENTATION = "service.presentation";
+	String PRESENTATION = "service.presentation"; //$NON-NLS-1$
 
 	/**
 	 * the property key for the host name of the remote service. This constant
@@ -142,7 +142,7 @@ public interface RemoteOSGiService {
 	 * 
 	 * @since 1.0
 	 */
-	String SERVICE_URI = "service.uri";
+	String SERVICE_URI = "service.uri"; //$NON-NLS-1$
 
 	/**
 	 * connect to a remote OSGi framework. Has to be called prior to any service
@@ -217,6 +217,6 @@ public interface RemoteOSGiService {
 	public void setEndpointPolicy(URI service, int policy);
 
 	/*
-	public URI getLocalPeer();
-	*/
+	 * public URI getLocalPeer();
+	 */
 }

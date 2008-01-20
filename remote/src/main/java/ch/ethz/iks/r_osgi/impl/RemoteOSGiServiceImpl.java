@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -87,7 +87,13 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	/**
 	 * the R-OSGi port property.
 	 */
-	static final String REMOTE_OSGi_PORT = "ch.ethz.iks.r_osgi.port";
+	static final String R_OSGi_PORT_PROPERTY = "ch.ethz.iks.r_osgi.port";
+
+	/**
+	 * register the default tcp channel? If not set to "false", the channel gets
+	 * registered.
+	 */
+	static final String REGISTER_DEFAULT_TCP_CHANNEL = "ch.ethz.iks.r_osgi.registerDefaultChannel";
 
 	/**
 	 * constant that holds the property string for proxy debug option.
@@ -103,12 +109,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * constant that holds the property string for internal debug option.
 	 */
 	static final String DEBUG_PROPERTY = "ch.ethz.iks.r_osgi.debug.internal";
-
-	/**
-	 * constant that holds the property string for SLP discovery interval time
-	 * in seconds. Default is 20 seconds.
-	 */
-	static final String DISCOVERY_INTERVAL_PROPERTY = "ch.ethz.iks.r_osgi.remote.discoveryInterval";
 
 	/**
 	 * marker for channel-registered event handlers so that they don't
@@ -232,7 +232,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 
 		// set port
-		prop = context.getProperty(REMOTE_OSGi_PORT);
+		prop = context.getProperty(R_OSGi_PORT_PROPERTY);
 		R_OSGI_PORT = prop != null ? Integer.parseInt(prop) : 9278;
 
 		// initialize the transactionID with a random value
@@ -828,7 +828,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 *            the local endpoint of the channel.
 	 */
 	static void registerChannelEndpoint(final ChannelEndpoint channel) {
-		channels.put(channel.getRemoteEndpoint().toString(), channel);
+		channels.put(channel.getRemoteAddress().toString(), channel);
 	}
 
 	/**
@@ -838,7 +838,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 *            the local endpoint of the channel.
 	 */
 	static void unregisterChannel(final ChannelEndpoint channel) {
-		channels.remove(channel.getRemoteEndpoint().toString());
+		channels.remove(channel.getRemoteAddress().toString());
 	}
 
 	/**

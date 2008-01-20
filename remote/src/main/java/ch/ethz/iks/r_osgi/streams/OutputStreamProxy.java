@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2008 Michael Duller
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -26,35 +26,68 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi.impl;
+package ch.ethz.iks.r_osgi.streams;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
+
+import ch.ethz.iks.r_osgi.impl.ChannelEndpointImpl;
 
 /**
- * Proxy object for input streams.
+ * Output stream proxy.
  * 
- * @author Michael Duller, ETH Zurich
- * 
+ * @author Michael Duller, ETH Zurich.
  */
-public class InputStreamProxy extends InputStream {
+public class OutputStreamProxy extends OutputStream {
 
+	/**
+	 * the stream ID.
+	 */
 	private short streamID;
 
+	/**
+	 * the channel endpoint.
+	 */
 	private ChannelEndpointImpl endpoint;
 
-	public InputStreamProxy(final short streamID,
+	/**
+	 * create a new output stream proxy.
+	 * 
+	 * @param streamID
+	 *            the stream ID.
+	 * @param endpoint
+	 *            the endpoint.
+	 */
+	public OutputStreamProxy(final short streamID,
 			final ChannelEndpointImpl endpoint) {
 		this.streamID = streamID;
 		this.endpoint = endpoint;
 	}
 
-	public int read() throws IOException {
-		return endpoint.readStream(streamID);
+	/**
+	 * write to the stream.
+	 * 
+	 * @param b
+	 *            the value.
+	 * @throws IOException
+	 *             in case of IO failures.
+	 */
+	public void write(int b) throws IOException {
+		endpoint.writeStream(streamID, b);
 	}
 
-	public int read(byte[] b, int off, int len) throws IOException {
-		return endpoint.readStream(streamID, b, off, len);
+	/**
+	 * write to the stream.
+	 * 
+	 * @param the
+	 *            bytes.
+	 * @param off
+	 *            the offset.
+	 * @param len
+	 *            the length.
+	 */
+	public void write(byte[] b, int off, int len) throws IOException {
+		endpoint.writeStream(streamID, b, off, len);
 	}
 
 }

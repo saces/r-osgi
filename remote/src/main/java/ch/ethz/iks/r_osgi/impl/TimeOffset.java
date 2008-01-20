@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -43,7 +43,7 @@ import ch.ethz.iks.util.MathUtils;
  * @author Jan S. Rellermeyer, ETH Zürich.
  * @since 0.2
  */
-class TimeOffset {
+final class TimeOffset {
 
 	/**
 	 * the offset.
@@ -101,7 +101,7 @@ class TimeOffset {
 	 * @param timeSerie
 	 *            a series of time measurements.
 	 */
-	TimeOffset(final Long[] timeSerie) {
+	TimeOffset(final long[] timeSerie) {
 		// initially redo after half a minute
 		lifetime = INITIAL_LIFETIME;
 		seriesLength = DEFAULT_SERIES;
@@ -115,14 +115,14 @@ class TimeOffset {
 	 * @param timeSeries
 	 *            the series.
 	 */
-	void update(final Long[] timeSeries) {
+	void update(final long[] timeSeries) {
 		int len = timeSeries.length / 2;
 		long[] offsets = new long[len];
 		long l = 0;
 		long h = 0;
 		for (int i = 0; i < len; i++) {
-			long local = timeSeries[2 * i].longValue();
-			long remote = timeSeries[2 * i + 1].longValue();
+			long local = timeSeries[2 * i];
+			long remote = timeSeries[2 * i + 1];
 			offsets[i] = local - remote;
 			l = l + MathUtils.lower32(offsets[i]);
 			h = h + MathUtils.higher32(offsets[i]);

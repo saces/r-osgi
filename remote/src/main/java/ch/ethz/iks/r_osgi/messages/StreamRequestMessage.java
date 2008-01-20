@@ -1,3 +1,31 @@
+/* Copyright (c) 2006-2008 Michael Duller
+ * Information and Communication Systems Research Group (IKS),
+ * Department of Computer Science, ETH Zurich.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *    - Redistributions of source code must retain the above copyright notice,
+ *      this list of conditions and the following disclaimer.
+ *    - Redistributions in binary form must reproduce the above copyright
+ *      notice, this list of conditions and the following disclaimer in the
+ *      documentation and/or other materials provided with the distribution.
+ *    - Neither the name of ETH Zurich nor the names of its contributors may be
+ *      used to endorse or promote products derived from this software without
+ *      specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 package ch.ethz.iks.r_osgi.messages;
 
 import java.io.IOException;
@@ -6,47 +34,53 @@ import java.io.ObjectOutputStream;
 
 import ch.ethz.iks.util.SmartSerializer;
 
-public class StreamRequestMessage extends RemoteOSGiMessage {
+/**
+ * Stream request message.
+ * 
+ * @author Michael Duller, ETH Zurich.
+ * 
+ */
+public final class StreamRequestMessage extends RemoteOSGiMessage {
 
 	/**
-	 * operation identifier for simple read operation on stream
+	 * operation identifier for simple read operation on stream.
 	 */
 	public static final byte READ = 0;
 
 	/**
 	 * operation identifier for read operation reading more than one byte at
-	 * once
+	 * once.
 	 */
 	public static final byte READ_ARRAY = 1;
 
 	/**
-	 * operation identifier for simple write operation on stream
+	 * operation identifier for simple write operation on stream.
 	 */
 	public static final byte WRITE = 2;
 
 	/**
 	 * operation identifier for write operation writing more than one byte at
-	 * once
+	 * once.
 	 */
 	public static final byte WRITE_ARRAY = 3;
 
 	/**
-	 * stream ID of the target stream
+	 * stream ID of the target stream.
 	 */
 	private short streamID;
 
 	/**
-	 * operation on the target stream
+	 * operation on the target stream.
 	 */
 	private byte op;
 
 	/**
-	 * length argument (read) or value (write)
+	 * length argument (read) or value (write).
 	 */
 	private int lenOrVal;
 
 	/**
-	 * array containing data to write
+	 * array containing data to write.
 	 */
 	private byte[] b;
 
@@ -98,7 +132,7 @@ public class StreamRequestMessage extends RemoteOSGiMessage {
 			break;
 		default:
 			throw new IllegalArgumentException(
-					"op code not within valid range: " + op);
+					"op code not within valid range: " + op); //$NON-NLS-1$
 		}
 	}
 
@@ -114,7 +148,7 @@ public class StreamRequestMessage extends RemoteOSGiMessage {
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		out.writeShort(streamID);
 		out.writeByte(op);
-		if (op != READ)  {
+		if (op != READ) {
 			out.writeInt(lenOrVal);
 			if (op == WRITE_ARRAY) {
 				SmartSerializer.serialize(b, out);
@@ -130,11 +164,12 @@ public class StreamRequestMessage extends RemoteOSGiMessage {
 	public short getStreamID() {
 		return streamID;
 	}
-	
+
 	/**
 	 * set the ID of the stream.
 	 * 
-	 * @param streamID the ID of the stream.
+	 * @param streamID
+	 *            the ID of the stream.
 	 */
 	public void setStreamID(final short streamID) {
 		this.streamID = streamID;
@@ -152,12 +187,13 @@ public class StreamRequestMessage extends RemoteOSGiMessage {
 	/**
 	 * set the operation code.
 	 * 
-	 * @param op the operation code.
+	 * @param op
+	 *            the operation code.
 	 */
 	public void setOp(final byte op) {
 		this.op = op;
 	}
-	
+
 	/**
 	 * get the length (read op) or value (write op) field.
 	 * 
@@ -170,12 +206,13 @@ public class StreamRequestMessage extends RemoteOSGiMessage {
 	/**
 	 * set the length (read op) or value (write op) field.
 	 * 
-	 * @param lenOrVal the length or value.
+	 * @param lenOrVal
+	 *            the length or value.
 	 */
 	public void setLenOrVal(final int lenOrVal) {
 		this.lenOrVal = lenOrVal;
 	}
-	
+
 	/**
 	 * get the data array.
 	 * 
@@ -184,16 +221,17 @@ public class StreamRequestMessage extends RemoteOSGiMessage {
 	public byte[] getData() {
 		return b;
 	}
-	
+
 	/**
 	 * set the data array.
 	 * 
-	 * @param b the data array to store.
+	 * @param b
+	 *            the data array to store.
 	 */
 	public void setData(final byte[] b) {
 		this.b = b;
 	}
-	
+
 	/**
 	 * String representation for debug outputs.
 	 * 
@@ -202,13 +240,13 @@ public class StreamRequestMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[STREAM_REQUEST] - XID: ");
+		buffer.append("[STREAM_REQUEST] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
-		buffer.append(", streamID: ");
+		buffer.append(", streamID: "); //$NON-NLS-1$
 		buffer.append(streamID);
-		buffer.append(", op: ");
+		buffer.append(", op: "); //$NON-NLS-1$
 		buffer.append(op);
-		buffer.append(", len: ");
+		buffer.append(", len: "); //$NON-NLS-1$
 		buffer.append(lenOrVal);
 		return buffer.toString();
 	}

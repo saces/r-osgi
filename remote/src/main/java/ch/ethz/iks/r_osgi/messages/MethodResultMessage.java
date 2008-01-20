@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -43,7 +43,7 @@ import ch.ethz.iks.util.SmartSerializer;
  * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.1
  */
-public class MethodResultMessage extends RemoteOSGiMessage {
+public final class MethodResultMessage extends RemoteOSGiMessage {
 
 	/**
 	 * the error flag.
@@ -63,11 +63,6 @@ public class MethodResultMessage extends RemoteOSGiMessage {
 	/**
 	 * creates a new MethodResultMessage from InvokeMethodMessage and set the
 	 * exception.
-	 * 
-	 * @param inv
-	 *            the <code>InvokeMethodMessage</code>.
-	 * @param exception
-	 *            the exception.
 	 */
 	public MethodResultMessage() {
 		super(METHOD_RESULT);
@@ -143,6 +138,12 @@ public class MethodResultMessage extends RemoteOSGiMessage {
 		return result;
 	}
 
+	/**
+	 * set the result.
+	 * 
+	 * @param result
+	 *            the result.
+	 */
 	public void setResult(final Object result) {
 		this.result = result;
 		this.errorFlag = 0;
@@ -157,6 +158,12 @@ public class MethodResultMessage extends RemoteOSGiMessage {
 		return exception;
 	}
 
+	/**
+	 * set the exception.
+	 * 
+	 * @param t
+	 *            the exception.
+	 */
 	public void setException(final Throwable t) {
 		this.exception = t;
 		this.errorFlag = 1;
@@ -170,15 +177,15 @@ public class MethodResultMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[METHOD_RESULT] - XID: ");
+		buffer.append("[METHOD_RESULT] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
-		buffer.append(", errorFlag: ");
+		buffer.append(", errorFlag: "); //$NON-NLS-1$
 		buffer.append(errorFlag);
 		if (causedException()) {
-			buffer.append(", exception: ");
+			buffer.append(", exception: "); //$NON-NLS-1$
 			buffer.append(exception.getMessage());
 		} else {
-			buffer.append(", result: ");
+			buffer.append(", result: "); //$NON-NLS-1$
 			buffer.append(result);
 		}
 		return buffer.toString();

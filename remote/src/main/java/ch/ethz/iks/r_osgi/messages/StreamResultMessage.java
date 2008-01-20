@@ -1,3 +1,31 @@
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
+ * Information and Communication Systems Research Group (IKS),
+ * Department of Computer Science, ETH Zurich.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *    - Redistributions of source code must retain the above copyright notice,
+ *      this list of conditions and the following disclaimer.
+ *    - Redistributions in binary form must reproduce the above copyright
+ *      notice, this list of conditions and the following disclaimer in the
+ *      documentation and/or other materials provided with the distribution.
+ *    - Neither the name of ETH Zurich nor the names of its contributors may be
+ *      used to endorse or promote products derived from this software without
+ *      specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 package ch.ethz.iks.r_osgi.messages;
 
 import java.io.IOException;
@@ -6,35 +34,40 @@ import java.io.ObjectOutputStream;
 
 import ch.ethz.iks.util.SmartSerializer;
 
-public class StreamResultMessage extends RemoteOSGiMessage {
+/**
+ * Stream result message.
+ * 
+ * @author Michael Duller, ETH Zurich.
+ */
+public final class StreamResultMessage extends RemoteOSGiMessage {
 
 	/**
-	 * result indicates array
+	 * result indicates array.
 	 */
 	public static final short RESULT_ARRAY = -2;
 
 	/**
-	 * result indicates exception
+	 * result indicates exception.
 	 */
 	public static final short RESULT_EXCEPTION = -3;
-	
+
 	/**
-	 * result indicates write operation completed successfully
+	 * result indicates write operation completed successfully.
 	 */
 	public static final short RESULT_WRITE_OK = -4;
 
 	/**
-	 * result of the operation
+	 * result of the operation.
 	 */
 	private short result;
 
 	/**
-	 * array containing read data
+	 * array containing read data.
 	 */
 	private byte[] b;
 
 	/**
-	 * length of b
+	 * length of b.
 	 */
 	private int len;
 
@@ -85,8 +118,9 @@ public class StreamResultMessage extends RemoteOSGiMessage {
 		case RESULT_WRITE_OK:
 			break;
 		default:
-			if ((result < -1) || (result > 255)) {   // -1 indicates EOF -> valid
-				throw new IllegalArgumentException("result not within valid range: " + result);
+			if ((result < -1) || (result > 255)) { // -1 indicates EOF -> valid
+				throw new IllegalArgumentException(
+						"result not within valid range: " + result); //$NON-NLS-1$
 			}
 			break;
 		}
@@ -118,7 +152,7 @@ public class StreamResultMessage extends RemoteOSGiMessage {
 	 *         remote side. In this case, the exception can be retrieved through
 	 *         the <code>getException</code> method.
 	 */
-	public final boolean causedException() {
+	public boolean causedException() {
 		return (result == RESULT_EXCEPTION);
 	}
 
@@ -127,50 +161,53 @@ public class StreamResultMessage extends RemoteOSGiMessage {
 	 * 
 	 * @return the return value of the invoked operation.
 	 */
-	public final short getResult() {
+	public short getResult() {
 		return result;
 	}
-	
+
 	/**
 	 * set the result value.
 	 * 
-	 * @param result the result.
+	 * @param result
+	 *            the result.
 	 */
 	public void setResult(final short result) {
 		this.result = result;
 	}
-	
+
 	/**
 	 * get the data array.
 	 * 
 	 * @return the array containing the read data.
 	 */
-	public final byte[] getData() {
+	public byte[] getData() {
 		return b;
 	}
-	
+
 	/**
 	 * set the data array.
 	 * 
-	 * @param b the array containing the read data.
+	 * @param b
+	 *            the array containing the read data.
 	 */
 	public void setData(final byte[] b) {
 		this.b = b;
 	}
-	
+
 	/**
 	 * get the length.
 	 * 
 	 * @return the number of bytes read.
 	 */
-	public final int getLen() {
+	public int getLen() {
 		return len;
 	}
-	
+
 	/**
 	 * set the length.
 	 * 
-	 * @param len the number of bytes read.
+	 * @param len
+	 *            the number of bytes read.
 	 */
 	public void setLen(final int len) {
 		this.len = len;
@@ -181,19 +218,20 @@ public class StreamResultMessage extends RemoteOSGiMessage {
 	 * 
 	 * @return the exception or <code>null</code> if none was thrown.
 	 */
-	public final IOException getException() {
+	public IOException getException() {
 		return exception;
 	}
 
 	/**
 	 * set the exception.
 	 * 
-	 * @param exception the exception that was thrown.
+	 * @param exception
+	 *            the exception that was thrown.
 	 */
 	public void setException(IOException exception) {
 		this.exception = exception;
 	}
-	
+
 	/**
 	 * String representation for debug outputs.
 	 * 
@@ -202,12 +240,12 @@ public class StreamResultMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[STREAM_RESULT] - XID: ");
+		buffer.append("[STREAM_RESULT] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
-		buffer.append(", result: ");
+		buffer.append(", result: "); //$NON-NLS-1$
 		buffer.append(result);
 		if (causedException()) {
-			buffer.append(", exception: ");
+			buffer.append(", exception: "); //$NON-NLS-1$
 			buffer.append(exception.getMessage());
 		}
 		return buffer.toString();

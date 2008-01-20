@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Institute for Pervasive Computing, ETH Zurich.
  * All rights reserved.
@@ -58,6 +58,11 @@ import ch.ethz.iks.r_osgi.RemoteOSGiException;
 public final class DeliverServiceMessage extends RemoteOSGiMessage {
 
 	/**
+	 * the service ID.
+	 */
+	private String serviceID;
+
+	/**
 	 * The class name of the interface that describes the service.
 	 */
 	private String[] serviceInterfaceNames;
@@ -82,24 +87,9 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 	 */
 	private String exports;
 
-	private String serviceID;
-
 	/**
-	 * Create a new DeliverServiceMessage for a proxied service.
+	 * Create a new DeliverServiceMessage.
 	 * 
-	 * @param serviceInterfaceName
-	 *            the name of the interface class.
-	 * @param smartProxyName
-	 *            the name of the smart proxy class or <code>null</code>.
-	 * @param injections
-	 *            the injections as a <code>HashMap</code> with name/bytes of
-	 *            the injections.
-	 * @param imports
-	 *            the imports statement for the proxy bundle.
-	 * @param exports
-	 *            the export statement for the proxy bundle.
-	 * @throws RemoteOSGiException
-	 *             in case of Exceptions during class serialization.
 	 */
 	public DeliverServiceMessage() {
 		super(DELIVER_SERVICE);
@@ -114,7 +104,7 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *        |       R-OSGi header (function = Service = 2)                  |
 	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *        |   length of &lt;ServiceURL&gt;     |    &lt;ServiceURL&gt; String       \
+	 *        |   length of &lt;ServiceID&gt;     |    &lt;ServiceID&gt; String       \
 	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *        |          imports                                              \ 
 	 *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -169,7 +159,7 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 		out.writeUTF(imports);
 		out.writeUTF(exports);
 		writeStringArray(out, serviceInterfaceNames);
-		out.writeUTF(smartProxyName == null ? "" : smartProxyName);
+		out.writeUTF(smartProxyName == null ? "" : smartProxyName); //$NON-NLS-1$
 		final short blocks = (short) injections.size();
 		out.writeShort(blocks);
 		final String[] injectionNames = (String[]) injections.keySet().toArray(
@@ -180,14 +170,31 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 		}
 	}
 
+	/**
+	 * get the service ID.
+	 * 
+	 * @return the service ID.
+	 */
 	public String getServiceID() {
 		return serviceID;
 	}
 
-	public void setServiceID(String serviceID) {
+	/**
+	 * set the service ID.
+	 * 
+	 * @param serviceID
+	 *            the service ID.
+	 */
+	public void setServiceID(final String serviceID) {
 		this.serviceID = serviceID;
 	}
 
+	/**
+	 * set the injections.
+	 * 
+	 * @param injections
+	 *            the injections.
+	 */
 	public void setInjections(final Map injections) {
 		this.injections = injections;
 	}
@@ -201,6 +208,12 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 		return serviceInterfaceNames;
 	}
 
+	/**
+	 * set the interface names.
+	 * 
+	 * @param interfaceNames
+	 *            the interface class names.
+	 */
 	public void setInterfaceNames(final String[] interfaceNames) {
 		this.serviceInterfaceNames = interfaceNames;
 	}
@@ -213,7 +226,7 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 	public byte[] getInterfaceClass() {
 		return (byte[]) injections.get(serviceInterfaceNames[0].replace('.',
 				'/')
-				+ ".class");
+				+ ".class"); //$NON-NLS-1$
 	}
 
 	/**
@@ -225,6 +238,12 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 		return smartProxyName;
 	}
 
+	/**
+	 * set the smart proxy name.
+	 * 
+	 * @param smartProxyName
+	 *            the smart proxy name.
+	 */
 	public void setSmartProxyName(final String smartProxyName) {
 		this.smartProxyName = smartProxyName;
 	}
@@ -260,6 +279,12 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 		return imports;
 	}
 
+	/**
+	 * set the imports.
+	 * 
+	 * @param imports
+	 *            the imports.
+	 */
 	public void setImports(final String imports) {
 		this.imports = imports;
 	}
@@ -273,6 +298,12 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 		return exports;
 	}
 
+	/**
+	 * set the exports.
+	 * 
+	 * @param exports
+	 *            the exports.
+	 */
 	public void setExports(final String exports) {
 		this.exports = exports;
 	}
@@ -285,18 +316,18 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[DELIVER_SERVICE] - XID: ");
+		buffer.append("[DELIVER_SERVICE] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
-		buffer.append(", serviceID: ");
+		buffer.append(", serviceID: "); //$NON-NLS-1$
 		buffer.append(serviceID);
-		buffer.append(", serviceInterfaceName: ");
+		buffer.append(", serviceInterfaceName: "); //$NON-NLS-1$
 		buffer.append(Arrays.asList(serviceInterfaceNames));
 		if (smartProxyName != null) {
-			buffer.append(" smartProxy: ");
+			buffer.append(" smartProxy: "); //$NON-NLS-1$
 			buffer.append(smartProxyName);
 		}
 		if (injections.size() > 0) {
-			buffer.append(", classInjections ");
+			buffer.append(", classInjections "); //$NON-NLS-1$
 			buffer.append(injections.keySet());
 		}
 		return buffer.toString();

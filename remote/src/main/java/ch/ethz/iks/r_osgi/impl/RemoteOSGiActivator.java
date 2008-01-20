@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -71,13 +71,16 @@ public final class RemoteOSGiActivator implements BundleActivator {
 			RemoteOSGiServiceImpl.log = (LogService) context.getService(logRef);
 		}
 
-		// TODO: make this configurable if the TCP channel should be registered
-		// at all...
-		Dictionary properties = new Hashtable();
-		properties.put(NetworkChannelFactory.PROTOCOL_PROPERTY,
-				TCPChannelFactory.PROTOCOL);
-		context.registerService(NetworkChannelFactory.class.getName(),
-				new TCPChannelFactory(), properties);
+		// register the default tcp channel
+		if (!"false"
+				.equals(context
+						.getProperty(RemoteOSGiServiceImpl.REGISTER_DEFAULT_TCP_CHANNEL))) {
+			final Dictionary properties = new Hashtable();
+			properties.put(NetworkChannelFactory.PROTOCOL_PROPERTY,
+					TCPChannelFactory.PROTOCOL);
+			context.registerService(NetworkChannelFactory.class.getName(),
+					new TCPChannelFactory(), properties);
+		}
 
 		if (remoting == null) {
 			// get the instance of RemoteOSGiServiceImpl

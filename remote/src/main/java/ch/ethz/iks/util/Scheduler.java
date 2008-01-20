@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -132,7 +132,7 @@ public final class Scheduler {
 		synchronized (expirationQueue) {
 			if (isScheduled(object)) {
 				throw new IllegalStateException("Object " + object
-						+ " is already scheduled.");
+						+ " is already scheduled."); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			Long ts = new Long(timestamp);
 			expirationQueue.put(ts, object);
@@ -181,7 +181,7 @@ public final class Scheduler {
 		 */
 		ScheduleThread() {
 			setDaemon(true);
-			setName("Scheduler");
+			setName("Scheduler"); //$NON-NLS-1$
 		}
 
 		/**

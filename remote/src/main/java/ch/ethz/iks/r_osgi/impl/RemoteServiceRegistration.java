@@ -1,4 +1,4 @@
-/* Copyright (c) 2006 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Institute for Pervasive Computing, ETH Zurich.
  * All rights reserved.
@@ -36,11 +36,13 @@ import java.util.Hashtable;
 import org.objectweb.asm.Type;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogService;
+
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
 
 /**
- * RemoteService encapsulates a service registered for remoting.
+ * Encapsulates a service registered for remote access.
  * 
  * @author Jan S. Rellermeyer
  */
@@ -56,6 +58,9 @@ final class RemoteServiceRegistration {
 	 */
 	private final long serviceID;
 
+	/**
+	 * the interface names.
+	 */
 	private final String[] interfaceNames;
 
 	/**
@@ -63,21 +68,24 @@ final class RemoteServiceRegistration {
 	 */
 	private final Object serviceObject;
 
+	/**
+	 * an internal method table, pregenerated to speed up the reflective calls.
+	 */
 	private final HashMap methodTable = new HashMap(0);
 
+	/**
+	 * a prefactored deliver service message.
+	 */
 	private DeliverServiceMessage deliverServiceMessage;
 
 	/**
 	 * creates a new RemoteService object.
 	 * 
 	 * @param ref
-	 *            the <code>ServiceReference</code>.
-	 * @param interfaceNames
-	 *            the names of the service interfaces.
-	 * @param smartProxy
-	 *            an optional abstract class as smart proxy.
-	 * @param injectionClasses
-	 *            optional class injections.
+	 *            the <code>ServiceReference</code> under which the service
+	 *            was registered. Can be a surrogate.
+	 * @param service
+	 *            the <code>ServiceReference</code>
 	 * @throws ClassNotFoundException
 	 *             if one of the interface classes cannot be found.
 	 * @throws ServiceLocationException
@@ -94,7 +102,7 @@ final class RemoteServiceRegistration {
 		// get the service object
 		this.serviceObject = RemoteOSGiServiceImpl.context.getService(service);
 		if (serviceObject == null) {
-			throw new IllegalStateException("Service is not present.");
+			throw new IllegalStateException("Service is not present."); //$NON-NLS-1$
 		}
 
 		// get the interface classes
@@ -116,11 +124,11 @@ final class RemoteServiceRegistration {
 		}
 
 		final Dictionary headers = service.getBundle().getHeaders();
-		final CodeAnalyzer inspector = new CodeAnalyzer(bundleLoader,
+		final CodeAnalyzer analyzer = new CodeAnalyzer(bundleLoader,
 				(String) headers.get(Constants.IMPORT_PACKAGE),
 				(String) headers.get(Constants.EXPORT_PACKAGE));
 		try {
-			deliverServiceMessage = inspector.analyze(interfaceNames,
+			deliverServiceMessage = analyzer.analyze(interfaceNames,
 					(String) ref.getProperty(RemoteOSGiService.SMART_PROXY),
 					(String[]) ref.getProperty(RemoteOSGiService.INJECTIONS),
 					(String) ref
@@ -128,8 +136,10 @@ final class RemoteServiceRegistration {
 			deliverServiceMessage.setServiceID(((Long) ref
 					.getProperty(Constants.SERVICE_ID)).toString());
 		} catch (Exception e) {
-			// TODO: log
-			e.printStackTrace();
+			if (RemoteOSGiServiceImpl.log != null) {
+				RemoteOSGiServiceImpl.log.log(LogService.LOG_ERROR,
+						"Error during remote service registration", e);
+			}
 		}
 	}
 
@@ -139,17 +149,18 @@ final class RemoteServiceRegistration {
 	 * @return the service id.
 	 * @since 0.5
 	 */
-	final long getServiceID() {
+	long getServiceID() {
 		return serviceID;
 	}
 
-	final ServiceReference getReference() {
+	ServiceReference getReference() {
 		return reference;
 	}
 
 	/**
-	 * get the attributes.
+	 * get the service properties.
 	 * 
+	 * @return the properties.
 	 */
 	Dictionary getProperties() {
 		final String[] keys = reference.getPropertyKeys();
@@ -160,6 +171,11 @@ final class RemoteServiceRegistration {
 		return props;
 	}
 
+	/**
+	 * get the service interfaces.
+	 * 
+	 * @return the class names of the service interfaces.
+	 */
 	String[] getInterfaceNames() {
 		return interfaceNames;
 	}
@@ -188,7 +204,7 @@ final class RemoteServiceRegistration {
 	 * @return the hash code.
 	 */
 	public int hashCode() {
-		return (int) serviceID;
+		return (int) (serviceID ^ (serviceID >>> 32));
 	}
 
 	/**
@@ -200,10 +216,22 @@ final class RemoteServiceRegistration {
 		return serviceObject;
 	}
 
+	/**
+	 * get a method from the method table.
+	 * 
+	 * @param signature
+	 *            the signature of the method.
+	 * @return the Method object.
+	 */
 	Method getMethod(final String signature) {
 		return (Method) methodTable.get(signature);
 	}
 
+	/**
+	 * get the DeliverServiceMessage.
+	 * 
+	 * @return the message.
+	 */
 	DeliverServiceMessage getDeliverServiceMessage() {
 		return deliverServiceMessage;
 	}

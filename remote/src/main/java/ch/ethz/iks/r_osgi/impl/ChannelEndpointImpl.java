@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -28,7 +28,6 @@
  */
 package ch.ethz.iks.r_osgi.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -60,7 +59,6 @@ import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
-import ch.ethz.iks.r_osgi.messages.DeliverBundleMessage;
 import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
 import ch.ethz.iks.r_osgi.messages.FetchServiceMessage;
 import ch.ethz.iks.r_osgi.messages.InvokeMethodMessage;
@@ -72,6 +70,10 @@ import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.messages.StreamRequestMessage;
 import ch.ethz.iks.r_osgi.messages.StreamResultMessage;
 import ch.ethz.iks.r_osgi.messages.TimeOffsetMessage;
+import ch.ethz.iks.r_osgi.streams.InputStreamHandle;
+import ch.ethz.iks.r_osgi.streams.InputStreamProxy;
+import ch.ethz.iks.r_osgi.streams.OutputStreamHandle;
+import ch.ethz.iks.r_osgi.streams.OutputStreamProxy;
 
 /**
  * <p>
@@ -152,17 +154,17 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private final HashMap proxyBundles = new HashMap(0);
 
 	/**
-	 * map of service url -> proxy class
+	 * map of service url -> proxy class.
 	 */
 	private final HashMap proxies = new HashMap(0);
 
 	/**
-	 * map of stream id -> stream instance
+	 * map of stream id -> stream instance.
 	 */
 	private final HashMap streams = new HashMap(0);
 
 	/**
-	 * next stream placeholder id.
+	 * next stream id.
 	 */
 	private short nextStreamID = 0;
 
@@ -211,7 +213,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		this.networkChannel = factory.getConnection(this, endpointURI);
 		if (RemoteOSGiServiceImpl.DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
-					"opening new channel " + getRemoteEndpoint());
+					"opening new channel " + getRemoteAddress());
 		}
 		RemoteOSGiServiceImpl.registerChannelEndpoint(this);
 	}
@@ -230,6 +232,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		RemoteOSGiServiceImpl.registerChannelEndpoint(this);
 	}
 
+	/**
+	 * 
+	 * @param myServices
+	 * @param myTopics
+	 * @return
+	 */
 	RemoteServiceReference[] sendLease(
 			final RemoteServiceRegistration[] myServices,
 			final String[] myTopics) {
@@ -239,23 +247,111 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		return processLease(lease);
 	}
 
+	/**
+	 * 
+	 * @param msg
+	 */
 	void updateLease(final LeaseUpdateMessage msg) {
 		send(msg);
+	}
+
+	boolean isActive(final String uri) {
+		return remoteServices.get(uri) != null;
+	}
+
+	/**
+	 * fetch the service from the remote peer.
+	 * 
+	 * @param service
+	 *            the service url.
+	 * @throws IOException
+	 *             in case of network errors.
+	 * @throws BundleException
+	 *             if the installation of the proxy or the migrated bundle
+	 *             fails.
+	 */
+	void fetchService(final RemoteServiceReference ref) throws IOException,
+			RemoteOSGiException {
+
+		// build the FetchServiceMessage
+		final FetchServiceMessage fetchReq = new FetchServiceMessage();
+		fetchReq.setServiceID(ref.getURI().getFragment());
+
+		// send the FetchServiceMessage and get a DeliverServiceMessage in
+		// return
+		final RemoteOSGiMessage msg = sendMessage(fetchReq);
+		String bundleLocation = null;
+
+		try {
+			final DeliverServiceMessage deliv = (DeliverServiceMessage) msg;
+			final URI service = networkChannel.getRemoteAddress().resolve(
+					"#" + deliv.getServiceID());
+
+			// generate a proxy bundle for the service
+			bundleLocation = new ProxyGenerator().generateProxyBundle(service,
+					deliv);
+
+			// install the proxy bundle
+			final Bundle bundle = RemoteOSGiServiceImpl.context
+					.installBundle("file:" + bundleLocation);
+
+			// store the bundle for state updates and cleanup
+			proxyBundles.put(service.getFragment(), bundle);
+
+			// start the bundle
+			bundle.start();
+
+		} catch (BundleException e) {
+			final Throwable nested = e.getNestedException() == null ? e : e
+					.getNestedException();
+			nested.printStackTrace();
+			throw new RemoteOSGiException(
+					"Could not install the generated bundle " + bundleLocation,
+					nested);
+		}
+	}
+
+	/**
+	 * Get the remote references.
+	 * 
+	 * @param filter
+	 * @return
+	 */
+	RemoteServiceReference[] getRemoteReferences(final Filter filter) {
+		final List result = new ArrayList();
+		final RemoteServiceReferenceImpl[] refs = (RemoteServiceReferenceImpl[]) remoteServices
+				.values().toArray(
+						new RemoteServiceReferenceImpl[remoteServices.size()]);
+		if (filter == null) {
+			return refs;
+		} else {
+			for (int i = 0; i < refs.length; i++) {
+				if (filter.match(refs[i].getProperties())) {
+					result.add(refs[i]);
+				}
+			}
+			return (RemoteServiceReference[]) result
+					.toArray(new RemoteServiceReferenceImpl[result.size()]);
+		}
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	URI getLocalAddress() {
+		return networkChannel.getLocalAddress();
 	}
 
 	/**
 	 * get the channel ID.
 	 * 
 	 * @return the channel ID.
-	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#getURL() *
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelAddress#getURL() *
 	 * @category ChannelEndpoint
 	 */
-	public URI getRemoteEndpoint() {
-		return networkChannel.getRemoteEndpoint();
-	}
-
-	URI getLocalEndpoint() {
-		return networkChannel.getLocalEndpoint();
+	public URI getRemoteAddress() {
+		return networkChannel.getRemoteAddress();
 	}
 
 	/**
@@ -270,7 +366,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (msg == null) {
 			if (RemoteOSGiServiceImpl.DEBUG) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_WARNING,
-						"Connection to " + getRemoteEndpoint()
+						"Connection to " + getRemoteAddress()
 								+ " broke down. Trying to reconnect ...");
 			}
 			try {
@@ -360,48 +456,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
-	 * dispose the channel.
-	 * 
-	 * @category ChannelEndpoint
-	 */
-	public void dispose() {
-		if (RemoteOSGiServiceImpl.DEBUG) {
-			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
-					"DISPOSING ENDPOINT " + getRemoteEndpoint());
-		}
-		RemoteOSGiServiceImpl.unregisterChannel(this);
-		if (handlerReg != null) {
-			handlerReg.unregister();
-		}
-		Bundle[] bundles = (Bundle[]) proxyBundles.values().toArray(
-				new Bundle[proxyBundles.size()]);
-		for (int i = 0; i < bundles.length; i++) {
-			try {
-				if (bundles[i].getState() != Bundle.UNINSTALLED) {
-					// bundles[i].uninstall();
-				}
-			} catch (Throwable t) {
-				// don't care
-			}
-		}
-		networkChannel = null;
-		remoteServices = null;
-		remoteTopics = null;
-		timeOffset = null;
-		receiveQueue.clear();
-		localServices.clear();
-		proxiedServices.clear();
-		proxyBundles.clear();
-		closeStreams();
-		streams.clear();
-		handlerReg = null;
-		reconnecting = true;
-		synchronized (receiveQueue) {
-			receiveQueue.notifyAll();
-		}
-	}
-
-	/**
 	 * get the attributes of a service. This function is used to simplify proxy
 	 * bundle generation.
 	 * 
@@ -412,33 +466,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	public Dictionary getProperties(final String service) {
 		return getRemoteReference(service).getProperties();
-	}
-
-	private RemoteServiceReferenceImpl getRemoteReference(final String uri) {
-		return (RemoteServiceReferenceImpl) remoteServices.get(uri);
-	}
-
-	/**
-	 * 
-	 * @param filter
-	 * @return
-	 */
-	RemoteServiceReference[] getRemoteReferences(final Filter filter) {
-		final List result = new ArrayList();
-		final RemoteServiceReferenceImpl[] refs = (RemoteServiceReferenceImpl[]) remoteServices
-				.values().toArray(
-						new RemoteServiceReferenceImpl[remoteServices.size()]);
-		if (filter == null) {
-			return refs;
-		} else {
-			for (int i = 0; i < refs.length; i++) {
-				if (filter.match(refs[i].getProperties())) {
-					result.add(refs[i]);
-				}
-			}
-			return (RemoteServiceReference[]) result
-					.toArray(new RemoteServiceReferenceImpl[result.size()]);
-		}
 	}
 
 	/**
@@ -479,68 +506,196 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
-	 * fetch the service from the remote peer.
+	 * get the temporal offset of a remote peer.
 	 * 
-	 * @param service
-	 *            the service url.
-	 * @throws IOException
+	 * @return the TimeOffset.
+	 * @throws RemoteOSGiException
 	 *             in case of network errors.
-	 * @throws BundleException
-	 *             if the installation of the proxy or the migrated bundle
-	 *             fails.
 	 */
-	void fetchService(final RemoteServiceReference ref) throws IOException,
-			RemoteOSGiException {
-
-		// build the FetchServiceMessage
-		final FetchServiceMessage fetchReq = new FetchServiceMessage();
-		fetchReq.setServiceID(ref.getURI().getFragment());
-
-		// send the FetchServiceMessage and get a DeliverServiceMessage in
-		// return
-		final RemoteOSGiMessage msg = sendMessage(fetchReq);
-		String bundleLocation = null;
-		try {
-			if (msg instanceof DeliverServiceMessage) {
-				final DeliverServiceMessage deliv = (DeliverServiceMessage) msg;
-				final URI service = networkChannel.getRemoteEndpoint().resolve(
-						"#" + deliv.getServiceID());
-
-				// generate a proxy bundle for the service
-				bundleLocation = new ProxyGenerator().generateProxyBundle(
-						service, deliv);
-
-				// install the proxy bundle
-				final Bundle bundle = RemoteOSGiServiceImpl.context
-						.installBundle("file:" + bundleLocation);
-
-				System.out.println("BUNDLE LOCATION: " + bundleLocation);
-
-				// store the bundle for state updates and cleanup
-				proxyBundles.put(service.getFragment(), bundle);
-
-				// start the bundle
-				bundle.start();
-
-				// delay until the services are available
-				// TODO: use service tracker
-			} else {
-				final DeliverBundleMessage delivB = (DeliverBundleMessage) msg;
-				bundleLocation = "streamed";
-				Bundle bundle = RemoteOSGiServiceImpl.context.installBundle(ref
-						.getURI().toString(), new ByteArrayInputStream(delivB
-						.getBytes()));
-				bundle.start();
+	public TimeOffset getOffset() throws RemoteOSGiException {
+		if (timeOffset == null) {
+			// if unknown, perform a initial offset measurement round of 4
+			// messages
+			TimeOffsetMessage timeMsg = new TimeOffsetMessage();
+			for (int i = 0; i < 4; i++) {
+				timeMsg.timestamp();
+				timeMsg = (TimeOffsetMessage) sendMessage(timeMsg);
 			}
-		} catch (BundleException e) {
-			final Throwable nested = e.getNestedException() == null ? e : e
-					.getNestedException();
-			nested.printStackTrace();
-			throw new RemoteOSGiException(
-					"Could not install the generated bundle " + bundleLocation,
-					nested);
+			timeOffset = new TimeOffset(timeMsg.getTimeSeries());
+		} else if (timeOffset.isExpired()) {
+			// if offset has expired, start a new measurement round
+			TimeOffsetMessage timeMsg = new TimeOffsetMessage();
+			for (int i = 0; i < timeOffset.seriesLength(); i += 2) {
+				timeMsg.timestamp();
+				timeMsg = (TimeOffsetMessage) sendMessage(timeMsg);
+			}
+			timeOffset.update(timeMsg.getTimeSeries());
 		}
+		return timeOffset;
+	}
 
+	/**
+	 * dispose the channel.
+	 * 
+	 * @category ChannelEndpoint
+	 */
+	public void dispose() {
+		if (RemoteOSGiServiceImpl.DEBUG) {
+			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
+					"DISPOSING ENDPOINT " + getRemoteAddress());
+		}
+		RemoteOSGiServiceImpl.unregisterChannel(this);
+		if (handlerReg != null) {
+			handlerReg.unregister();
+		}
+		Bundle[] bundles = (Bundle[]) proxyBundles.values().toArray(
+				new Bundle[proxyBundles.size()]);
+		for (int i = 0; i < bundles.length; i++) {
+			try {
+				if (bundles[i].getState() != Bundle.UNINSTALLED) {
+					// bundles[i].uninstall();
+				}
+			} catch (Throwable t) {
+				// don't care
+			}
+		}
+		networkChannel = null;
+		remoteServices = null;
+		remoteTopics = null;
+		timeOffset = null;
+		receiveQueue.clear();
+		localServices.clear();
+		proxiedServices.clear();
+		proxyBundles.clear();
+		closeStreams();
+		streams.clear();
+		handlerReg = null;
+		reconnecting = true;
+		synchronized (receiveQueue) {
+			receiveQueue.notifyAll();
+		}
+	}
+
+	public boolean isConnected() {
+		return networkChannel != null;
+	}
+
+	public String toString() {
+		return "ChannelEndpoint(" + networkChannel.toString() + ")";
+	}
+
+	/**
+	 * read a byte from the input stream on the peer identified by id.
+	 * 
+	 * @param streamID
+	 *            the ID of the stream.
+	 * @return result of the read operation.
+	 * @throws IOException
+	 *             when an IOException occurs.
+	 */
+	public int readStream(final short streamID) throws IOException {
+		final StreamRequestMessage requestMsg = new StreamRequestMessage();
+		requestMsg.setOp(StreamRequestMessage.READ);
+		requestMsg.setStreamID(streamID);
+		final StreamResultMessage resultMsg = doStreamOp(requestMsg);
+		return resultMsg.getResult();
+	}
+
+	/**
+	 * read to an array from the input stream on the peer identified by id.
+	 * 
+	 * @param streamID
+	 *            the ID of the stream.
+	 * @param b
+	 *            the array to write the result to.
+	 * @param off
+	 *            the offset for the destination array.
+	 * @param len
+	 *            the number of bytes to read.
+	 * @return number of bytes actually read.
+	 * @throws IOException
+	 *             when an IOException occurs.
+	 */
+	public int readStream(final short streamID, final byte[] b, final int off,
+			final int len) throws IOException {
+		// handle special cases as defined in InputStream
+		if (b == null) {
+			throw new NullPointerException();
+		}
+		if ((off < 0) || (len < 0) || (len + off > b.length)) {
+			throw new IndexOutOfBoundsException();
+		}
+		if (len == 0) {
+			return 0;
+		}
+		final StreamRequestMessage requestMsg = new StreamRequestMessage();
+		requestMsg.setOp(StreamRequestMessage.READ_ARRAY);
+		requestMsg.setStreamID(streamID);
+		requestMsg.setLenOrVal(len);
+		final StreamResultMessage resultMsg = doStreamOp(requestMsg);
+		final int length = resultMsg.getLen();
+		// check the length first, could be -1 indicating EOF
+		if (length > 0) {
+			final byte[] readdata = resultMsg.getData();
+			// copy result to byte array at correct offset
+			System.arraycopy(readdata, 0, b, off, length);
+		}
+		return length;
+	}
+
+	/**
+	 * write a byte to the output stream on the peer identified by id.
+	 * 
+	 * @param streamID
+	 *            the ID of the stream.
+	 * @param b
+	 *            the value.
+	 * @throws IOException
+	 *             when an IOException occurs.
+	 */
+	public void writeStream(final short streamID, final int b)
+			throws IOException {
+		final StreamRequestMessage requestMsg = new StreamRequestMessage();
+		requestMsg.setOp(StreamRequestMessage.WRITE);
+		requestMsg.setStreamID(streamID);
+		requestMsg.setLenOrVal(b);
+		// wait for the stream operation to finish
+		doStreamOp(requestMsg);
+	}
+
+	/**
+	 * write bytes from array to output stream on the peer identified by id.
+	 * 
+	 * @param streamID
+	 *            the ID of the stream.
+	 * @param b
+	 *            the source array.
+	 * @param off
+	 *            offset into the source array.
+	 * @param len
+	 *            number of bytes to copy.
+	 * @throws IOException
+	 *             when an IOException occurs.
+	 */
+	public void writeStream(final short streamID, final byte[] b,
+			final int off, final int len) throws IOException {
+		// handle special cases as defined in OutputStream
+		if (b == null) {
+			throw new NullPointerException();
+		}
+		if ((off < 0) || (len < 0) || (len + off > b.length)) {
+			throw new IndexOutOfBoundsException();
+		}
+		final byte[] data = new byte[len];
+		System.arraycopy(b, off, data, 0, len);
+
+		final StreamRequestMessage requestMsg = new StreamRequestMessage();
+		requestMsg.setOp(StreamRequestMessage.WRITE_ARRAY);
+		requestMsg.setStreamID(streamID);
+		requestMsg.setData(data);
+		requestMsg.setLenOrVal(len);
+		// wait for the stream operation to finish
+		doStreamOp(requestMsg);
 	}
 
 	private void send(final RemoteOSGiMessage msg) {
@@ -623,164 +778,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 	}
 
-	/**
-	 * get the temporal offset of a remote peer.
-	 * 
-	 * @return the TimeOffset.
-	 * @throws RemoteOSGiException
-	 *             in case of network errors.
-	 */
-	public TimeOffset getOffset() throws RemoteOSGiException {
-		if (timeOffset == null) {
-			// if unknown, perform a initial offset measurement round of 4
-			// messages
-			TimeOffsetMessage timeMsg = new TimeOffsetMessage();
-			for (int i = 0; i < 4; i++) {
-				timeMsg.timestamp();
-				timeMsg = (TimeOffsetMessage) sendMessage(timeMsg);
-			}
-			timeOffset = new TimeOffset(timeMsg.getTimeSeries());
-		} else if (timeOffset.isExpired()) {
-			// if offset has expired, start a new measurement round
-			TimeOffsetMessage timeMsg = new TimeOffsetMessage();
-			for (int i = 0; i < timeOffset.seriesLength(); i += 2) {
-				timeMsg.timestamp();
-				timeMsg = (TimeOffsetMessage) sendMessage(timeMsg);
-			}
-			timeOffset.update(timeMsg.getTimeSeries());
-		}
-		return timeOffset;
-	}
-
-	/**
-	 * read a byte from the input stream on the peer identified by id.
-	 * 
-	 * @param streamID
-	 *            the ID of the stream.
-	 * @return result of the read operation.
-	 * @throws IOException
-	 *             when an IOException occurs.
-	 */
-	int readStream(final short streamID) throws IOException {
-		final StreamRequestMessage requestMsg = new StreamRequestMessage();
-		requestMsg.setOp(StreamRequestMessage.READ);
-		requestMsg.setStreamID(streamID);
-		final StreamResultMessage resultMsg = doStreamOp(requestMsg);
-		return resultMsg.getResult();
-	}
-
-	/**
-	 * read to an array from the input stream on the peer identified by id.
-	 * 
-	 * @param streamID
-	 *            the ID of the stream.
-	 * @param b
-	 *            the array to write the result to.
-	 * @param off
-	 *            the offset for the destination array.
-	 * @param len
-	 *            the number of bytes to read.
-	 * @return number of bytes actually read.
-	 * @throws IOException
-	 *             when an IOException occurs.
-	 */
-	int readStream(final short streamID, final byte[] b, final int off,
-			final int len) throws IOException {
-		// handle special cases as defined in InputStream
-		if (b == null) {
-			throw new NullPointerException();
-		}
-		if ((off < 0) || (len < 0) || (len + off > b.length)) {
-			throw new IndexOutOfBoundsException();
-		}
-		if (len == 0) {
-			return 0;
-		}
-		final StreamRequestMessage requestMsg = new StreamRequestMessage();
-		requestMsg.setOp(StreamRequestMessage.READ_ARRAY);
-		requestMsg.setStreamID(streamID);
-		requestMsg.setLenOrVal(len);
-		final StreamResultMessage resultMsg = doStreamOp(requestMsg);
-		final int length = resultMsg.getLen();
-		// check the length first, could be -1 indicating EOF
-		if (length > 0) {
-			final byte[] readdata = resultMsg.getData();
-			// copy result to byte array at correct offset
-			System.arraycopy(readdata, 0, b, off, length);
-		}
-		return length;
-	}
-
-	/**
-	 * write a byte to the output stream on the peer identified by id.
-	 * 
-	 * @param streamID
-	 *            the ID of the stream.
-	 * @throws IOException
-	 *             when an IOException occurs.
-	 */
-	void writeStream(final short streamID, int b) throws IOException {
-		final StreamRequestMessage requestMsg = new StreamRequestMessage();
-		requestMsg.setOp(StreamRequestMessage.WRITE);
-		requestMsg.setStreamID(streamID);
-		requestMsg.setLenOrVal(b);
-		// wait for the stream operation to finish
-		doStreamOp(requestMsg);
-	}
-
-	/**
-	 * write bytes from array to output stream on the peer identified by id.
-	 * 
-	 * @param streamID
-	 *            the ID of the stream.
-	 * @param b
-	 *            the source array.
-	 * @param off
-	 *            offset into the source array.
-	 * @param len
-	 *            number of bytes to copy.
-	 * @throws IOException
-	 *             when an IOException occurs.
-	 */
-	void writeStream(final short streamID, final byte[] b, final int off,
-			final int len) throws IOException {
-		// handle special cases as defined in OutputStream
-		if (b == null) {
-			throw new NullPointerException();
-		}
-		if ((off < 0) || (len < 0) || (len + off > b.length)) {
-			throw new IndexOutOfBoundsException();
-		}
-		final byte[] data = new byte[len];
-		System.arraycopy(b, off, data, 0, len);
-
-		final StreamRequestMessage requestMsg = new StreamRequestMessage();
-		requestMsg.setOp(StreamRequestMessage.WRITE_ARRAY);
-		requestMsg.setStreamID(streamID);
-		requestMsg.setData(data);
-		requestMsg.setLenOrVal(len);
-		// wait for the stream operation to finish
-		doStreamOp(requestMsg);
-	}
-
-	private StreamResultMessage doStreamOp(StreamRequestMessage requestMsg)
-			throws IOException {
-		try {
-			// send the message and get a StreamResultMessage in return
-			final StreamResultMessage result = (StreamResultMessage) sendMessage(requestMsg);
-			if (result.causedException()) {
-				throw result.getException();
-			}
-			return result;
-		} catch (RemoteOSGiException e) {
-			throw new RemoteOSGiException("Invocation of operation "
-					+ requestMsg.getOp() + " on stream "
-					+ requestMsg.getStreamID() + " failed.", e);
-		}
-	}
-
-	boolean isActive(final String uri) {
-		return remoteServices.get(uri) != null;
+	private RemoteServiceReferenceImpl getRemoteReference(final String uri) {
+		return (RemoteServiceReferenceImpl) remoteServices.get(uri);
 	}
 
 	private RemoteServiceRegistration getService(final String serviceID) {
@@ -831,6 +830,28 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
+	 * 
+	 * @param requestMsg
+	 * @return
+	 * @throws IOException
+	 */
+	private StreamResultMessage doStreamOp(final StreamRequestMessage requestMsg)
+			throws IOException {
+		try {
+			// send the message and get a StreamResultMessage in return
+			final StreamResultMessage result = (StreamResultMessage) sendMessage(requestMsg);
+			if (result.causedException()) {
+				throw result.getException();
+			}
+			return result;
+		} catch (RemoteOSGiException e) {
+			throw new RemoteOSGiException("Invocation of operation "
+					+ requestMsg.getOp() + " on stream "
+					+ requestMsg.getStreamID() + " failed.", e);
+		}
+	}
+
+	/**
 	 * update the statements of supply and demand.
 	 * 
 	 * @param lease
@@ -875,8 +896,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		if (RemoteOSGiServiceImpl.MSG_DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
-					"NEW REMOTE TOPIC SPACE for " + getRemoteEndpoint()
-							+ " is " + remoteTopics);
+					"NEW REMOTE TOPIC SPACE for " + getRemoteAddress() + " is "
+							+ remoteTopics);
 		}
 	}
 
@@ -930,7 +951,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						(String[]) suMsg.getPayload()[0], serviceID,
 						(Dictionary) suMsg.getPayload()[1], this);
 
-				remoteServices.put(getRemoteEndpoint().resolve("#" + serviceID)
+				remoteServices.put(getRemoteAddress().resolve("#" + serviceID)
 						.toString(), ref);
 
 				RemoteOSGiServiceImpl
@@ -946,7 +967,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					reg.setProperties(newProps);
 				}
 
-				final RemoteServiceReferenceImpl ref = getRemoteReference(getRemoteEndpoint()
+				final RemoteServiceReferenceImpl ref = getRemoteReference(getRemoteAddress()
 						.resolve("#" + serviceID).toString());
 				ref.setProperties(newProps);
 				RemoteOSGiServiceImpl
@@ -971,11 +992,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						be.printStackTrace();
 					}
 					proxiedServices.remove(serviceID);
-					remoteServices.remove(getRemoteEndpoint().resolve(
+					remoteServices.remove(getRemoteAddress().resolve(
 							"#" + serviceID).toString());
 				}
 				final RemoteServiceReference ref = (RemoteServiceReference) remoteServices
-						.remove(getRemoteEndpoint().resolve("#" + serviceID)
+						.remove(getRemoteAddress().resolve("#" + serviceID)
 								.toString());
 				// FIXME: why is this null?
 				if (ref != null) {
@@ -1044,9 +1065,16 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 		case RemoteOSGiMessage.REMOTE_EVENT: {
 			final RemoteEventMessage eventMsg = (RemoteEventMessage) msg;
+			final Dictionary properties = eventMsg.getProperties();
 
-			final Event event = new Event(eventMsg.getTopic(), eventMsg
-					.getProperties());
+			// transform the event timestamps
+			final Long remoteTs;
+			if ((remoteTs = (Long) properties.get(EventConstants.TIMESTAMP)) != null) {
+				properties.put(EventConstants.TIMESTAMP, getOffset().transform(
+						remoteTs));
+			}
+
+			final Event event = new Event(eventMsg.getTopic(), properties);
 
 			// and deliver the event to the local framework
 			if (RemoteOSGiServiceImpl.eventAdminTracker.getTrackingCount() > 0) {
@@ -1230,7 +1258,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 							.getProperty(propertyNames[i]));
 				}
 				props.put(RemoteEventMessage.EVENT_SENDER_URI,
-						getLocalEndpoint());
+						getLocalAddress());
 				msg.setProperties(props);
 				send(msg);
 
@@ -1244,11 +1272,4 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 	}
 
-	public boolean isConnected() {
-		return networkChannel != null;
-	}
-
-	public String toString() {
-		return "ChannelEndpoint(" + networkChannel.toString() + ")";
-	}
 }

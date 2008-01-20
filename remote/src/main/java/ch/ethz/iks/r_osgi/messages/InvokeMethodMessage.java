@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -42,8 +42,11 @@ import ch.ethz.iks.util.SmartSerializer;
  * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.1
  */
-public class InvokeMethodMessage extends RemoteOSGiMessage {
+public final class InvokeMethodMessage extends RemoteOSGiMessage {
 
+	/**
+	 * the service ID.
+	 */
 	private String serviceID;
 
 	/**
@@ -58,13 +61,6 @@ public class InvokeMethodMessage extends RemoteOSGiMessage {
 
 	/**
 	 * creates a new InvokeMethodMessage.
-	 * 
-	 * @param service
-	 *            the URI of the service.
-	 * @param methodSignature
-	 *            the method signature.
-	 * @param params
-	 *            the parameter that are passed to the method.
 	 */
 	public InvokeMethodMessage() {
 		super(INVOKE_METHOD);
@@ -79,7 +75,7 @@ public class InvokeMethodMessage extends RemoteOSGiMessage {
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *      |       R-OSGi header (function = InvokeMsg = 3)                |
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |   length of &lt;url&gt;     |    &lt;url&gt; String       \
+	 *      |   length of &lt;serviceID&gt;     |    &lt;serviceID&gt; String       \
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *      |    length of &lt;MethodSignature&gt;     |     &lt;MethodSignature&gt; String       \
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -123,23 +119,40 @@ public class InvokeMethodMessage extends RemoteOSGiMessage {
 		}
 	}
 
+	/**
+	 * get the service ID.
+	 * 
+	 * @return the service ID.
+	 */
 	public String getServiceID() {
 		return serviceID;
 	}
 
+	/**
+	 * set the service ID.
+	 * 
+	 * @param serviceID
+	 *            the service ID.
+	 */
 	public void setServiceID(final String serviceID) {
 		this.serviceID = serviceID;
 	}
 
 	/**
-	 * get the parameters for the invoked method.
+	 * get the arguments for the invoked method.
 	 * 
-	 * @return the parameters.
+	 * @return the arguments.
 	 */
 	public Object[] getArgs() {
 		return arguments;
 	}
 
+	/**
+	 * set the arguments.
+	 * 
+	 * @param arguments
+	 *            the arguments.
+	 */
 	public void setArgs(final Object[] arguments) {
 		this.arguments = arguments;
 	}
@@ -153,6 +166,12 @@ public class InvokeMethodMessage extends RemoteOSGiMessage {
 		return methodSignature;
 	}
 
+	/**
+	 * set the method signature.
+	 * 
+	 * @param methodSignature
+	 *            the method signature.
+	 */
 	public void setMethodSignature(final String methodSignature) {
 		this.methodSignature = methodSignature;
 	}
@@ -165,15 +184,15 @@ public class InvokeMethodMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[INVOKE_METHOD] - XID: ");
+		buffer.append("[INVOKE_METHOD] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
-		buffer.append(", serviceID: ");
+		buffer.append(", serviceID: "); //$NON-NLS-1$
 		buffer.append(serviceID);
-		buffer.append(", methodName: ");
+		buffer.append(", methodName: "); //$NON-NLS-1$
 		buffer.append(methodSignature);
-		buffer.append(", params: ");
+		buffer.append(", params: "); //$NON-NLS-1$
 		buffer.append(arguments == null ? "" : Arrays.asList(arguments)
-				.toString());
+				.toString()); //$NON-NLS-1$
 		return buffer.toString();
 	}
 }

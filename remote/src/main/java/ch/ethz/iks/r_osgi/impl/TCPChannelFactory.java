@@ -215,7 +215,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @see java.lang.Object#toString()
 		 */
 		public String toString() {
-			return "TCPChannel (" + getRemoteEndpoint() + ")";
+			return "TCPChannel (" + getRemoteAddress() + ")";
 		}
 
 		/**
@@ -257,11 +257,11 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @return the ID.
 		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getRemoteURL()
 		 */
-		public URI getRemoteEndpoint() {
+		public URI getRemoteAddress() {
 			return remoteEndpoint;
 		}
 
-		public URI getLocalEndpoint() {
+		public URI getLocalAddress() {
 			return localEndpoint;
 		}
 
@@ -296,7 +296,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			private ReceiverThread() {
 				this
 						.setName("TCPChannel:ReceiverThread:"
-								+ getRemoteEndpoint());
+								+ getRemoteAddress());
 				this.setDaemon(true);
 			}
 

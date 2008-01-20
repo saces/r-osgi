@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2008 Michael Duller
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -26,45 +26,61 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package ch.ethz.iks.r_osgi.impl;
+package ch.ethz.iks.r_osgi.streams;
 
-import java.io.Serializable;
+import java.io.IOException;
+import java.io.InputStream;
+
+import ch.ethz.iks.r_osgi.impl.ChannelEndpointImpl;
 
 /**
- * Stream handle for InputStreams passed as arguments or return values of remote
- * service invocations.
+ * Proxy object for input streams.
  * 
  * @author Michael Duller, ETH Zurich
  */
-public class InputStreamHandle implements Serializable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3774937077649735910L;
+public class InputStreamProxy extends InputStream {
 
 	/**
 	 * the stream id.
 	 */
-	private final short streamID;
+	private short streamID;
 
 	/**
-	 * Create a new stream handle.
+	 * the channel endpoint.
+	 */
+	private ChannelEndpointImpl endpoint;
+
+	/**
+	 * Create a new input stream proxy.
 	 * 
 	 * @param streamID
 	 *            the stream id.
+	 * @param endpoint
+	 *            the channel endpoint.
 	 */
-	public InputStreamHandle(final short streamID) {
+	public InputStreamProxy(final short streamID,
+			final ChannelEndpointImpl endpoint) {
 		this.streamID = streamID;
+		this.endpoint = endpoint;
 	}
 
 	/**
-	 * Get the stream id.
+	 * Read from the stream.
 	 * 
-	 * @return the stream id.
+	 * @see java.io.InputStream#read()
 	 */
-	public short getStreamID() {
-		return streamID;
+	public int read() throws IOException {
+		return endpoint.readStream(streamID);
+	}
+
+	/**
+	 * Read from the stream.
+	 * 
+	 * @see java.io.InputStream#read(byte[], int, int)
+	 */
+	public int read(final byte[] b, final int off, final int len)
+			throws IOException {
+		return endpoint.readStream(streamID, b, off, len);
 	}
 
 }

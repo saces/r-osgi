@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -44,12 +44,18 @@ import java.util.Dictionary;
 public final class LeaseMessage extends RemoteOSGiMessage {
 
 	/**
+	 * the service IDs.
+	 */
+	private String[] serviceIDs;
+
+	/**
 	 * the services that the peer offers.
 	 */
 	private String[][] serviceInterfaces;
 
-	private String[] serviceIDs;
-
+	/**
+	 * the service properties.
+	 */
 	private Dictionary[] serviceProperties;
 
 	/**
@@ -60,10 +66,6 @@ public final class LeaseMessage extends RemoteOSGiMessage {
 	/**
 	 * create a new lease message.
 	 * 
-	 * @param services
-	 *            the services the peer offers.
-	 * @param topics
-	 *            the topics the peer is interested in.
 	 */
 	public LeaseMessage() {
 		super(LEASE);
@@ -73,15 +75,15 @@ public final class LeaseMessage extends RemoteOSGiMessage {
 	 * creates a new LeaseMessage from network packet.
 	 * 
 	 * <pre>
-	 *           0                   1                   2                   3
-	 *           0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *          |       R-OSGi header (function = Lease = 1)                    |
-	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *          |  Array of service info (Fragment#, Interface[], properties    \
-	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *          |  Array of topic strings                                       \
-	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *   0                   1                   2                   3
+	 *   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  |       R-OSGi header (function = Lease = 1)                    |
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  |  Array of service info (Fragment#, Interface[], properties    \
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  |  Array of topic strings                                       \
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
 	 * @param input
@@ -108,26 +110,59 @@ public final class LeaseMessage extends RemoteOSGiMessage {
 		this.topics = readStringArray(input);
 	}
 
+	/**
+	 * get the service interfaces.
+	 * 
+	 * @return the service interfaces.
+	 */
 	public String[][] getServiceInterfaces() {
 		return serviceInterfaces;
 	}
 
+	/**
+	 * set the service interfaces.
+	 * 
+	 * @param serviceInterfaces
+	 *            the service interfaces.
+	 */
 	public void setServiceInterfaces(final String[][] serviceInterfaces) {
 		this.serviceInterfaces = serviceInterfaces;
 	}
 
+	/**
+	 * get the service IDs.
+	 * 
+	 * @return the service IDs.
+	 */
 	public String[] getServiceIDs() {
 		return serviceIDs;
 	}
 
+	/**
+	 * set the service IDs.
+	 * 
+	 * @param serviceIDs
+	 *            the service IDs.
+	 */
 	public void setServiceIDs(final String[] serviceIDs) {
 		this.serviceIDs = serviceIDs;
 	}
 
+	/**
+	 * get the service properties.
+	 * 
+	 * @return the service properties.
+	 */
 	public Dictionary[] getServiceProperties() {
 		return serviceProperties;
 	}
 
+	/**
+	 * set the service properties.
+	 * 
+	 * @param serviceProperties
+	 *            the service properties.
+	 */
 	public void setServiceProperties(final Dictionary[] serviceProperties) {
 		this.serviceProperties = serviceProperties;
 	}
@@ -141,6 +176,12 @@ public final class LeaseMessage extends RemoteOSGiMessage {
 		return topics;
 	}
 
+	/**
+	 * set the topics.
+	 * 
+	 * @param topics
+	 *            the topics.
+	 */
 	public void setTopics(final String[] topics) {
 		this.topics = topics;
 	}
@@ -173,18 +214,18 @@ public final class LeaseMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[LEASE] - XID: ");
+		buffer.append("[LEASE] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
-		buffer.append(", services: ");
+		buffer.append(", services: "); //$NON-NLS-1$
 		for (int i = 0; i < serviceInterfaces.length; i++) {
 			buffer.append(Arrays.asList(serviceInterfaces[i]));
-			buffer.append("-");
+			buffer.append("-"); //$NON-NLS-1$
 			buffer.append(serviceIDs[i]);
 			if (i < serviceInterfaces.length) {
-				buffer.append(", ");
+				buffer.append(", "); //$NON-NLS-1$
 			}
 		}
-		buffer.append(", topics: ");
+		buffer.append(", topics: "); //$NON-NLS-1$
 		buffer.append(Arrays.asList(topics));
 		return buffer.toString();
 	}

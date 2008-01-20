@@ -76,8 +76,8 @@ class EndpointMultiplexer implements ChannelEndpoint {
 		return primary.getProperties(serviceURL);
 	}
 
-	public URI getRemoteEndpoint() {
-		return primary.getRemoteEndpoint();
+	public URI getRemoteAddress() {
+		return primary.getRemoteAddress();
 	}
 
 	public Object invokeMethod(String serviceURI, String methodSignature,
@@ -117,7 +117,7 @@ class EndpointMultiplexer implements ChannelEndpoint {
 								primary = next;
 								primary.trackRegistration(serviceURI, reg);
 								System.err.println("DOING FAILOVER TO "
-										+ primary.getRemoteEndpoint());
+										+ primary.getRemoteAddress());
 								return primary.invokeMethod(mapping
 										.getMapped(primary), methodSignature,
 										args);

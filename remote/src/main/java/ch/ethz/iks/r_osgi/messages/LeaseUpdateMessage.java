@@ -1,3 +1,31 @@
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
+ * Information and Communication Systems Research Group (IKS),
+ * Department of Computer Science, ETH Zurich.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *    - Redistributions of source code must retain the above copyright notice,
+ *      this list of conditions and the following disclaimer.
+ *    - Redistributions in binary form must reproduce the above copyright
+ *      notice, this list of conditions and the following disclaimer in the
+ *      documentation and/or other materials provided with the distribution.
+ *    - Neither the name of ETH Zurich nor the names of its contributors may be
+ *      used to endorse or promote products derived from this software without
+ *      specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 package ch.ethz.iks.r_osgi.messages;
 
 import java.io.IOException;
@@ -8,39 +36,51 @@ import java.util.Arrays;
 import ch.ethz.iks.util.SmartSerializer;
 
 /**
+ * Lease update message. Sent whenever the information expressed in the original
+ * lease message has changed. This can be that either a service has been
+ * added/modified/removed, or that the topic space has changed.
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
  */
-public class LeaseUpdateMessage extends RemoteOSGiMessage {
+public final class LeaseUpdateMessage extends RemoteOSGiMessage {
 
+	/**
+	 * the update is a topic update.
+	 */
 	public static final short TOPIC_UPDATE = 0;
 
+	/**
+	 * a service has been added.
+	 */
 	public static final short SERVICE_ADDED = 1;
 
+	/**
+	 * a service has been modified.
+	 */
 	public static final short SERVICE_MODIFIED = 2;
 
+	/**
+	 * a service has been removed.
+	 */
 	public static final short SERVICE_REMOVED = 3;
 
 	/**
-	 * 
+	 * the type of the message.
 	 */
 	private short type;
 
 	/**
-	 * 
-	 */
-	private Object[] content;
-
-	/**
-	 * 
+	 * the service ID.
 	 */
 	private String serviceID;
 
 	/**
+	 * the payload of the message.
+	 */
+	private Object[] payload;
+
+	/**
 	 * creates a new LeaseUpdateMessage for topic updates.
-	 * 
-	 * @param addedTopics
-	 * @param removedTopics
 	 */
 	public LeaseUpdateMessage() {
 		super(LEASE_UPDATE);
@@ -71,7 +111,7 @@ public class LeaseUpdateMessage extends RemoteOSGiMessage {
 		super(LEASE_UPDATE);
 		type = input.readShort();
 		serviceID = input.readUTF();
-		content = (Object[]) SmartSerializer.deserialize(input);
+		payload = (Object[]) SmartSerializer.deserialize(input);
 	}
 
 	/**
@@ -86,31 +126,64 @@ public class LeaseUpdateMessage extends RemoteOSGiMessage {
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		out.writeShort(type);
 		out.writeUTF(serviceID);
-		SmartSerializer.serialize(content, out);
+		SmartSerializer.serialize(payload, out);
 	}
 
+	/**
+	 * get the type of the message.
+	 * 
+	 * @return the type.
+	 */
 	public short getType() {
 		return type;
 	}
 
-	public void setType(short type) {
+	/**
+	 * set the type of the message.
+	 * 
+	 * @param type
+	 *            the type.
+	 */
+	public void setType(final short type) {
 		this.type = type;
 	}
 
+	/**
+	 * get the service ID.
+	 * 
+	 * @return the service ID.
+	 */
 	public String getServiceID() {
 		return serviceID;
 	}
 
+	/**
+	 * set the service ID.
+	 * 
+	 * @param serviceID
+	 *            the service ID.
+	 */
 	public void setServiceID(final String serviceID) {
 		this.serviceID = serviceID;
 	}
 
+	/**
+	 * get the payload of the message.
+	 * 
+	 * @return the payload.
+	 */
 	public Object[] getPayload() {
-		return content;
+		return payload;
 	}
 
-	public void setPayload(final Object[] content) {
-		this.content = content;
+	/**
+	 * set the payload of the message.
+	 * 
+	 * @param payload
+	 *            the payload.
+	 */
+	public void setPayload(final Object[] payload) {
+		this.payload = payload;
 	}
 
 	/**
@@ -121,22 +194,22 @@ public class LeaseUpdateMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[STATE_UPDATE] - XID: ");
+		buffer.append("[STATE_UPDATE] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
-		buffer.append(", service ");
+		buffer.append(", service "); //$NON-NLS-1$
 		buffer.append("#" + serviceID);
-		buffer.append(", type ");
+		buffer.append(", type "); //$NON-NLS-1$
 		buffer.append(type);
 		if (type == TOPIC_UPDATE) {
-			buffer.append(", topics added: ");
-			buffer.append(Arrays.asList((String[]) content[0]));
-			buffer.append(", topics removed: ");
-			buffer.append(Arrays.asList((String[]) content[1]));
+			buffer.append(", topics added: "); //$NON-NLS-1$
+			buffer.append(Arrays.asList((String[]) payload[0]));
+			buffer.append(", topics removed: "); //$NON-NLS-1$
+			buffer.append(Arrays.asList((String[]) payload[1]));
 		} else {
-			buffer.append(", service interfaces: ");
-			buffer.append(Arrays.asList((String[]) content[0]));
-			buffer.append(", properties: ");
-			buffer.append(content[1]);
+			buffer.append(", service interfaces: "); //$NON-NLS-1$
+			buffer.append(Arrays.asList((String[]) payload[0]));
+			buffer.append(", properties: "); //$NON-NLS-1$
+			buffer.append(payload[1]);
 		}
 		return buffer.toString();
 	}

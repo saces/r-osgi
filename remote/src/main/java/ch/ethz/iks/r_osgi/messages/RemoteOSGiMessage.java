@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -61,6 +61,8 @@ public abstract class RemoteOSGiMessage {
 
 	/**
 	 * type code for deliver bundle messages.
+	 * 
+	 * @deprecated
 	 */
 	public static final short DELIVER_BUNDLE = 4;
 
@@ -88,7 +90,7 @@ public abstract class RemoteOSGiMessage {
 	 * type code for service attribute updates.
 	 */
 	public static final short LEASE_UPDATE = 9;
-	
+
 	/**
 	 * type code for stream request messages.
 	 */
@@ -127,6 +129,12 @@ public abstract class RemoteOSGiMessage {
 		return xid;
 	}
 
+	/**
+	 * set the xid.
+	 * 
+	 * @param xid
+	 *            set the xid.
+	 */
 	public void setXID(short xid) {
 		this.xid = xid;
 	}
@@ -147,13 +155,13 @@ public abstract class RemoteOSGiMessage {
 	 * RemoteOSGiMessage from it. The header is:
 	 * 
 	 * <pre>
-	 *           0                   1                   2                   3
-	 *           0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *          |    Version    |         Function-ID           |     XID       |
-	 *          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *          |    XID cntd.  | 
-	 *          +-+-+-+-+-+-+-+-+
+	 *   0                   1                   2                   3
+	 *   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  |    Version    |         Function-ID           |     XID       |
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  |    XID cntd.  | 
+	 *  +-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
 	 * the body is processed by the subtype class.
@@ -181,9 +189,6 @@ public abstract class RemoteOSGiMessage {
 			case DELIVER_SERVICE:
 				msg = new DeliverServiceMessage(input);
 				break;
-			case DELIVER_BUNDLE:
-				msg = new DeliverBundleMessage(input);
-				break;
 			case INVOKE_METHOD:
 				msg = new InvokeMethodMessage(input);
 				break;
@@ -207,7 +212,7 @@ public abstract class RemoteOSGiMessage {
 				break;
 			default:
 				throw new RemoteOSGiException("funcID " + funcID
-						+ " not supported.");
+						+ " not supported."); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			msg.funcID = funcID;
 			msg.xid = xid;
@@ -217,7 +222,7 @@ public abstract class RemoteOSGiMessage {
 		} catch (IOException ioe) {
 			// TODO: if (debug)
 			ioe.printStackTrace();
-			throw new RemoteOSGiException("Parse error");
+			throw new RemoteOSGiException("Parse error"); //$NON-NLS-1$
 		}
 	}
 
@@ -225,7 +230,7 @@ public abstract class RemoteOSGiMessage {
 	 * write the RemoteOSGiMessage to an output stream.
 	 * 
 	 * @param out
-	 *            thte ObjectOutputStream.
+	 *            the ObjectOutputStream.
 	 * @throws IOException
 	 *             in case of IO failures.
 	 */
@@ -269,7 +274,7 @@ public abstract class RemoteOSGiMessage {
 	}
 
 	/**
-	 * writes the bytes to an SLP string.
+	 * writes a byte array.
 	 * 
 	 * @param out
 	 *            the output stream.
@@ -286,6 +291,16 @@ public abstract class RemoteOSGiMessage {
 		}
 	}
 
+	/**
+	 * write a string array.
+	 * 
+	 * @param out
+	 *            the output stream.
+	 * @param strings
+	 *            the string array.
+	 * @throws IOException
+	 *             in case of IO failures.
+	 */
 	protected static void writeStringArray(final ObjectOutputStream out,
 			final String[] strings) throws IOException {
 		final short length = (short) strings.length;
@@ -295,6 +310,15 @@ public abstract class RemoteOSGiMessage {
 		}
 	}
 
+	/**
+	 * read a string array.
+	 * 
+	 * @param in
+	 *            the input stream
+	 * @return the read string array.
+	 * @throws IOException
+	 *             in case of IO failures.
+	 */
 	protected static String[] readStringArray(final ObjectInputStream in)
 			throws IOException {
 		final short length = in.readShort();

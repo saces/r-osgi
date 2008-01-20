@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -41,15 +41,16 @@ import java.io.IOException;
  * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.1
  */
-public class FetchServiceMessage extends RemoteOSGiMessage {
+public final class FetchServiceMessage extends RemoteOSGiMessage {
 
+	/**
+	 * the service ID.
+	 */
 	private String serviceID;
 
 	/**
 	 * creates a new FetchServiceMessage from <code>ServiceURL</code>.
 	 * 
-	 * @param service
-	 *            the URI service of the service that is fetched.
 	 */
 	public FetchServiceMessage() {
 		super(FETCH_SERVICE);
@@ -92,10 +93,21 @@ public class FetchServiceMessage extends RemoteOSGiMessage {
 		out.writeUTF(serviceID);
 	}
 
+	/**
+	 * get the service ID.
+	 * 
+	 * @return the service ID.
+	 */
 	public String getServiceID() {
 		return serviceID;
 	}
 
+	/**
+	 * get the service ID.
+	 * 
+	 * @param serviceID
+	 *            the service ID.
+	 */
 	public void setServiceID(final String serviceID) {
 		this.serviceID = serviceID;
 	}
@@ -108,10 +120,10 @@ public class FetchServiceMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[FETCH_MESSAGE]");
-		buffer.append("- XID: ");
+		buffer.append("[FETCH_MESSAGE]"); //$NON-NLS-1$
+		buffer.append("- XID: "); //$NON-NLS-1$
 		buffer.append(xid);
-		buffer.append(", serviceID: ");
+		buffer.append(", serviceID: "); //$NON-NLS-1$
 		buffer.append(serviceID);
 		return buffer.toString();
 	}

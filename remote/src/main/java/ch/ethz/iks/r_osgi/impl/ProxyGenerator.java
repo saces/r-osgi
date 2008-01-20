@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Institute for Pervasive Computing, ETH Zurich.
  * All rights reserved.
@@ -66,7 +66,7 @@ import ch.ethz.iks.r_osgi.types.ServiceUIComponent;
  * Bytecode manipulation magic to build proxy bundles for interfaces and smart
  * proxy (abstract) classes.
  * 
- * @author Jan S. Rellermeyer, ETH Zurich
+ * @author Jan S. Rellermeyer, ETH Zurich.
  * @since 0.1
  */
 class ProxyGenerator implements ClassVisitor, Opcodes {
@@ -79,11 +79,6 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * interface class name.
 	 */
 	private String[] interfaceClassNames;
-
-	/**
-	 * smart proxy class name.
-	 */
-	private String smartProxyClassName;
 
 	/**
 	 * name of the implemented class.
@@ -106,18 +101,30 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	private Map injections;
 
 	/**
-	 * set to determine if a method has already been implemented
+	 * set to determine if a method has already been implemented.
 	 */
 	private Set implemented;
 
 	/**
 	 * a list of super interfaces describing the whole interface hierarchy of
-	 * the service interface
+	 * the service interface.
 	 */
 	private List superInterfaces = new ArrayList();
 
+	/**
+	 * smart proxy class name.
+	 */
+	private String smartProxyClassName;
+
+	/**
+	 * the smart proxy name in dashed notation.
+	 */
 	private String smartProxyClassNameDashed;
 
+	/**
+	 * add lifecycle support to the smart proxy? Will be added if the abstract
+	 * smart proxy class implements ch.ethz.iks.r_osgi.SmartProxy.
+	 */
 	private boolean addLifecycleSupport;
 
 	/**
@@ -189,19 +196,19 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		sourceID = generateSourceID(uri);
 		implemented = new HashSet();
 		injections = deliv.getInjections();
-		byte[] bytes = deliv.getSmartProxyName() == null ? generateProxyClass(
+		final byte[] bytes = deliv.getSmartProxyName() == null ? generateProxyClass(
 				deliv.getInterfaceNames(), deliv.getInterfaceClass())
 				: generateProxyClass(deliv.getInterfaceNames(), deliv
 						.getInterfaceClass(), deliv.getSmartProxyName(), deliv
 						.getProxyClass());
 
 		int pos = implName.lastIndexOf('/');
-		String fileName = pos > 0 ? implName.substring(pos) : implName;
-		String className = implName.replace('/', '.');
+		final String fileName = pos > 0 ? implName.substring(pos) : implName;
+		final String className = implName.replace('/', '.');
 		JarEntry jarEntry;
 
 		// generate Jar
-		Manifest mf = new Manifest();
+		final Manifest mf = new Manifest();
 		Attributes attr = mf.getMainAttributes();
 		attr.putValue("Manifest-Version", "1.0");
 		attr.putValue("Created-By", "R-OSGi Proxy Generator");
@@ -216,10 +223,10 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		if (!"".equals(deliv.getExports())) {
 			attr.putValue("Export-Package", deliv.getExports());
 		}
-		File file = RemoteOSGiServiceImpl.context.getDataFile(fileName + "_"
-				+ sourceID + ".jar");
-		JarOutputStream out = new JarOutputStream(new FileOutputStream(file),
-				mf);
+		final File file = RemoteOSGiServiceImpl.context.getDataFile(fileName
+				+ "_" + sourceID + ".jar");
+		final JarOutputStream out = new JarOutputStream(new FileOutputStream(
+				file), mf);
 
 		CRC32 crc = new CRC32();
 		crc.update(bytes, 0, bytes.length);
@@ -253,12 +260,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				final String rest = name.substring(smartProxyClassNameDashed
 						.length());
 				name = implName + rest;
-				ClassReader reader = new ClassReader(data);
-				ClassWriter writer = new ClassWriter(0);
-				reader
-						.accept(new ClassRewriter(writer),
-								ClassReader.SKIP_DEBUG);
-				rewritten = writer.toByteArray();
+				final ClassReader rewriterReader = new ClassReader(data);
+				final ClassWriter rewriterWriter = new ClassWriter(0);
+				rewriterReader.accept(new ClassRewriter(rewriterWriter),
+						ClassReader.SKIP_DEBUG);
+				rewritten = rewriterWriter.toByteArray();
 			} else {
 				rewritten = data;
 			}
@@ -301,26 +307,19 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		interfaceClassNames = interfaceNames;
 		implName = "proxy/" + sourceID + "/"
 				+ interfaceNames[0].replace('.', '/') + "Impl";
-		// TODO: remove debug output
-		System.out.println("IMPL NAME IS " + implName);
 
-		try {
-			final ClassReader reader = new ClassReader(interfaceClass);
-			writer = new ClassWriter(0);
-			reader.accept(this, null, ClassReader.SKIP_DEBUG);
-			interfaceClassNames = null;
-			final byte[] bytes = writer.toByteArray();
-			return bytes;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+		final ClassReader reader = new ClassReader(interfaceClass);
+		writer = new ClassWriter(0);
+		reader.accept(this, null, ClassReader.SKIP_DEBUG);
+		interfaceClassNames = null;
+		final byte[] bytes = writer.toByteArray();
+		return bytes;
 	}
 
 	/**
 	 * 
-	 * @param interfaceName
-	 *            interface name
+	 * @param interfaceNames
+	 *            interface names
 	 * @param interfaceClass
 	 *            interface class
 	 * @param proxyName
@@ -339,7 +338,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				+ "Impl";
 		smartProxyClassName = proxyName;
 		smartProxyClassNameDashed = smartProxyClassName.replace('.', '/');
-		ClassReader reader = new ClassReader(proxyClass);
+		final ClassReader reader = new ClassReader(proxyClass);
 		writer = new ClassWriter(0);
 		reader.accept(this, null, ClassReader.SKIP_DEBUG);
 		recurseInterfaceHierarchy();
@@ -353,8 +352,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		try {
 			while (!superInterfaces.isEmpty()) {
 				final String superIface = (String) superInterfaces.remove(0);
-				byte[] bytes = (byte[]) injections.get(superIface + ".class");
-				ClassReader reader;
+				final byte[] bytes = (byte[]) injections.get(superIface
+						+ ".class");
+				final ClassReader reader;
 				if (bytes == null) {
 					reader = new ClassReader(Class.forName(
 							superIface.replace('/', '.')).getClassLoader()
@@ -390,7 +390,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			final String signature, final String superName,
 			final String[] interfaces) {
 		MethodVisitor method;
-		FieldVisitor field;
+		final FieldVisitor field;
 
 		if (interfaceClassNames[0].replace('.', '/').equals(name)) {
 
@@ -838,8 +838,6 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					a.append("[");
 					method.visitTypeInsn(CHECKCAST, a.toString()
 							+ returnType.getInternalName() + ";");
-					System.out.println("INTERNAL NAME "
-							+ returnType.getInternalName());
 				}
 				method.visitInsn(ARETURN);
 				break;

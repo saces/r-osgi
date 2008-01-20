@@ -116,7 +116,7 @@ public interface ChannelEndpoint {
 	 * 
 	 * @return the channel ID.
 	 */
-	URI getRemoteEndpoint();
+	URI getRemoteAddress();
 
 	/**
 	 * dispose of the channel endpoint.

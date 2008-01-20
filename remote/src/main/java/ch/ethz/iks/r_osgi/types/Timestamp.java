@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -68,7 +68,7 @@ public final class Timestamp implements Comparable {
 		String ts = String.valueOf(System.currentTimeMillis());
 		String counterString = String.valueOf(counter);
 		for (int i = 0; i < 3 - counterString.length(); i++) {
-			counterString = "0" + counterString;
+			counterString = "0" + counterString; //$NON-NLS-1$
 		}
 		ts = ts + counterString;
 		timestamp = new Long(ts).longValue();

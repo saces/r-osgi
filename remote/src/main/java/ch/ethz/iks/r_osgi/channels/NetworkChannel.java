@@ -54,18 +54,18 @@ public interface NetworkChannel {
 	String getProtocol();
 
 	/**
-	 * get the URI of the remote endpoint.
+	 * get the URI of the remote address.
 	 * 
 	 * @return the ID.
 	 */
-	URI getRemoteEndpoint();
+	URI getRemoteAddress();
 
 	/**
-	 * get the URI of the local endpoint.
+	 * get the URI of the local address.
 	 * 
 	 * @return the ID.
 	 */
-	URI getLocalEndpoint();
+	URI getLocalAddress();
 
 	void bind(ChannelEndpoint endpoint);
 

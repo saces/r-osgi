@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -37,25 +37,25 @@ import ch.ethz.iks.util.SmartSerializer;
 
 /**
  * <p>
- * TimeSyncMessage measures the time offset between two peers.
+ * TimeOffsetMessages measures the time offset between two peers.
  * </p>
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.2
  */
-public class TimeOffsetMessage extends RemoteOSGiMessage {
+public final class TimeOffsetMessage extends RemoteOSGiMessage {
 	/**
 	 * the time series. Both peers append their timestamps and the series is
 	 * then evaluated to determine the offset
 	 */
-	private Long[] timeSeries;
+	private long[] timeSeries;
 
 	/**
 	 * creates a new empty TimeSyncMessage.
 	 */
 	public TimeOffsetMessage() {
 		super(TIME_OFFSET);
-		timeSeries = new Long[0];
+		timeSeries = new long[0];
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class TimeOffsetMessage extends RemoteOSGiMessage {
 	 */
 	public TimeOffsetMessage(final ObjectInputStream input) throws IOException {
 		super(TIME_OFFSET);
-		timeSeries = (Long[]) SmartSerializer.deserialize(input);
+		timeSeries = (long[]) SmartSerializer.deserialize(input);
 	}
 
 	/**
@@ -100,9 +100,9 @@ public class TimeOffsetMessage extends RemoteOSGiMessage {
 	 */
 	public void timestamp() {
 		int len = timeSeries.length;
-		final Long[] newSeries = new Long[len + 1];
+		final long[] newSeries = new long[len + 1];
 		System.arraycopy(timeSeries, 0, newSeries, 0, len);
-		newSeries[len] = new Long(System.currentTimeMillis());
+		newSeries[len] = System.currentTimeMillis();
 		timeSeries = newSeries;
 	}
 
@@ -113,19 +113,25 @@ public class TimeOffsetMessage extends RemoteOSGiMessage {
 	 */
 	public void restamp(short newXID) {
 		this.xid = newXID;
-		timeSeries[timeSeries.length - 1] = new Long(System.currentTimeMillis());
+		timeSeries[timeSeries.length - 1] = System.currentTimeMillis();
 	}
 
 	/**
 	 * returns the time series.
 	 * 
-	 * @return the time series as <code>Long</code> array.
+	 * @return the time series as <code>long</code> array.
 	 */
-	public final Long[] getTimeSeries() {
+	public final long[] getTimeSeries() {
 		return timeSeries;
 	}
 
-	public final void setTimeSeries(final Long[] series) {
+	/**
+	 * set the time series.
+	 * 
+	 * @param series
+	 *            the time series.
+	 */
+	public final void setTimeSeries(final long[] series) {
 		this.timeSeries = series;
 	}
 
@@ -137,11 +143,18 @@ public class TimeOffsetMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[TIME_OFFSET, ");
-		buffer.append("] - XID: ");
+		buffer.append("[TIME_OFFSET, "); //$NON-NLS-1$
+		buffer.append("] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
-		buffer.append("timeSeries: ");
-		buffer.append(Arrays.asList(timeSeries));
+		buffer.append("timeSeries: ["); //$NON-NLS-1$
+		for (int i = 0; i < timeSeries.length; i++) {
+			buffer.append(timeSeries[i]);
+			if (i < timeSeries.length - 1) {
+				buffer.append(", ");
+			}
+		}
+		buffer.append("]"); //$NON-NLS-1$
+		buffer.append(Arrays.toString(timeSeries));
 		return buffer.toString();
 	}
 }

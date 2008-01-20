@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -52,27 +52,20 @@ public final class RemoteEventMessage extends RemoteOSGiMessage {
 
 	/**
 	 * 
-	 * the event topic. E.g. <code>ch.ethz.iks.SampleEvent</code>.
+	 * the event topic. E.g. <code>ch/ethz/iks/SampleEvent</code>.
 	 */
 	private String topic;
 
 	/**
-	 * the marshalled properties of the event.
+	 * the properties of the event.
 	 */
 	private Dictionary properties;
 
 	/**
 	 * creates a new RemoteEventMessage from RemoteEvent.
 	 * 
-	 * @param event
-	 *            the remote event.
-	 * @param channelID
-	 *            the ID of the channel through which the event is delivered.
-	 * @throws Exception
-	 *             if the destination address of the event cannot be resolved or
-	 *             if marshalling of the event fails.
 	 */
-	public RemoteEventMessage() throws Exception {
+	public RemoteEventMessage() {
 		super(REMOTE_EVENT);
 	}
 
@@ -87,7 +80,7 @@ public final class RemoteEventMessage extends RemoteOSGiMessage {
 	 *         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *         | length of &lt;topic&gt;           |   &lt;topic&gt; String                \
 	 *         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *         | Properties Dictionary MarshalledObject                        \
+	 *         | Properties                                                    \
 	 *         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>.
 	 * 
@@ -103,33 +96,45 @@ public final class RemoteEventMessage extends RemoteOSGiMessage {
 		properties = (Dictionary) SmartSerializer.deserialize(input);
 	}
 
+	/**
+	 * get the topic.
+	 * 
+	 * @return the topic.
+	 */
 	public String getTopic() {
 		return topic;
 	}
 
+	/**
+	 * set the topic.
+	 * 
+	 * @param topic
+	 */
 	public void setTopic(final String topic) {
 		this.topic = topic;
 	}
 
+	/**
+	 * get the properties.
+	 * 
+	 * @return the properties.
+	 */
 	public Dictionary getProperties() {
 		return properties;
 	}
 
+	/**
+	 * set the properties.
+	 * 
+	 * @param properties
+	 *            the properties.
+	 */
 	public void setProperties(final Dictionary properties) {
 		this.properties = properties;
 	}
 
-	/*
-	 * Event getEvent(final ChannelEndpointImpl connection) throws
-	 * RemoteOSGiException { final Long remoteTs; if ((remoteTs = (Long)
-	 * properties.get(EventConstants.TIMESTAMP)) != null) { // transform the
-	 * event timestamps properties.put(EventConstants.TIMESTAMP,
-	 * connection.getOffset() .transform(remoteTs)); } return new Event(topic,
-	 * properties); }
-	 */
-
 	/**
-	 * convenience methot to get the sender.
+	 * convenience method to get the sender URI.
 	 * 
 	 * @return the sender URI as string.
 	 */
@@ -158,9 +163,9 @@ public final class RemoteEventMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[REMOTE_EVENT] - XID: ");
+		buffer.append("[REMOTE_EVENT] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
-		buffer.append("topic: ");
+		buffer.append("topic: "); //$NON-NLS-1$
 		buffer.append(topic);
 		return buffer.toString();
 	}
