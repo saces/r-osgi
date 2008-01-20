@@ -216,7 +216,6 @@ public interface RemoteOSGiService {
 
 	public void setEndpointPolicy(URI service, int policy);
 
-	/*
-	 * public URI getLocalPeer();
-	 */
+	public URI getListeningAddress(final String protocol);
+
 }

@@ -917,16 +917,26 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		new ChannelEndpointImpl(channel);
 	}
 
-	/*
-	 * public URI getLocalPeer() { final NetworkChannelFactory factory =
-	 * (NetworkChannelFactory) networkChannelFactoryTracker .getService();
-	 * return factory == null ? null : factory.getURI(); }
-	 */
-
 	public void ungetRemoteService(RemoteServiceReference remoteServiceReference) {
 		((RemoteServiceReferenceImpl) remoteServiceReference).getChannel()
 				.ungetRemoteService(remoteServiceReference.getURI());
 
+	}
+
+	public URI getListeningAddress(final String protocol) {
+		try {
+			final ServiceReference[] refs = RemoteOSGiActivator.context
+					.getServiceReferences(
+							NetworkChannelFactory.class.getName(), "("
+									+ NetworkChannelFactory.PROTOCOL_PROPERTY
+									+ "=" + protocol + ")");
+			return refs == null ? null
+					: ((NetworkChannelFactory) RemoteOSGiActivator.context
+							.getService(refs[0])).getListeningAddress(protocol);
+		} catch (InvalidSyntaxException ise) {
+			ise.printStackTrace();
+			return null;
+		}
 	}
 
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -54,6 +54,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	static final String PROTOCOL = "r-osgi";
 	private Remoting remoting;
 	private TCPThread thread;
+	private URI listeningAddress;
 
 	/**
 	 * get a new connection.
@@ -74,7 +75,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	}
 
 	/**
-	 * bind the factory to the R-OSGi Remoting instance
+	 * bind the factory to the R-OSGi Remoting instance.
 	 * 
 	 * @param socket
 	 *            the socket.
@@ -91,6 +92,10 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	public void deactivate(final Remoting remoting) throws IOException {
 		thread.interrupt();
 		this.remoting = null;
+	}
+
+	public URI getListeningAddress(String protocol) {
+		return listeningAddress;
 	}
 
 	/**
@@ -201,11 +206,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			this.output = new ObjectOutputStream(new BufferedOutputStream(
 					socket.getOutputStream()));
 			output.flush();
-			// TODO: remove debug output
-			// System.out.println("OUTPUT ESTABLISHED");
 			input = new ObjectInputStream(new BufferedInputStream(socket
 					.getInputStream()));
-			// System.out.println("INPUT ESTABLISHED");
 		}
 
 		/**
@@ -280,8 +282,6 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 						"{TCP Channel} sending " + message);
 			}
-			// TODO: remove debug output
-			// System.out.println("{TCP Channel} sending " + message);
 			message.send(output);
 		}
 
@@ -294,9 +294,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		private class ReceiverThread extends Thread {
 			private ReceiverThread() {
-				this
-						.setName("TCPChannel:ReceiverThread:"
-								+ getRemoteAddress());
+				this.setName("TCPChannel:ReceiverThread:" + getRemoteAddress());
 				this.setDaemon(true);
 			}
 
@@ -309,11 +307,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 							RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 									"{TCP Channel} received " + msg);
 						}
-						// TODO: remove debug output
-						// System.out.println("{TCP Channel} received " + msg);
 						endpoint.receivedMessage(msg);
 					} catch (Throwable t) {
-						// TODO: remove debug output
 						t.printStackTrace();
 						connected = false;
 						try {
@@ -345,6 +340,9 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		private TCPThread() throws IOException {
 			socket = new ServerSocket(RemoteOSGiServiceImpl.R_OSGI_PORT);
+			listeningAddress = URI.create(PROTOCOL + "://"
+					+ socket.getInetAddress().getHostName() + ":"
+					+ socket.getLocalPort());
 		}
 
 		/**
