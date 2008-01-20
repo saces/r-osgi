@@ -223,7 +223,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		if (!"".equals(deliv.getExports())) {
 			attr.putValue("Export-Package", deliv.getExports());
 		}
-		final File file = RemoteOSGiServiceImpl.context.getDataFile(fileName
+		final File file = RemoteOSGiActivator.context.getDataFile(fileName
 				+ "_" + sourceID + ".jar");
 		final JarOutputStream out = new JarOutputStream(new FileOutputStream(
 				file), mf);

@@ -52,6 +52,8 @@ public final class RemoteOSGiActivator implements BundleActivator {
 	 */
 	private RemoteOSGiServiceImpl remoting;
 
+	static BundleContext context;
+
 	/**
 	 * called when the bundle is started.
 	 * 
@@ -62,7 +64,7 @@ public final class RemoteOSGiActivator implements BundleActivator {
 	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
 	 */
 	public void start(final BundleContext context) throws Exception {
-		RemoteOSGiServiceImpl.context = context;
+		RemoteOSGiActivator.context = context;
 
 		// get the log service, if present
 		final ServiceReference logRef = context
@@ -105,6 +107,6 @@ public final class RemoteOSGiActivator implements BundleActivator {
 	public void stop(final BundleContext context) throws Exception {
 		// unregister and clean up
 		remoting.cleanup();
-		RemoteOSGiServiceImpl.context = null;
+		RemoteOSGiActivator.context = null;
 	}
 }

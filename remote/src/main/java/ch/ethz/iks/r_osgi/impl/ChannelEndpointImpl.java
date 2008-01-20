@@ -154,11 +154,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private final HashMap proxyBundles = new HashMap(0);
 
 	/**
-	 * map of service url -> proxy class.
-	 */
-	private final HashMap proxies = new HashMap(0);
-
-	/**
 	 * map of stream id -> stream instance.
 	 */
 	private final HashMap streams = new HashMap(0);
@@ -292,7 +287,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					deliv);
 
 			// install the proxy bundle
-			final Bundle bundle = RemoteOSGiServiceImpl.context
+			final Bundle bundle = RemoteOSGiActivator.context
 					.installBundle("file:" + bundleLocation);
 
 			// store the bundle for state updates and cleanup
@@ -332,6 +327,18 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 			return (RemoteServiceReference[]) result
 					.toArray(new RemoteServiceReferenceImpl[result.size()]);
+		}
+	}
+
+	/**
+	 * 
+	 * @param uri
+	 */
+	void ungetRemoteService(final URI uri) {
+		try {
+			((Bundle) proxyBundles.remove(uri.getFragment())).uninstall();
+		} catch (BundleException be) {
+
 		}
 	}
 
@@ -868,7 +875,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
 				properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
 						Boolean.TRUE);
-				handlerReg = RemoteOSGiServiceImpl.context.registerService(
+				handlerReg = RemoteOSGiActivator.context.registerService(
 						EventHandler.class.getName(), new EventForwarder(),
 						properties);
 				remoteTopics.addAll(Arrays.asList(topicsAdded));

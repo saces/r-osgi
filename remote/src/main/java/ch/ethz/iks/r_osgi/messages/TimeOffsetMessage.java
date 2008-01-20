@@ -154,7 +154,10 @@ public final class TimeOffsetMessage extends RemoteOSGiMessage {
 			}
 		}
 		buffer.append("]"); //$NON-NLS-1$
-		buffer.append(Arrays.toString(timeSeries));
+		for (int i = 0; i < timeSeries.length; i++) {
+			buffer.append(timeSeries[i]);
+			buffer.append(", ");
+		}
 		return buffer.toString();
 	}
 }
