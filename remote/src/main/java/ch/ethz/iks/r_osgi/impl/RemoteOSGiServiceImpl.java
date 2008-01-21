@@ -401,29 +401,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 								serviceRegistrations.put(service, reg);
 
-								// register the service with all service
-								// discovery
-								// handler
-								final Dictionary props = reg.getProperties();
-								final Object[] handler = serviceDiscoveryHandlerTracker
-										.getServices();
+								registerWithServiceDiscovery(reg);
 
-								if (handler != null) {
-									for (int i = 0; i < handler.length; i++) {
-										((ServiceDiscoveryHandler) handler[i])
-												.registerService(
-														service,
-														props,
-														URI
-																.create("r-osgi://"
-																		+ RemoteOSGiServiceImpl.MY_ADDRESS
-																		+ ":"
-																		+ RemoteOSGiServiceImpl.R_OSGI_PORT
-																		+ "#"
-																		+ reg
-																				.getServiceID()));
-									}
-								}
 								final LeaseUpdateMessage lu = new LeaseUpdateMessage();
 								lu.setType(LeaseUpdateMessage.SERVICE_ADDED);
 								lu.setServiceID(String.valueOf(reg
@@ -448,6 +427,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							}
 							final RemoteServiceRegistration reg = (RemoteServiceRegistration) serviceRegistrations
 									.get(reference);
+
+							registerWithServiceDiscovery(reg);
+
 							final LeaseUpdateMessage lu = new LeaseUpdateMessage();
 							lu.setType(LeaseUpdateMessage.SERVICE_MODIFIED);
 							lu.setServiceID(String.valueOf(reg.getServiceID()));
@@ -471,17 +453,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							final RemoteServiceRegistration reg = (RemoteServiceRegistration) serviceRegistrations
 									.remove(sref);
 
+							// TODO: remove debug output
 							System.err.println("SERVICE REMOVED " + reference
 									+ " REMOTE_REG IS " + reg);
 
-							final Object[] handler = serviceDiscoveryHandlerTracker
-									.getServices();
-							if (handler != null) {
-								for (int i = 0; i < handler.length; i++) {
-									((ServiceDiscoveryHandler) handler[i])
-											.unregisterService(reference);
-								}
-							}
+							unregisterFromServiceDiscovery(reg);
 
 							final LeaseUpdateMessage lu = new LeaseUpdateMessage();
 							lu.setType(LeaseUpdateMessage.SERVICE_REMOVED);
@@ -529,6 +505,36 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	/*
 	 * ------ public methods ------
 	 */
+
+	public void registerWithServiceDiscovery(final RemoteServiceRegistration reg) {
+		// register the service with all service
+		// discovery
+		// handler
+		final Dictionary props = reg.getProperties();
+		final Object[] handler = serviceDiscoveryHandlerTracker.getServices();
+
+		if (handler != null) {
+			for (int i = 0; i < handler.length; i++) {
+				((ServiceDiscoveryHandler) handler[i]).registerService(reg
+						.getReference(), props, URI.create("r-osgi://"
+						+ RemoteOSGiServiceImpl.MY_ADDRESS + ":"
+						+ RemoteOSGiServiceImpl.R_OSGI_PORT + "#"
+						+ reg.getServiceID()));
+			}
+		}
+
+	}
+
+	public void unregisterFromServiceDiscovery(
+			final RemoteServiceRegistration reg) {
+		final Object[] handler = serviceDiscoveryHandlerTracker.getServices();
+		if (handler != null) {
+			for (int i = 0; i < handler.length; i++) {
+				((ServiceDiscoveryHandler) handler[i])
+						.unregisterService(reg.getReference());
+			}
+		}
+	}
 
 	/**
 	 * get the service that has been fetched under a certain

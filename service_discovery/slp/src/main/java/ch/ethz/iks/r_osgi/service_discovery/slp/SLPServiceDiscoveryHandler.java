@@ -27,7 +27,7 @@ import ch.ethz.iks.slp.ServiceURL;
 import ch.ethz.iks.util.ScheduleListener;
 import ch.ethz.iks.util.Scheduler;
 
-public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
+public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 		ScheduleListener {
 
 	private static final int DISCOVERY_INTERVAL = 10;
@@ -66,7 +66,7 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
 	 */
 	static int DEFAULT_SLP_LIFETIME;
 
-	public SLPServiceDiscovery(final BundleContext context) {
+	public SLPServiceDiscoveryHandler(final BundleContext context) {
 		final String prop = context.getProperty(DEFAULT_SLP_LIFETIME_PROPERTY);
 		DEFAULT_SLP_LIFETIME = prop != null ? Integer.parseInt(prop) : 90;
 
@@ -137,7 +137,8 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
 			registrations.put(ref, reg);
 			reg.register(advertiser);
 			reregistration.schedule(reg, System.currentTimeMillis()
-					+ (SLPServiceDiscovery.DEFAULT_SLP_LIFETIME - 1) * 1000);
+					+ (SLPServiceDiscoveryHandler.DEFAULT_SLP_LIFETIME - 1)
+					* 1000);
 		} catch (ServiceLocationException slp) {
 			slp.printStackTrace();
 		}
@@ -162,7 +163,7 @@ public class SLPServiceDiscovery implements ServiceDiscoveryHandler,
 			slp.printStackTrace();
 		}
 		scheduler.reschedule(reg, System.currentTimeMillis()
-				+ (SLPServiceDiscovery.DEFAULT_SLP_LIFETIME - 1) * 1000);
+				+ (SLPServiceDiscoveryHandler.DEFAULT_SLP_LIFETIME - 1) * 1000);
 	}
 
 	private void announceService(ServiceURL service) {

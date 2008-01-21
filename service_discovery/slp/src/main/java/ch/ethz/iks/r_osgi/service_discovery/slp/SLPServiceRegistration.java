@@ -26,7 +26,7 @@ public class SLPServiceRegistration {
 						+ interfaces[i].replace('.', '/') + "://"
 						+ uri.getScheme() + "://" + uri.getHostName() + ":"
 						+ uri.getPort() + "/" + uri.getFragment(),
-						SLPServiceDiscovery.DEFAULT_SLP_LIFETIME * 1000);
+						SLPServiceDiscoveryHandler.DEFAULT_SLP_LIFETIME * 1000);
 			} catch (ServiceLocationException sle) {
 				sle.printStackTrace();
 			}
@@ -34,6 +34,7 @@ public class SLPServiceRegistration {
 	}
 
 	void register(final Advertiser advertiser) throws ServiceLocationException {
+		// TODO: remove debug output
 		System.out.println("registering " + java.util.Arrays.asList(urls));
 		for (int i = 0; i < urls.length; i++) {
 			advertiser.register(urls[i], properties);
@@ -42,6 +43,8 @@ public class SLPServiceRegistration {
 
 	public void unregister(Advertiser advertiser)
 			throws ServiceLocationException {
+		// TODO: remove debug output
+		System.out.println("unregistering " + java.util.Arrays.asList(urls));
 		for (int i = 0; i < urls.length; i++) {
 			advertiser.deregister(urls[i]);
 		}

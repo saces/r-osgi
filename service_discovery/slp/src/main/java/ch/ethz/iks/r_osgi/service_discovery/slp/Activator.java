@@ -9,7 +9,7 @@ public class Activator implements BundleActivator {
 
 	public void start(BundleContext context) throws Exception {
 		context.registerService(ServiceDiscoveryHandler.class.getName(),
-				new SLPServiceDiscovery(context), null);
+				new SLPServiceDiscoveryHandler(context), null);
 	}
 
 	public void stop(BundleContext context) throws Exception {

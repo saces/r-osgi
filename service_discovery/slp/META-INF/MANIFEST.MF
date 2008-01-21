@@ -8,3 +8,5 @@ Require-Bundle: ch.ethz.iks.r_osgi.remote,
  ch.ethz.iks.slp,
  org.eclipse.osgi
 Bundle-Activator: ch.ethz.iks.r_osgi.service_discovery.slp.Activator
+Export-Package: ch.ethz.iks.r_osgi.service_discovery.slp
+Eclipse-LazyStart: true
