@@ -62,14 +62,6 @@ public interface RemoteServiceListener extends EventListener {
 	String FILTER = "listener.filter";
 
 	/**
-	 * if this property is set (to anything), the service is automatically
-	 * fetched before the listener is called.
-	 * 
-	 * @since 0.5
-	 */
-	String AUTO_FETCH = "listener.auto_fetch";
-
-	/**
 	 * <p>
 	 * notify the application that a remote service matching the constraints has
 	 * been located.
