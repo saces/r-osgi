@@ -47,8 +47,7 @@ public class Activator implements BundleActivator {
 				context.registerService(ServiceDiscoveryListener.class
 						.getName(), new ServiceDiscoveryListener() {
 
-					public void announceService(String serviceInterface,
-							URI uri, Dictionary properties) {
+					public void announceService(String serviceInterface, URI uri) {
 						remote.connect(uri);
 						try {
 							final RemoteServiceReference ref = remote
@@ -126,7 +125,8 @@ public class Activator implements BundleActivator {
 						if (i <= 10) {
 							i++;
 						}
-						service.verifyBlock("This is a test".getBytes(), 0, 1, 2);
+						service.verifyBlock("This is a test".getBytes(), 0, 1,
+								2);
 						wait(5000);
 					}
 				}
