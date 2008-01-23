@@ -3,13 +3,11 @@ package ch.ethz.iks.r_osgi.service_discovery.slp;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
-import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
@@ -24,6 +22,7 @@ import ch.ethz.iks.slp.ServiceLocationEnumeration;
 import ch.ethz.iks.slp.ServiceLocationException;
 import ch.ethz.iks.slp.ServiceType;
 import ch.ethz.iks.slp.ServiceURL;
+import ch.ethz.iks.util.CollectionUtils;
 import ch.ethz.iks.util.ScheduleListener;
 import ch.ethz.iks.util.Scheduler;
 
@@ -47,11 +46,19 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 
 	private boolean hasListeners = false;
 
-	private ArrayList knownServices = new ArrayList();
+	private ArrayList seenServices = new ArrayList();
+
+	// known to a certain listener ?
+	// sref -> [known service urls]
+	private HashMap knownServices = new HashMap();
 
 	private ArrayList warningList = new ArrayList();
 
 	private DiscoveryThread thread;
+
+	// queries
+	// filter string -> [srefs]
+	private HashMap queries = new HashMap();
 
 	private static final ServiceType OSGI = new ServiceType("service:osgi");
 
@@ -91,6 +98,7 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 								+ ")"), new ServiceTrackerCustomizer() {
 
 					public Object addingService(ServiceReference reference) {
+
 						synchronized (thread) {
 							if (!hasListeners) {
 								hasListeners = true;
@@ -99,6 +107,12 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 						}
 
 						// TODO: modify the query
+
+						final String filter = (String) reference
+								.getProperty(ServiceDiscoveryListener.FILTER_PROPERTY);
+						CollectionUtils.addValue(queries, filter, reference);
+
+						// TODO: check all known services
 
 						return context.getService(reference);
 					}
@@ -111,10 +125,14 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 
 					public void removedService(ServiceReference reference,
 							Object service) {
-						// TODO: modify the query
 
-						if (discoveryListenerTracker.getTrackingCount() == 0) {
-							synchronized (thread) {
+						final String filter = (String) reference
+								.getProperty(ServiceDiscoveryListener.FILTER_PROPERTY);
+						CollectionUtils.removeValue(queries,
+								new Object[] { filter }, reference);
+
+						synchronized (thread) {
+							if (discoveryListenerTracker.getTrackingCount() == 0) {
 								hasListeners = true;
 								thread.notifyAll();
 							}
@@ -166,64 +184,14 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 				+ (SLPServiceDiscoveryHandler.DEFAULT_SLP_LIFETIME - 1) * 1000);
 	}
 
-	private void announceService(ServiceURL service) {
-		final ServiceReference[] refs = discoveryListenerTracker
-				.getServiceReferences();
-		final String serviceInterfaceName = service.getServiceType()
-				.getConcreteTypeName().replace('/', '.');
-		final ArrayList hitList = new ArrayList();
-		for (int i = 0; i < refs.length; i++) {
-			final String[] interfaces = (String[]) refs[i]
-					.getProperty(ServiceDiscoveryListener.SERVICE_INTERFACES_PROPERTY);
-			if (interfaces == null) {
-				hitList.add(refs[i]);
-				break;
-			}
-			for (int j = 0; j < interfaces.length; j++) {
-				if (interfaces[j].equals(serviceInterfaceName)) {
-					hitList.add(refs[i]);
-					break;
-				}
-			}
-		}
-
-		if (hitList.isEmpty()) {
-			return;
-		}
-
-		// now, we have the references which have requested this service
-		// next, get the service properties and check the filters
-		try {
-			ServiceLocationEnumeration sle = locator.findAttributes(service,
-					null, null);
-			Dictionary properties = new Hashtable();
-			while (sle.hasMoreElements()) {
-				String a = (String) sle.next();
-				System.out.println("ATTRIBUTE: " + a);
-			}
-
-			// TODO: check the filter...
-			final URI uri = URI.create(service.getProtocol() + "://"
-					+ service.getHost() + ":" + service.getPort() + "#"
-					+ service.getURLPath().substring(1));
-			final ServiceReference[] hits = (ServiceReference[]) hitList
-					.toArray(new ServiceReference[hitList.size()]);
-			for (int i = 0; i < hits.length; i++) {
-				final Filter filter = (Filter) hits[i]
-						.getProperty(ServiceDiscoveryListener.FILTER_PROPERTY);
-				if (filter == null || filter.match(properties)) {
-					((ServiceDiscoveryListener) discoveryListenerTracker
-							.getService(hits[i])).announceService(
-							serviceInterfaceName, uri, properties);
-				}
-			}
-		} catch (ServiceLocationException slp) {
-			slp.printStackTrace();
-		}
+	private void announceService(final URI uri,
+			final String serviceInterfaceName, final ServiceReference ref) {
+		((ServiceDiscoveryListener) discoveryListenerTracker.getService(ref))
+				.announceService(serviceInterfaceName, uri);
 	}
 
 	private void discardService(ServiceURL lostService) {
-		// TODO Auto-generated method stub
+		// TODO: implement
 
 	}
 
@@ -241,27 +209,98 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 
 					try {
 						// initially contains all known services
-						final List lostServices = new ArrayList(knownServices);
+						final List lostServices = new ArrayList(seenServices);
 
-						// find all services of type osgi
-						final ServiceLocationEnumeration services = locator
-								.findServices(OSGI, null, null);
+						final String[] filters = (String[]) queries.keySet()
+								.toArray(new String[queries.size()]);
 
-						while (services.hasMoreElements()) {
-							final ServiceURL service = (ServiceURL) services
-									.next();
+						// for each active filter
+						for (int i = 0; i < filters.length; i++) {
+							// find all services of type osgi
+							final ServiceLocationEnumeration services = locator
+									.findServices(OSGI, null, filters[i]);
 
-							// FIXME: this is not true anymore !!!
-							// if (service.getHost().equals(MY_ADDRESS)) {
-							// continue;
-							// }
-							if (!knownServices.contains(service)) {
-								announceService(service);
-								knownServices.add(service);
+							// iterate over the results
+							while (services.hasMoreElements()) {
+
+								final ServiceURL service = (ServiceURL) services
+										.next();
+
+								if (!seenServices.contains(service)) {
+									seenServices.add(service);
+								}
+
+								// create the URI
+								final URI uri = URI.create(service
+										.getProtocol()
+										+ "://"
+										+ service.getHost()
+										+ ":"
+										+ service.getPort()
+										+ "#"
+										+ service.getURLPath().substring(1));
+
+								// find the srefs that match
+								final List l = (List) queries.get(filters[i]);
+								if (l != null) {
+									final ServiceReference[] refs = (ServiceReference[]) l
+											.toArray(new ServiceReference[l
+													.size()]);
+
+									for (int j = 0; j < refs.length; j++) {
+										// already known to this service?
+										final List known = (List) knownServices
+												.get(refs[j]);
+										if (known == null
+												|| !known.contains(service)) {
+
+											// does the listener look for this
+											// type
+											// of interface?
+											final String serviceInterfaceName = service
+													.getServiceType()
+													.getConcreteTypeName()
+													.replace('/', '.');
+
+											final String[] interfaces = (String[]) refs[i]
+													.getProperty(ServiceDiscoveryListener.SERVICE_INTERFACES_PROPERTY);
+											if (interfaces == null) {
+												CollectionUtils.addValue(
+														knownServices, refs[j],
+														service.toString());
+												announceService(uri,
+														serviceInterfaceName,
+														refs[j]);
+												break;
+											}
+
+											for (int k = 0; k < interfaces.length; k++) {
+												System.out.println("CHECKING "
+														+ interfaces[k]
+														+ " against "
+														+ serviceInterfaceName);
+												if (interfaces[k]
+														.equals(serviceInterfaceName)) {
+													CollectionUtils
+															.addValue(
+																	knownServices,
+																	refs[j],
+																	service
+																			.toString());
+													announceService(
+															uri,
+															serviceInterfaceName,
+															refs[j]);
+													break;
+												}
+											}
+
+										}
+									}
+								}
+								// seen, so remove from lost list
+								lostServices.remove(service);
 							}
-							// seen, so remove from lost list
-							lostServices.remove(service);
-
 						}
 
 						// notify the listeners for all lost services
@@ -272,7 +311,7 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 								warningList.add(lostService);
 							} else {
 								warningList.remove(lostService);
-								knownServices.remove(lostService);
+								seenServices.remove(lostService);
 								// be polite: first notify the listeners and
 								// then unregister the proxy bundle ...
 								discardService(lostService);

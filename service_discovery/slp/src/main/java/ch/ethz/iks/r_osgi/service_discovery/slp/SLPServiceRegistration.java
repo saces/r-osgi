@@ -1,6 +1,8 @@
 package ch.ethz.iks.r_osgi.service_discovery.slp;
 
 import java.util.Dictionary;
+import java.util.Enumeration;
+
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import ch.ethz.iks.r_osgi.URI;
@@ -19,6 +21,25 @@ public class SLPServiceRegistration {
 		this.properties = properties;
 		final String[] interfaces = (String[]) ref
 				.getProperty(Constants.OBJECTCLASS);
+
+		// cleaning up the properties
+		for (Enumeration e = properties.keys(); e.hasMoreElements();) {
+			final String key = (String) e.nextElement();
+			final Object value = properties.get(key);
+			if (value instanceof String[]) {
+				final String[] sa = (String[]) value;
+				final StringBuffer buffer = new StringBuffer();
+				for (int i = 0; i < sa.length - 1; i++) {
+					buffer.append(sa[i]);
+					buffer.append(",");
+				}
+				for (int i = sa.length - 1; i < sa.length; i++) {
+					buffer.append(sa[i]);
+				}
+				properties.put(key, sa);
+			}
+		}
+
 		urls = new ServiceURL[interfaces.length];
 		for (int i = 0; i < interfaces.length; i++) {
 			try {
