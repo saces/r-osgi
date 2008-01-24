@@ -92,9 +92,9 @@ public final class StreamResultMessage extends RemoteOSGiMessage {
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *      |    R-OSGi header (function = StreamResultMsg = 11)            |
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |            result             |  result == -2: b, -3: excep.  \
+	 *      |            result             | result == -2: len, -3: excep. \
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      | result == -2: len                                             |
+	 *      | result == -2: b                                               |
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>.
 	 * 
@@ -109,8 +109,9 @@ public final class StreamResultMessage extends RemoteOSGiMessage {
 		result = input.readShort();
 		switch (result) {
 		case RESULT_ARRAY:
-			this.b = (byte[]) SmartSerializer.deserialize(input);
 			this.len = input.readInt();
+			this.b = new byte[len];
+			input.read(b, 0, len);
 			break;
 		case RESULT_EXCEPTION:
 			exception = (IOException) SmartSerializer.deserialize(input);
@@ -138,8 +139,8 @@ public final class StreamResultMessage extends RemoteOSGiMessage {
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		out.writeShort(result);
 		if (result == RESULT_ARRAY) {
-			SmartSerializer.serialize(b, out);
 			out.writeInt(len);
+			out.write(b, 0, len);
 		} else if (result == RESULT_EXCEPTION) {
 			SmartSerializer.serialize(exception, out);
 		}

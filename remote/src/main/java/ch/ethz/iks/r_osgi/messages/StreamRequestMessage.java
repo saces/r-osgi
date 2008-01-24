@@ -100,9 +100,9 @@ public final class StreamRequestMessage extends RemoteOSGiMessage {
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *      |    R-OSGi header (function = StreamRequestMsg = 10)           |
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |              short            |       op      |      len      |
+	 *      |              short            |       op      |   lenOrVal    |
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |                   len (ctd.)                  |       b       \
+	 *      |                lenOrVal (ctd.)                |       b       \
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>.
 	 * 
@@ -128,7 +128,8 @@ public final class StreamRequestMessage extends RemoteOSGiMessage {
 			break;
 		case WRITE_ARRAY:
 			this.lenOrVal = input.readInt();
-			this.b = (byte[]) SmartSerializer.deserialize(input);
+			this.b = new byte[lenOrVal];
+			input.read(b, 0, lenOrVal);
 			break;
 		default:
 			throw new IllegalArgumentException(
@@ -151,7 +152,7 @@ public final class StreamRequestMessage extends RemoteOSGiMessage {
 		if (op != READ) {
 			out.writeInt(lenOrVal);
 			if (op == WRITE_ARRAY) {
-				SmartSerializer.serialize(b, out);
+				out.write(b);
 			}
 		}
 	}
