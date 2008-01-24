@@ -96,6 +96,8 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 		this.properties.remove(Constants.SERVICE_PID);
 		// remove the R-OSGi registration property
 		this.properties.remove(RemoteOSGiService.R_OSGi_REGISTRATION);
+		// also remote the ECF registration property
+		this.properties.remove("org.eclipse.ecf.serviceRegistrationRemote");
 		this.channel = channel;
 	}
 

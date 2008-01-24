@@ -358,6 +358,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @category ChannelEndpoint
 	 */
 	public URI getRemoteAddress() {
+		if (networkChannel == null) {
+			throw new RuntimeException("CHANNEL IS NULL");
+		}
 		return networkChannel.getRemoteAddress();
 	}
 
@@ -551,6 +554,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"DISPOSING ENDPOINT " + getRemoteAddress());
 		}
+		
 		RemoteOSGiServiceImpl.unregisterChannel(this);
 		if (handlerReg != null) {
 			handlerReg.unregister();
@@ -707,7 +711,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 	private void send(final RemoteOSGiMessage msg) {
 		if (networkChannel == null) {
-			return;
+			throw new RemoteOSGiException("Network channel went down.");
 		}
 
 		if (msg.getXID() == 0) {
@@ -989,7 +993,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					System.err.println("RECEIVED " + msg);
 					System.err.println("WHILE CHANNEL IS NULL...");
 
-					return null;
+					throw new RuntimeException();
 				}
 				final Bundle bundle = (Bundle) proxyBundles.remove(serviceID);
 				if (bundle != null) {

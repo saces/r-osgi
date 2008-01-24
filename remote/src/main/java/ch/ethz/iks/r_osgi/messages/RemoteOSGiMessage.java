@@ -216,6 +216,8 @@ public abstract class RemoteOSGiMessage {
 			}
 			msg.funcID = funcID;
 			msg.xid = xid;
+			// TODO: remove debug output
+			System.out.println(msg);
 			return msg;
 		} catch (SocketException se) {
 			throw se;

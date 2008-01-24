@@ -113,12 +113,12 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		/**
 		 * the remote endpoint
 		 */
-		private URI remoteEndpoint;
+		private URI remoteEndpointAddress;
 
 		/**
 		 * the local endpoint
 		 */
-		private URI localEndpoint;
+		private URI localEndpointAddress;
 
 		/**
 		 * the input stream.
@@ -152,15 +152,15 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @throws IOException
 		 *             in case of IO errors.
 		 */
-		TCPChannel(final ChannelEndpoint endpoint, final URI endpointURI)
+		TCPChannel(final ChannelEndpoint endpoint, final URI endpointAddress)
 				throws IOException {
-			int port = endpointURI.getPort();
+			int port = endpointAddress.getPort();
 			if (port == -1) {
 				port = 9278;
 			}
 			this.endpoint = endpoint;
-			this.remoteEndpoint = endpointURI;
-			open(new Socket(endpointURI.getHostName(), port));
+			this.remoteEndpointAddress = endpointAddress;
+			open(new Socket(endpointAddress.getHostName(), port));
 			new ReceiverThread().start();
 		}
 
@@ -173,7 +173,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 *             in case of IO errors.
 		 */
 		public TCPChannel(final Socket socket) throws IOException {
-			this.remoteEndpoint = URI.create(getProtocol() + "://"
+			this.remoteEndpointAddress = URI.create(getProtocol() + "://"
 					+ socket.getInetAddress().getHostName() + ":"
 					+ socket.getPort());
 			open(socket);
@@ -194,7 +194,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		private void open(final Socket socket) throws IOException {
 			this.socket = socket;
-			this.localEndpoint = URI.create(getProtocol() + "://"
+			this.localEndpointAddress = URI.create(getProtocol() + "://"
 					+ socket.getLocalAddress().getHostName() + ":"
 					+ socket.getLocalPort());
 			try {
@@ -237,7 +237,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 				socket = null;
 			}
 
-			open(new Socket(remoteEndpoint.getHostName(), remoteEndpoint
+			open(new Socket(remoteEndpointAddress.getHostName(), remoteEndpointAddress
 					.getPort()));
 			this.connected = true;
 			new ReceiverThread().start();
@@ -260,11 +260,11 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getRemoteURL()
 		 */
 		public URI getRemoteAddress() {
-			return remoteEndpoint;
+			return remoteEndpointAddress;
 		}
 
 		public URI getLocalAddress() {
-			return localEndpoint;
+			return localEndpointAddress;
 		}
 
 		/**

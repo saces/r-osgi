@@ -88,7 +88,7 @@ public class URI implements Serializable {
 	}
 
 	public String getHostName() {
-		return hostName;
+		return host == null ? hostName : host.getHostName();
 	}
 
 	public int getPort() {

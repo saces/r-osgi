@@ -662,9 +662,15 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	}
 
 	public void disconnect(final URI endpoint) throws RemoteOSGiException {
+		System.out.println("REQUESTING " + endpoint);
+		System.out.println("HAVING " + channels);
 		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
-				.get(endpoint.toString());
-		channel.dispose();
+				.get(getChannelURI(endpoint).toString());
+		if (channel != null) {
+			channel.dispose();
+		} else {
+			System.err.println("NO CHANNEL !!!");
+		}
 	}
 
 	/**
