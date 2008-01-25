@@ -69,14 +69,7 @@ public interface NetworkChannel {
 
 	void bind(ChannelEndpoint endpoint);
 
-	/**
-	 * reconnect the channel to the remote endpoint.
-	 * 
-	 * @throws IOException
-	 *             if the channel cannot be reconnected.
-	 * @since 0.6
-	 */
-	void reconnect() throws IOException;
+	void close() throws IOException;
 
 	/**
 	 * send a message through the channel.

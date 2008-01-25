@@ -223,7 +223,7 @@ public abstract class RemoteOSGiMessage {
 			throw se;
 		} catch (IOException ioe) {
 			// TODO: if (debug)
-			ioe.printStackTrace();
+			//ioe.printStackTrace();
 			throw new RemoteOSGiException("Parse error"); //$NON-NLS-1$
 		}
 	}

@@ -378,6 +378,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 						public Object addingService(
 								final ServiceReference reference) {
+							// TODO: remote debug output
+							System.err.println("REGISTERING NEW " + reference);
+							
 							// FIXME: Surrogates have to be monitored
 							// separately!!!
 							final ServiceReference service = Arrays
@@ -662,14 +665,13 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	}
 
 	public void disconnect(final URI endpoint) throws RemoteOSGiException {
-		System.out.println("REQUESTING " + endpoint);
-		System.out.println("HAVING " + channels);
+		System.err.println("DISCONNECTING " + endpoint);
 		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
 				.get(getChannelURI(endpoint).toString());
 		if (channel != null) {
 			channel.dispose();
 		} else {
-			System.err.println("NO CHANNEL !!!");
+			System.err.println("NO CHANNEL !!! " + endpoint);
 		}
 	}
 
@@ -804,7 +806,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 								.size()]);
 	}
 
-	static RemoteServiceRegistration getService(final String serviceID) {
+	static RemoteServiceRegistration getServiceRegistration(final String serviceID) {
 
 		final String filter = "".equals(serviceID) ? null : '('
 				+ Constants.SERVICE_ID + "=" + serviceID + ")";
@@ -871,8 +873,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * @param channel
 	 *            the local endpoint of the channel.
 	 */
-	static void unregisterChannel(final ChannelEndpoint channel) {
-		channels.remove(channel.getRemoteAddress().toString());
+	static void unregisterChannel(final String channelURI) {
+		channels.remove(channelURI);
 	}
 
 	/**
@@ -882,7 +884,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		ChannelEndpointImpl[] endpoints = (ChannelEndpointImpl[]) channels
 				.values().toArray(new ChannelEndpointImpl[channels.size()]);
 		for (int i = 0; i < endpoints.length; i++) {
-			endpoints[i].updateLease(msg);
+			endpoints[i].sendLeaseUpdate(msg);
 		}
 	}
 

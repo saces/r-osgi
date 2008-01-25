@@ -135,6 +135,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		private ChannelEndpoint endpoint;
 
+		private Thread receiver;
+
 		/**
 		 * connected ?
 		 */
@@ -220,27 +222,10 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			return "TCPChannel (" + getRemoteAddress() + ")";
 		}
 
-		/**
-		 * reconnect the channel.
-		 * 
-		 * @throws IOException
-		 *             if the connection attempt fails.
-		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#reconnect()
-		 */
-		public void reconnect() throws IOException {
+		public void close() throws IOException {
+			socket.close();
+			// receiver.interrupt();
 			connected = false;
-			try {
-				if (socket != null) {
-					socket.close();
-				}
-			} catch (Exception e) {
-				socket = null;
-			}
-
-			open(new Socket(remoteEndpointAddress.getHostName(), remoteEndpointAddress
-					.getPort()));
-			this.connected = true;
-			new ReceiverThread().start();
 		}
 
 		/**
@@ -309,7 +294,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 						}
 						endpoint.receivedMessage(msg);
 					} catch (Throwable t) {
-						t.printStackTrace();
+						// t.printStackTrace();
 						connected = false;
 						try {
 							socket.close();
