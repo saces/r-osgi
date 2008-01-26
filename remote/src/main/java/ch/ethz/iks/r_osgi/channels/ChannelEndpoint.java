@@ -40,7 +40,7 @@ import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
  * @since 0.6
  */
 public interface ChannelEndpoint {
-	
+
 	/**
 	 * callback for NetworkChannels.
 	 * 
@@ -92,7 +92,8 @@ public interface ChannelEndpoint {
 	Dictionary getPresentationProperties(final String service);
 
 	/**
-	 * register a proxied service registration to allow updates of the properties.
+	 * register a proxied service registration to allow updates of the
+	 * properties.
 	 * 
 	 * @param service
 	 *            the URI of the service.
@@ -108,11 +109,11 @@ public interface ChannelEndpoint {
 	 *            the URI of the service.
 	 * @param reg
 	 *            the service registration object.
-	 */	
+	 */
 	void untrackRegistration(final String service);
-	
+
 	/**
-	 * get the URI of the remote channel endpoint. 
+	 * get the URI of the remote channel endpoint.
 	 * 
 	 * @return the channel ID.
 	 */
@@ -122,7 +123,7 @@ public interface ChannelEndpoint {
 	 * dispose of the channel endpoint.
 	 */
 	void dispose();
-	
+
 	boolean isConnected();
 
 }

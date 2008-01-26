@@ -267,6 +267,10 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 						"{TCP Channel} sending " + message);
 			}
+			// TODO: remove debug output
+			System.out.println("(SEND " + localEndpointAddress + "->"
+					+ remoteEndpointAddress + ") " + message);
+
 			message.send(output);
 		}
 
@@ -293,8 +297,11 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 									"{TCP Channel} received " + msg);
 						}
 						endpoint.receivedMessage(msg);
+						// TODO: remove debug output
+						System.out.println("(RECEIVE " + localEndpointAddress
+								+ "->" + remoteEndpointAddress + ") " + msg);
 					} catch (Throwable t) {
-						// t.printStackTrace();
+						t.printStackTrace();
 						connected = false;
 						try {
 							socket.close();

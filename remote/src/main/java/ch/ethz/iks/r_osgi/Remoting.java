@@ -51,7 +51,7 @@ public interface Remoting {
 	 * @since 0.6
 	 */
 	ChannelEndpoint getEndpoint(final String url);
-	
+
 	/**
 	 * 
 	 * @param channel
@@ -59,18 +59,4 @@ public interface Remoting {
 	 */
 	void createEndpoint(final NetworkChannel channel);
 
-	/**
-	 * transform a timestamp into the peer's local time.
-	 * 
-	 * @param sender
-	 *            the sender serviceURL.
-	 * @param timestamp
-	 *            the Timestamp.
-	 * @return the transformed timestamp.
-	 * @throws RemoteOSGiException
-	 *             if the transformation fails.
-	 * @since 0.2
-	 */
-	Timestamp transformTimestamp(final RemoteServiceReference ref,
-			final Timestamp timestamp) throws RemoteOSGiException;
 }

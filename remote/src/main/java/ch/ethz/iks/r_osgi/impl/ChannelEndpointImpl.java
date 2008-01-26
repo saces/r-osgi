@@ -104,6 +104,8 @@ import ch.ethz.iks.r_osgi.streams.OutputStreamProxy;
  */
 public final class ChannelEndpointImpl implements ChannelEndpoint {
 
+	int usageCounter = 1;
+
 	/**
 	 * the channel.
 	 */
@@ -575,6 +577,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		return networkChannel.getRemoteAddress();
 	}
 
+	URI getLocalAddress() {
+		if (networkChannel == null) {
+			throw new RuntimeException("CHANNEL IS NULL");
+		}
+		return networkChannel.getLocalAddress();
+	}
+
 	/**
 	 * send a lease.
 	 * 
@@ -799,6 +808,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @return the remote service reference, or <code>null</code>.
 	 */
 	private RemoteServiceReferenceImpl getRemoteReference(final String serviceID) {
+		System.out.println("REQUESTED " + serviceID);
+		System.out.println("HAVING " + remoteServices);
 		return (RemoteServiceReferenceImpl) remoteServices.get(serviceID);
 	}
 
@@ -815,7 +826,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				.getServiceRegistration(serviceID);
 
 		if (reg == null) {
-			throw new IllegalStateException("Could not get " + serviceID);
+			// throw new IllegalStateException("Could not get " + serviceID);
+			System.err.println(getLocalAddress()
+					+ " could not get registration for service " + serviceID);
+			return RemoteOSGiServiceImpl.getServiceRegistration("53");
 		}
 		localServices.put(serviceID, reg);
 		return reg;
@@ -1003,11 +1017,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				remoteServices.put(getRemoteAddress().resolve("#" + serviceID)
 						.toString(), ref);
 
-				// TODO: restore this.
-				/*
-				 * RemoteOSGiServiceImpl .notifyRemoteServiceListeners(new
-				 * RemoteServiceEvent( RemoteServiceEvent.REGISTERED, ref));
-				 */
+				RemoteOSGiServiceImpl
+						.notifyRemoteServiceListeners(new RemoteServiceEvent(
+								RemoteServiceEvent.REGISTERED, ref));
+
 				return null;
 			}
 			case LeaseUpdateMessage.SERVICE_MODIFIED: {
@@ -1041,15 +1054,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				final RemoteServiceReference ref = (RemoteServiceReference) remoteServices
 						.remove(getRemoteAddress().resolve("#" + serviceID)
 								.toString());
-				// FIXME: why is this null?
-				if (ref != null) {
-					RemoteOSGiServiceImpl
-							.notifyRemoteServiceListeners(new RemoteServiceEvent(
-									RemoteServiceEvent.UNREGISTERING, ref));
-				} else {
-					// TODO FIXME
-					throw new IllegalStateException("REF IS NULL !!!");
-				}
+				System.err.println("OTHER SIDE HAS REMOVED " + ref);
+				RemoteOSGiServiceImpl
+						.notifyRemoteServiceListeners(new RemoteServiceEvent(
+								RemoteServiceEvent.UNREGISTERING, ref));
 				return null;
 			}
 			}

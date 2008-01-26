@@ -8,12 +8,16 @@ import java.util.Map;
 import java.util.Random;
 
 import org.osgi.framework.ServiceRegistration;
+
+import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
+import ch.ethz.iks.r_osgi.types.Timestamp;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
+import ch.ethz.iks.r_osgi.channels.ChannelEndpointManager;
 
-class EndpointMultiplexer implements ChannelEndpoint {
+class EndpointMultiplexer implements ChannelEndpoint, ChannelEndpointManager {
 
 	final static int NONE = 0;
 
@@ -23,7 +27,7 @@ class EndpointMultiplexer implements ChannelEndpoint {
 
 	final static int LOADBALANCING_ONE = 3;
 
-	private ChannelEndpoint primary;
+	private ChannelEndpointImpl primary;
 
 	private HashMap policies = new HashMap(0);
 
@@ -31,36 +35,8 @@ class EndpointMultiplexer implements ChannelEndpoint {
 
 	private Map mappings = new HashMap();
 
-	EndpointMultiplexer(final ChannelEndpoint primary) {
+	EndpointMultiplexer(final ChannelEndpointImpl primary) {
 		this.primary = primary;
-	}
-
-	public void setPolicy(final URI service, int policy) {
-		System.err.println();
-		System.err.println("SETTING POLICY FOR SERVICE " + service + " TO "
-				+ policy);
-		policies.put(service.toString(), new Integer(policy));
-	}
-
-	void addEndpoint(URI service, URI redundantService, ChannelEndpoint endpoint) {
-		System.err.println("for service " + service
-				+ " adding redundant service " + redundantService + " through "
-				+ endpoint);
-		Mapping mapping = (Mapping) mappings.get(service);
-		if (mapping == null) {
-			mapping = new Mapping(service.toString());
-			mappings.put(service.toString(), mapping);
-		}
-		mapping.addRedundant(redundantService.toString(), endpoint);
-	}
-
-	void removeEndpoint(URI service, URI redundantService,
-			ChannelEndpoint endpoint) {
-		final Mapping mapping = (Mapping) mappings.get(service.toString());
-		mapping.removeRedundant(endpoint);
-		if (mapping.isEmpty()) {
-			mappings.remove(service);
-		}
 	}
 
 	public void dispose() {
@@ -111,7 +87,7 @@ class EndpointMultiplexer implements ChannelEndpoint {
 					} catch (RemoteOSGiException e) {
 						if (policy == FAILOVER_REDUNDANCY) {
 							// do the failover
-							final ChannelEndpoint next = mapping.getNext();
+							final ChannelEndpointImpl next = mapping.getNext();
 							if (next != null) {
 								primary.untrackRegistration(serviceURI);
 								primary = next;
@@ -180,8 +156,8 @@ class EndpointMultiplexer implements ChannelEndpoint {
 			return (String) uriMapping.get(endpoint);
 		}
 
-		private ChannelEndpoint getNext() {
-			return (ChannelEndpoint) redundant.remove(0);
+		private ChannelEndpointImpl getNext() {
+			return (ChannelEndpointImpl) redundant.remove(0);
 		}
 
 		private boolean isEmpty() {
@@ -197,6 +173,58 @@ class EndpointMultiplexer implements ChannelEndpoint {
 			}
 		}
 
+	}
+
+	public void addRedundantEndpoint(URI service, URI redundantService) {
+		final ChannelEndpoint redundantEndpoint = RemoteOSGiServiceImpl
+				.getChannel(redundantService);
+		System.err.println("for service " + service
+				+ " adding redundant service " + redundantService + " through "
+				+ redundantEndpoint);
+		Mapping mapping = (Mapping) mappings.get(service);
+		if (mapping == null) {
+			mapping = new Mapping(service.toString());
+			mappings.put(service.toString(), mapping);
+		}
+		mapping.addRedundant(redundantService.toString(), redundantEndpoint);
+	}
+
+	public URI getLocalAddress() {
+		return primary.getLocalAddress();
+	}
+
+	public void removeRedundantEndpoint(URI service, URI redundantService) {
+		final ChannelEndpoint redundantEndpoint = RemoteOSGiServiceImpl
+				.getChannel(redundantService);
+		final Mapping mapping = (Mapping) mappings.get(service.toString());
+		mapping.removeRedundant(redundantEndpoint);
+		if (mapping.isEmpty()) {
+			mappings.remove(service);
+		}
+	}
+
+	public void setEndpointPolicy(URI service, int policy) {
+		System.err.println();
+		System.err.println("SETTING POLICY FOR SERVICE " + service + " TO "
+				+ policy);
+		policies.put(service.toString(), new Integer(policy));
+	}
+
+	/**
+	 * transform a timestamp into the peer's local time.
+	 * 
+	 * @param sender
+	 *            the sender serviceURL.
+	 * @param timestamp
+	 *            the Timestamp.
+	 * @return the transformed timestamp.
+	 * @throws RemoteOSGiException
+	 *             if the transformation fails.
+	 * @since 0.2
+	 */
+	public Timestamp transformTimestamp(final Timestamp timestamp)
+			throws RemoteOSGiException {
+		return primary.getOffset().transform(timestamp);
 	}
 
 }

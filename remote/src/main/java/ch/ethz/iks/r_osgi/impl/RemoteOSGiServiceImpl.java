@@ -59,6 +59,7 @@ import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.SurrogateRegistration;
 import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
+import ch.ethz.iks.r_osgi.channels.ChannelEndpointManager;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.messages.LeaseUpdateMessage;
@@ -378,9 +379,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 						public Object addingService(
 								final ServiceReference reference) {
-							// TODO: remote debug output
-							System.err.println("REGISTERING NEW " + reference);
-							
+
 							// FIXME: Surrogates have to be monitored
 							// separately!!!
 							final ServiceReference service = Arrays
@@ -533,8 +532,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		final Object[] handler = serviceDiscoveryHandlerTracker.getServices();
 		if (handler != null) {
 			for (int i = 0; i < handler.length; i++) {
-				((ServiceDiscoveryHandler) handler[i])
-						.unregisterService(reg.getReference());
+				((ServiceDiscoveryHandler) handler[i]).unregisterService(reg
+						.getReference());
 			}
 		}
 	}
@@ -625,10 +624,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 */
 	public RemoteServiceReference[] connect(final URI uri)
 			throws RemoteOSGiException {
+
 		URI endpoint = URI.create(getChannelURI(uri));
 		final ChannelEndpointImpl test = (ChannelEndpointImpl) channels
 				.get(endpoint.toString());
 		if (test != null) {
+			test.usageCounter++;
 			return test.getRemoteReferences(null);
 		}
 
@@ -665,13 +666,28 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	}
 
 	public void disconnect(final URI endpoint) throws RemoteOSGiException {
-		System.err.println("DISCONNECTING " + endpoint);
 		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
 				.get(getChannelURI(endpoint).toString());
 		if (channel != null) {
-			channel.dispose();
+			if (channel.usageCounter == 1) {
+				System.err.println("DISCONNECTING " + endpoint);
+				channel.dispose();
+			} else {
+				System.err.println("INCREMENTING USAGE OF " + endpoint);
+				channel.usageCounter--;
+			}
 		} else {
 			System.err.println("NO CHANNEL !!! " + endpoint);
+		}
+	}
+
+	public URI getLocalAddress(final URI endpoint) {
+		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
+				.get(getChannelURI(endpoint).toString());
+		if (channel != null) {
+			return channel.getLocalAddress();
+		} else {
+			return null;
 		}
 	}
 
@@ -702,26 +718,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 	}
 
-	/**
-	 * 
-	 * @param sender
-	 *            the sender serviceURL.
-	 * @param timestamp
-	 *            the Timestamp object.
-	 * @return the Timestamp object that has been transformed into this peer's
-	 *         local time.
-	 * @throws RemoteOSGiException
-	 *             if the timestamp transformation fails.
-	 * @since 0.3
-	 * @category RemoteOSGiService
-	 */
-	public Timestamp transformTimestamp(final RemoteServiceReference sender,
-			final Timestamp timestamp) throws RemoteOSGiException {
-		// TODO: should be the sender URL instead.
-
-		final ChannelEndpointImpl channel = ((RemoteServiceReferenceImpl) sender)
-				.getChannel();
-		return channel.getOffset().transform(timestamp);
+	static ChannelEndpoint getChannel(final URI uri) {
+		return (ChannelEndpoint) channels.get(getChannelURI(uri));
 	}
 
 	/**
@@ -730,41 +728,30 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * @category Remoting
 	 */
 	public ChannelEndpoint getEndpoint(final String uri) {
+		return getMultiplexer(uri);
+	}
+
+	public ChannelEndpointManager getEndpointManager(
+			final URI remoteEndpointAddress) {
+		return getMultiplexer(remoteEndpointAddress.toString());
+	}
+
+	private EndpointMultiplexer getMultiplexer(final String uri) {
+		final String channel = getChannelURI(URI.create(uri));
 		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
-				.get(uri);
+				.get(channel);
 		if (multiplexer == null) {
-			multiplexer = new EndpointMultiplexer((ChannelEndpoint) channels
-					.get(getChannelURI(URI.create(uri))));
-			multiplexers.put(uri, multiplexer);
+			multiplexer = new EndpointMultiplexer(
+					(ChannelEndpointImpl) channels.get(channel));
+			multiplexers.put(channel, multiplexer);
 		}
 		return multiplexer;
 	}
 
-	private String getChannelURI(URI serviceURI) {
+	static String getChannelURI(URI serviceURI) {
 		return URI.create(
 				serviceURI.getScheme() + "://" + serviceURI.getHostName() + ":"
 						+ serviceURI.getPort()).toString();
-	}
-
-	public void addRedundantEndpoint(URI service, URI redundant) {
-		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
-				.get(service.toString());
-		multiplexer.addEndpoint(service, redundant, (ChannelEndpoint) channels
-				.get(getChannelURI(redundant)));
-	}
-
-	public void removeRedundantEndpoint(URI service, URI redundant) {
-		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
-				.get(service.toString());
-		multiplexer.removeEndpoint(service, redundant,
-				(ChannelEndpoint) channels.get(getChannelURI(redundant)));
-	}
-
-	public void setEndpointPolicy(URI service, int policy) {
-		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
-				.get(service.toString());
-		multiplexer.setPolicy(service, policy);
-
 	}
 
 	/**
@@ -806,7 +793,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 								.size()]);
 	}
 
-	static RemoteServiceRegistration getServiceRegistration(final String serviceID) {
+	static RemoteServiceRegistration getServiceRegistration(
+			final String serviceID) {
 
 		final String filter = "".equals(serviceID) ? null : '('
 				+ Constants.SERVICE_ID + "=" + serviceID + ")";

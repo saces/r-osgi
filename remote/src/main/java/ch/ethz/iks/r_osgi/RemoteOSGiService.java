@@ -31,6 +31,7 @@ package ch.ethz.iks.r_osgi;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import ch.ethz.iks.r_osgi.URI;
+import ch.ethz.iks.r_osgi.channels.ChannelEndpointManager;
 import ch.ethz.iks.r_osgi.types.Timestamp;
 
 /**
@@ -195,27 +196,7 @@ public interface RemoteOSGiService {
 
 	void ungetRemoteService(RemoteServiceReference remoteServiceReference);
 
-	/**
-	 * transform a timestamp into the peer's local time.
-	 * 
-	 * @param sender
-	 *            the sender serviceURL.
-	 * @param timestamp
-	 *            the Timestamp.
-	 * @return the transformed timestamp.
-	 * @throws RemoteOSGiException
-	 *             if the transformation fails.
-	 * @since 0.2
-	 */
-	Timestamp transformTimestamp(RemoteServiceReference ref, Timestamp timestamp)
-			throws RemoteOSGiException;
-
-	public void addRedundantEndpoint(URI service, URI redundant);
-
-	public void removeRedundantEndpoint(URI service, URI redundant);
-
-	public void setEndpointPolicy(URI service, int policy);
-
-	public URI getListeningAddress(final String protocol);
+	
+	ChannelEndpointManager getEndpointManager(final URI remoteEndpointAddress);
 
 }
