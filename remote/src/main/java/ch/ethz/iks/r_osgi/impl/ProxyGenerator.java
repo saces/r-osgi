@@ -289,6 +289,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					"Created Proxy Bundle " + file);
 		}
 
+		// TODO: remove debug output
+		System.out.println("PROXY CLASS " + file.getAbsolutePath());
 		return file.getAbsolutePath();
 	}
 
@@ -309,7 +311,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				+ interfaceNames[0].replace('.', '/') + "Impl";
 
 		final ClassReader reader = new ClassReader(interfaceClass);
-		writer = new ClassWriter(0);
+		writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		reader.accept(this, null, ClassReader.SKIP_DEBUG);
 		interfaceClassNames = null;
 		final byte[] bytes = writer.toByteArray();
@@ -339,7 +341,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		smartProxyClassName = proxyName;
 		smartProxyClassNameDashed = smartProxyClassName.replace('.', '/');
 		final ClassReader reader = new ClassReader(proxyClass);
-		writer = new ClassWriter(0);
+		writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		reader.accept(this, null, ClassReader.SKIP_DEBUG);
 		recurseInterfaceHierarchy();
 		interfaceClassNames = null;
@@ -363,7 +365,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					reader = new ClassReader(bytes);
 				}
 
-				reader.accept(this, null, ClassReader.SKIP_DEBUG);
+				reader.accept(this, null, 0);
 			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -392,7 +394,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		MethodVisitor method;
 		final FieldVisitor field;
 
-		if (interfaceClassNames[0].replace('.', '/').equals(name)) {
+		if (name.equals(smartProxyClassNameDashed)
+				|| (smartProxyClassName == null && name
+						.equals(interfaceClassNames[0].replace('.', '/')))) {
 
 			if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
@@ -410,10 +414,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				final Set ifaces = new HashSet();
 				ifaces.addAll(Arrays.asList(interfaces));
 				ifaces.add("org/osgi/framework/BundleActivator");
-				ifaces.add(serviceInterfaces);
-				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
-						superName, (String[]) ifaces.toArray(new String[ifaces
-								.size()]));
+				ifaces.addAll(Arrays.asList(serviceInterfaces));
+				// V1_1
+				writer.visit(version >= V1_5 ? V1_5 : V1_2, ACC_PUBLIC
+						+ ACC_SUPER, implName, null, superName,
+						(String[]) ifaces.toArray(new String[ifaces.size()]));
 
 				if (java.util.Arrays.asList(interfaces).contains(
 						"ch/ethz/iks/r_osgi/SmartProxy")) {
@@ -422,8 +427,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 			} else {
 				// we have an interface
-				writer.visit(V1_1, ACC_PUBLIC + ACC_SUPER, implName, null,
-						"java/lang/Object", serviceInterfaces);
+				writer.visit(version >= V1_5 ? V1_5 : V1_2, ACC_PUBLIC
+						+ ACC_SUPER, implName, null, "java/lang/Object",
+						serviceInterfaces);
 				if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
 					RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 							"Creating Proxy Bundle from Interfaces "
@@ -719,8 +725,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	public MethodVisitor visitMethod(final int access, final String name,
 			final String desc, final String signature, final String[] exceptions) {
 
-		if (implemented.contains(name + desc)
-				|| "<init>()V".equals(name + desc)) {
+		if (implemented.contains(name + desc)) {
 			return null;
 		}
 
@@ -848,7 +853,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			}
 			method.visitMaxs(
 					(args.length == 0 ? 4 : 7) + (needsBoxing ? 2 : 0),
-					1 + args.length);
+					2 + slot); // args.length);
 			method.visitEnd();
 
 			implemented.add(name + desc);
@@ -890,8 +895,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				final String superName, final String[] interfaces) {
 			// rewriting
 
-			super.cv.visit(version, access, checkRewrite(name), signature,
-					checkRewrite(superName), interfaces);
+			super.cv.visit(version >= V1_5 ? V1_5 : V1_2, access,
+					checkRewrite(name), signature, checkRewrite(superName),
+					interfaces);
 		}
 
 		/**
@@ -904,6 +910,27 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			super.cv.visitField(access, checkRewrite(name),
 					checkRewriteDesc(desc), signature, value);
 			return null;
+		}
+
+		/**
+		 * Visits the enclosing class of the class. This method must be called
+		 * only if the class has an enclosing class.
+		 * 
+		 * @param owner
+		 *            internal name of the enclosing class of the class.
+		 * @param name
+		 *            the name of the method that contains the class, or
+		 *            <tt>null</tt> if the class is not enclosed in a method
+		 *            of its enclosing class.
+		 * @param desc
+		 *            the descriptor of the method that contains the class, or
+		 *            <tt>null</tt> if the class is not enclosed in a method
+		 *            of its enclosing class.
+		 */
+		public void visitOuterClass(final String owner, final String name,
+				final String desc) {
+			super.cv.visitOuterClass(checkRewrite(owner), checkRewrite(name),
+					checkRewriteDesc(desc));
 		}
 
 		/**
@@ -926,6 +953,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		public MethodVisitor visitMethod(final int access, final String name,
 				final String desc, final String signature,
 				final String[] exceptions) {
+			if ("<init>()V".equals(name + desc)) {
+				return null;
+			}
 			return new MethodRewriter(super.cv.visitMethod(access, name,
 					checkRewriteDesc(desc), signature, exceptions));
 		}
@@ -1086,7 +1116,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		if (clazzName == null) {
 			return null;
 		}
-		if (clazzName.startsWith(smartProxyClassNameDashed)) {
+		if (clazzName.equals(smartProxyClassNameDashed)
+				|| clazzName.startsWith(smartProxyClassNameDashed + "$")) {
 			final String rest = clazzName.substring(smartProxyClassNameDashed
 					.length());
 			return implName + rest;
@@ -1103,7 +1134,13 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			return null;
 		}
 		String result = desc;
-		int i = result.indexOf(smartProxyClassNameDashed);
+		int i = result.indexOf(smartProxyClassNameDashed + ";");
+		while (i > 0) {
+			int j = i + smartProxyClassNameDashed.length();
+			result = result.substring(0, i) + implName + result.substring(j);
+			i = result.indexOf(smartProxyClassNameDashed, j);
+		}
+		i = result.indexOf(smartProxyClassNameDashed + "$");
 		while (i > 0) {
 			int j = i + smartProxyClassNameDashed.length();
 			result = result.substring(0, i) + implName + result.substring(j);

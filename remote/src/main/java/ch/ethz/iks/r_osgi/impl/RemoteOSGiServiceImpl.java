@@ -575,7 +575,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * @category RemoteOSGiService
 	 * @since 0.6
 	 */
-	public ServiceReference getFetchedServiceReference(
+	private ServiceReference getFetchedServiceReference(
 			final RemoteServiceReference ref) {
 		try {
 			final ServiceReference[] refs = RemoteOSGiActivator.context
@@ -593,7 +593,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	public RemoteServiceReference[] getRemoteServiceReferences(URI service,
 			final String clazz, final Filter filter)
 			throws InvalidSyntaxException {
-		String uri = getChannelURI(service);
+		final String uri = getChannelURI(service);
 		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels.get(uri);
 		if (channel == null) {
 			connect(service);
