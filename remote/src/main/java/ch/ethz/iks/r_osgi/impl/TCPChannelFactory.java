@@ -35,6 +35,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+
 import org.osgi.service.log.LogService;
 import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.Remoting;
@@ -294,14 +296,16 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 									"{TCP Channel} received " + msg);
 						}
 						endpoint.receivedMessage(msg);
-					} catch (Throwable t) {
-						t.printStackTrace();
+					} catch (IOException ioe) {
 						connected = false;
 						try {
 							socket.close();
 						} catch (IOException e1) {
 						}
 						endpoint.receivedMessage(null);
+						return;
+					} catch (Throwable t) {
+						t.printStackTrace();
 						return;
 					}
 				}

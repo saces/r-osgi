@@ -227,6 +227,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	public void receivedMessage(final RemoteOSGiMessage msg) {
 		if (msg == null) {
+			dispose();
 			return;
 		}
 		final Integer xid = new Integer(msg.getXID());
@@ -396,6 +397,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @category ChannelEndpoint
 	 */
 	public void dispose() {
+		if (networkChannel == null) {
+			return;
+		}
+		
 		if (RemoteOSGiServiceImpl.DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"DISPOSING ENDPOINT " + getRemoteAddress());

@@ -358,13 +358,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 						public void modifiedService(ServiceReference reference,
 								Object service) {
-							// TODO Auto-generated method stub
 
 						}
 
 						public void removedService(ServiceReference reference,
 								Object service) {
-							// TODO Auto-generated method stub
 
 						}
 
@@ -437,6 +435,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							lu.setServiceID(String.valueOf(reg.getServiceID()));
 							lu.setPayload(new Object[] { null,
 									reg.getProperties() });
+							updateLeases(lu);
 						}
 
 						public void removedService(ServiceReference reference,
@@ -465,6 +464,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							lu.setType(LeaseUpdateMessage.SERVICE_REMOVED);
 							lu.setServiceID(String.valueOf(reg.getServiceID()));
 							lu.setPayload(new Object[] { null, null });
+							updateLeases(lu);
 						}
 
 					});
@@ -863,6 +863,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 */
 	static void unregisterChannel(final String channelURI) {
 		channels.remove(channelURI);
+		multiplexers.remove(channelURI);
 	}
 
 	/**

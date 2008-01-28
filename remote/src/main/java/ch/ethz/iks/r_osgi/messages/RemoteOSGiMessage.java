@@ -173,57 +173,49 @@ public abstract class RemoteOSGiMessage {
 	 *             if something goes wrong.
 	 */
 	public static RemoteOSGiMessage parse(final ObjectInputStream input)
-			throws SocketException {
-		try {
-			input.readByte(); // version, currently unused
-			short funcID = input.readByte();
-			short xid = input.readShort();
-			RemoteOSGiMessage msg;
-			switch (funcID) {
-			case LEASE:
-				msg = new LeaseMessage(input);
-				break;
-			case FETCH_SERVICE:
-				msg = new FetchServiceMessage(input);
-				break;
-			case DELIVER_SERVICE:
-				msg = new DeliverServiceMessage(input);
-				break;
-			case INVOKE_METHOD:
-				msg = new InvokeMethodMessage(input);
-				break;
-			case METHOD_RESULT:
-				msg = new MethodResultMessage(input);
-				break;
-			case REMOTE_EVENT:
-				msg = new RemoteEventMessage(input);
-				break;
-			case TIME_OFFSET:
-				msg = new TimeOffsetMessage(input);
-				break;
-			case LEASE_UPDATE:
-				msg = new LeaseUpdateMessage(input);
-				break;
-			case STREAM_REQUEST:
-				msg = new StreamRequestMessage(input);
-				break;
-			case STREAM_RESULT:
-				msg = new StreamResultMessage(input);
-				break;
-			default:
-				throw new RemoteOSGiException("funcID " + funcID
-						+ " not supported."); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			msg.funcID = funcID;
-			msg.xid = xid;
-			return msg;
-		} catch (SocketException se) {
-			throw se;
-		} catch (IOException ioe) {
-			// TODO: if (debug)
-			ioe.printStackTrace();
-			throw new RemoteOSGiException("Parse error"); //$NON-NLS-1$
+			throws IOException {
+		input.readByte(); // version, currently unused
+		short funcID = input.readByte();
+		short xid = input.readShort();
+		RemoteOSGiMessage msg;
+		switch (funcID) {
+		case LEASE:
+			msg = new LeaseMessage(input);
+			break;
+		case FETCH_SERVICE:
+			msg = new FetchServiceMessage(input);
+			break;
+		case DELIVER_SERVICE:
+			msg = new DeliverServiceMessage(input);
+			break;
+		case INVOKE_METHOD:
+			msg = new InvokeMethodMessage(input);
+			break;
+		case METHOD_RESULT:
+			msg = new MethodResultMessage(input);
+			break;
+		case REMOTE_EVENT:
+			msg = new RemoteEventMessage(input);
+			break;
+		case TIME_OFFSET:
+			msg = new TimeOffsetMessage(input);
+			break;
+		case LEASE_UPDATE:
+			msg = new LeaseUpdateMessage(input);
+			break;
+		case STREAM_REQUEST:
+			msg = new StreamRequestMessage(input);
+			break;
+		case STREAM_RESULT:
+			msg = new StreamResultMessage(input);
+			break;
+		default:
+			throw new RemoteOSGiException("funcID " + funcID
+					+ " not supported."); //$NON-NLS-1$ //$NON-NLS-2$
 		}
+		msg.funcID = funcID;
+		msg.xid = xid;
+		return msg;
 	}
 
 	/**
