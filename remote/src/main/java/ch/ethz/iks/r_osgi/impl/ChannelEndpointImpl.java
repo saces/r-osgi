@@ -291,6 +291,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			// send the message and get a MethodResultMessage in return
 			final MethodResultMessage result = (MethodResultMessage) sendMessage(invokeMsg);
 			if (result.causedException()) {
+				result.getException().printStackTrace();
 				throw result.getException();
 			}
 			Object resultObj = result.getResult();
@@ -400,7 +401,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (networkChannel == null) {
 			return;
 		}
-		
+
 		if (RemoteOSGiServiceImpl.DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"DISPOSING ENDPOINT " + getRemoteAddress());
@@ -1113,6 +1114,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					m.setResult(result);
 					return m;
 				} catch (InvocationTargetException t) {
+					t.printStackTrace();
 					throw t.getTargetException();
 				}
 			} catch (Throwable t) {

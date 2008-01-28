@@ -2,20 +2,22 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: R_OSGi
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.remote
-Bundle-Version: 0.9.91
-Export-Package: ch.ethz.iks.r_osgi;version="1.0.0.RC1";uses:="ch.ethz.iks.r_osgi.types,ch.ethz.iks.r_osgi.channels,org.osgi.framework",
- ch.ethz.iks.r_osgi.channels;version="1.0.0.RC1";uses:="org.osgi.framework,ch.ethz.iks.r_osgi",
+Bundle-Version: 1.0.0.RC1
+Bundle-Vendor: Jan S. Rellermeyer
+Import-Package: org.osgi.framework,
+ org.osgi.service.event,
+ org.osgi.service.log,
+ org.osgi.util.tracker
+Export-Package: ch.ethz.iks.r_osgi;version="1.0.0.RC1",
+ ch.ethz.iks.r_osgi.channels;version="1.0.0.RC1",
  ch.ethz.iks.r_osgi.messages;version="1.0.0.RC1",
  ch.ethz.iks.r_osgi.service_discovery;version="1.0.0.RC1",
- ch.ethz.iks.r_osgi.types;version="1.0.0.RC1";uses:="org.osgi.framework",
+ ch.ethz.iks.r_osgi.types;version="1.0.0.RC1",
  ch.ethz.iks.util;version="1.0.0.RC1",
  org.objectweb.asm;version="3.0.0"
+DynamicImport-Package: *
 Bundle-ClassPath: .,
  asm-3.0.jar
 Bundle-Activator: ch.ethz.iks.r_osgi.impl.RemoteOSGiActivator
-DynamicImport-Package: *
-Import-Package: org.osgi.framework, org.osgi.util.tracker, org.osgi.service.event, org.osgi.service.log 
-Bundle-Vendor: Jan S. Rellermeyer, IKS, ETH Zurich
-Eclipse-LazyStart: true
 Bundle-RequiredExecutionEnvironment: OSGi/Minimum-1.0
-Require-Bundle: org.eclipse.equinox.event
+Eclipse-LazyStart: true
