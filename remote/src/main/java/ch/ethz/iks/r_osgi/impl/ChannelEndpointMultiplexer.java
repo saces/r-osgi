@@ -6,10 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
 import org.osgi.framework.ServiceRegistration;
-
-import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
@@ -17,7 +14,8 @@ import ch.ethz.iks.r_osgi.types.Timestamp;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpointManager;
 
-class EndpointMultiplexer implements ChannelEndpoint, ChannelEndpointManager {
+class ChannelEndpointMultiplexer implements ChannelEndpoint,
+		ChannelEndpointManager {
 
 	final static int NONE = 0;
 
@@ -35,13 +33,12 @@ class EndpointMultiplexer implements ChannelEndpoint, ChannelEndpointManager {
 
 	private Map mappings = new HashMap();
 
-	EndpointMultiplexer(final ChannelEndpointImpl primary) {
+	ChannelEndpointMultiplexer(final ChannelEndpointImpl primary) {
 		this.primary = primary;
 	}
 
 	public void dispose() {
-		throw new IllegalArgumentException(
-				"Not supported through endpoint multiplexer");
+
 	}
 
 	public Dictionary getPresentationProperties(String serviceURL) {
@@ -74,7 +71,17 @@ class EndpointMultiplexer implements ChannelEndpoint, ChannelEndpointManager {
 						return endpoint.invokeMethod(mapping
 								.getMapped(endpoint), methodSignature, args);
 					} catch (RemoteOSGiException e) {
-						// TODO: do the failover
+						final ChannelEndpointImpl next = mapping.getNext();
+						if (next != null) {
+							primary.untrackRegistration(serviceURI);
+							primary = next;
+							primary.trackRegistration(serviceURI, reg);
+							System.err.println("DOING FAILOVER TO "
+									+ primary.getRemoteAddress());
+							return primary.invokeMethod(mapping
+									.getMapped(primary), methodSignature, args);
+						}
+						dispose();
 						throw e;
 					}
 				} else {
@@ -99,6 +106,7 @@ class EndpointMultiplexer implements ChannelEndpoint, ChannelEndpointManager {
 										args);
 							}
 						}
+						dispose();
 						throw e;
 					}
 				}

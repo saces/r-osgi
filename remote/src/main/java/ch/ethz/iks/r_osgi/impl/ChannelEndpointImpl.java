@@ -153,8 +153,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * map of service url -> proxy bundle. If the endpoint is closed, the
 	 * proxies are unregistered.
 	 */
-	private final HashMap proxyBundles = new HashMap(0);
-
+	final HashMap proxyBundles = new HashMap(0);
 	/**
 	 * map of stream id -> stream instance.
 	 */
@@ -411,17 +410,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		if (handlerReg != null) {
 			handlerReg.unregister();
 		}
-		final Bundle[] bundles = (Bundle[]) proxyBundles.values().toArray(
-				new Bundle[proxyBundles.size()]);
-		for (int i = 0; i < bundles.length; i++) {
-			try {
-				if (bundles[i].getState() != Bundle.UNINSTALLED) {
-					bundles[i].uninstall();
-				}
-			} catch (Throwable t) {
-				// don't care
-			}
-		}
 
 		final NetworkChannel oldchannel = networkChannel;
 		networkChannel = null;
@@ -438,7 +426,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		receiveQueue.clear();
 		localServices.clear();
 		proxiedServices.clear();
-		proxyBundles.clear();
 		closeStreams();
 		streams.clear();
 		handlerReg = null;
@@ -1060,10 +1047,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				final RemoteServiceReference ref = (RemoteServiceReference) remoteServices
 						.remove(getRemoteAddress().resolve("#" + serviceID)
 								.toString());
-				System.err.println("OTHER SIDE HAS REMOVED " + ref);
-				RemoteOSGiServiceImpl
-						.notifyRemoteServiceListeners(new RemoteServiceEvent(
-								RemoteServiceEvent.UNREGISTERING, ref));
+				if (ref != null) {
+					RemoteOSGiServiceImpl
+							.notifyRemoteServiceListeners(new RemoteServiceEvent(
+									RemoteServiceEvent.UNREGISTERING, ref));
+				}
 				return null;
 			}
 			}

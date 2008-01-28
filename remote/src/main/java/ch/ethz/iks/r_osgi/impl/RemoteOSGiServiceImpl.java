@@ -187,7 +187,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	private static Map channels = new HashMap(0);
 
 	/**
-	 * Channel ID --> EndpointMultiplexer
+	 * Channel ID --> ChannelEndpointMultiplexer
 	 */
 	private static Map multiplexers = new HashMap(0);
 
@@ -736,12 +736,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		return getMultiplexer(remoteEndpointAddress.toString());
 	}
 
-	private EndpointMultiplexer getMultiplexer(final String uri) {
+	private ChannelEndpointMultiplexer getMultiplexer(final String uri) {
 		final String channel = getChannelURI(URI.create(uri));
-		EndpointMultiplexer multiplexer = (EndpointMultiplexer) multiplexers
+		ChannelEndpointMultiplexer multiplexer = (ChannelEndpointMultiplexer) multiplexers
 				.get(channel);
 		if (multiplexer == null) {
-			multiplexer = new EndpointMultiplexer(
+			multiplexer = new ChannelEndpointMultiplexer(
 					(ChannelEndpointImpl) channels.get(channel));
 			multiplexers.put(channel, multiplexer);
 		}
@@ -863,7 +863,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 */
 	static void unregisterChannel(final String channelURI) {
 		channels.remove(channelURI);
-		multiplexers.remove(channelURI);
+		multiplexers.get(channelURI);
 	}
 
 	/**

@@ -136,6 +136,16 @@ public final class BoxedPrimitive implements Serializable {
 	}
 
 	/**
+	 * box a <code>byte</code> value.
+	 * 
+	 * @param s
+	 *            the <code>short</code> value.
+	 */
+	public BoxedPrimitive(final byte b) {
+		boxed = new Byte(b);
+	}
+
+	/**
 	 * get the boxed value.
 	 * 
 	 * @return the boxing object.
