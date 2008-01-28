@@ -240,9 +240,7 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 										}.setVisible(true);
 									} catch (RemoteOSGiException e1) {
 										e1.printStackTrace();
-									} catch (UnknownHostException e2) {
-										e2.printStackTrace();
-									}
+									} 
 									setVisible(false);
 								}
 							});

@@ -603,8 +603,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			return channel.getRemoteReferences(null);
 		}
 		return channel.getRemoteReferences(RemoteOSGiActivator.context
-				.createFilter(filter != null ? "(&(" + filter + ")("
-						+ Constants.OBJECTCLASS + "=" + clazz + ")" : "("
+				.createFilter(filter != null ? "(&" + filter + "("
+						+ Constants.OBJECTCLASS + "=" + clazz + "))" : "("
 						+ Constants.OBJECTCLASS + "=" + clazz + ")"));
 	}
 

@@ -19,7 +19,7 @@ public class URI implements Serializable {
 
 	private String fragment;
 
-	public URI(final String uriString) throws UnknownHostException {
+	public URI(final String uriString) {
 		parse(uriString);
 	}
 
@@ -59,7 +59,7 @@ public class URI implements Serializable {
 		System.out.println(btUri);
 	}
 
-	private void parse(final String uriString) throws UnknownHostException {
+	private void parse(final String uriString) {
 		int cs = 0;
 		int ce = uriString.length();
 		final int p1 = uriString.indexOf("://");
@@ -79,7 +79,11 @@ public class URI implements Serializable {
 		}
 		hostName = uriString.substring(cs, ce);
 		if (scheme.startsWith("r-osgi") || scheme.startsWith("http")) {
-			host = InetAddress.getByName(hostName);
+			try {
+				host = InetAddress.getByName(hostName);
+			} catch (UnknownHostException uhe) {
+				host = null;
+			}
 		}
 	}
 
