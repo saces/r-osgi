@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: ch.ethz.iks.r_osgi.test
+Bundle-SymbolicName: ch.ethz.iks.r_osgi.test
+Bundle-Version: 1.0.0
+Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
+Import-Package: ch.ethz.iks.r_osgi.test.service,
+ org.apache.mina.common,
+ org.apache.mina.common.support,
+ org.apache.mina.filter,
+ org.apache.mina.filter.codec,
+ org.apache.mina.transport.socket.nio,
+ org.osgi.framework
+Require-Bundle: ch.ethz.iks.r_osgi.remote,
+ ch.ethz.iks.r_osgi.sample.service,
+ ch.ethz.iks.r_osgi.service.api,
+ org.junit,
+ ch.ethz.iks.r_osgi.transport.mina,
+ ch.ethz.iks.r_osgi.service_discovery.slp
+Bundle-Activator: ch.ethz.iks.r_osgi.test.Activator
+Eclipse-LazyStart: true
+Export-Package: ch.ethz.iks.r_osgi.test.service

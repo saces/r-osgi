@@ -4,7 +4,12 @@ Bundle-Name: ch.ethz.iks.r_osgi.mina
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.transport.mina
 Bundle-Version: 1.0.0
 Require-Bundle: ch.ethz.iks.r_osgi.remote
-Import-Package: org.osgi.framework
+Import-Package: org.apache.mina.common,
+ org.apache.mina.filter,
+ org.apache.mina.filter.codec,
+ org.apache.mina.filter.codec.demux,
+ org.apache.mina.transport.socket.nio,
+ org.osgi.framework
 Bundle-Activator: ch.ethz.iks.r_osgi.transport.mina.Activator
 Export-Package: ch.ethz.iks.r_osgi.transport.mina,
  ch.ethz.iks.r_osgi.transport.mina.codec
