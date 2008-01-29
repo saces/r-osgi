@@ -8,4 +8,6 @@ Require-Bundle: ch.ethz.iks.r_osgi.remote
 Bundle-Activator: ch.ethz.iks.r_osgi.transport.bluetooth.Activator
 Bundle-ClassPath: .
 Eclipse-LazyStart: true
-Import-Package: org.osgi.framework
+Import-Package: javax.bluetooth,
+ javax.microedition.io,
+ org.osgi.framework
