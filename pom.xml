@@ -44,6 +44,7 @@
   </organization>
   <modules>
     <module>remote</module>
+    <module>transport/mina</module>
     <module>sample/api</module>
     <module>sample/client</module>
     <module>sample/service</module>
@@ -84,11 +85,35 @@
       <version>3.0</version>
     </dependency>
     <dependency>
-	   <groupId>ch.ethz.iks.slp</groupId>
-	   <artifactId>jslp-osgi</artifactId>
-	   <version>1.0.0.RC2</version>
-	   <scope>provided</scope>
-	</dependency>	
+      <groupId>ch.ethz.iks.slp</groupId>
+      <artifactId>jslp-osgi</artifactId>
+      <version>1.0.0.RC2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>backport-util-concurrent</groupId>
+      <artifactId>backport-util-concurrent</artifactId>
+      <version>3.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.mina</groupId>
+      <artifactId>mina-core</artifactId>
+      <version>1.0.8</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.4.3</version>
+      <scope>provided</scope>
+    </dependency>		
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.4.3</version>
+      <scope>provided</scope>
+    </dependency>	    
   </dependencies>
   <reporting>
     <plugins>

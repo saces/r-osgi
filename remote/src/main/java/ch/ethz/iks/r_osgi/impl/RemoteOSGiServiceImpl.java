@@ -666,14 +666,16 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	}
 
 	public void disconnect(final URI endpoint) throws RemoteOSGiException {
+		final String channelURI = getChannelURI(endpoint).toString();
 		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
-				.get(getChannelURI(endpoint).toString());
+				.get(channelURI);
 		if (channel != null) {
 			if (channel.usageCounter == 1) {
 				System.err.println("DISCONNECTING " + endpoint);
 				channel.dispose();
+				multiplexers.remove(channelURI);
 			} else {
-				System.err.println("INCREMENTING USAGE OF " + endpoint);
+				System.err.println("DECREMENTING THE USAGE OF " + endpoint);
 				channel.usageCounter--;
 			}
 		} else {
@@ -863,7 +865,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 */
 	static void unregisterChannel(final String channelURI) {
 		channels.remove(channelURI);
-		multiplexers.get(channelURI);
 	}
 
 	/**
