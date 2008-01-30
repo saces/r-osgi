@@ -7,7 +7,8 @@ Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
 Require-Bundle: ch.ethz.iks.r_osgi.remote
 Bundle-Activator: ch.ethz.iks.r_osgi.transport.bluetooth.Activator
 Bundle-ClassPath: .
-Eclipse-LazyStart: true
 Import-Package: javax.bluetooth,
  javax.microedition.io,
  org.osgi.framework
+Eclipse-LazyStart: true
+Bundle-RequiredExecutionEnvironment: CDC-1.0/Foundation-1.0

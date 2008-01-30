@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: ch.ethz.iks.r_osgi.test
+Bundle-Name: R-OSGi JUnit Plugin Test
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.test
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.0.RC1
 Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
 Import-Package: ch.ethz.iks.r_osgi.test.service,
  org.apache.mina.common,

@@ -52,7 +52,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.ItemListener;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.osgi.framework.InvalidSyntaxException;

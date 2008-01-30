@@ -24,7 +24,7 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 		// building a proxy on the client side
 		final Hashtable properties = new Hashtable();
 		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
-				RemoteOSGiService.SERVICE_PROXY_POLICY);
+				Boolean.TRUE);
 		properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class
 				.getName());
 
