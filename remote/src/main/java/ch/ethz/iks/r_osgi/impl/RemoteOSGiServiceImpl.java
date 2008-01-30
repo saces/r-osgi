@@ -590,6 +590,17 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		return null;
 	}
 
+	public RemoteServiceReference getRemoteServiceReference(URI serviceURI) {
+		final String uri = getChannelURI(serviceURI);
+		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
+				.get(getChannelURI(serviceURI));
+		if (channel == null) {
+			connect(serviceURI);
+			channel = (ChannelEndpointImpl) channels.get(uri);
+		}		
+		return channel.getRemoteReference(serviceURI.toString());
+	}
+
 	public RemoteServiceReference[] getRemoteServiceReferences(URI service,
 			final String clazz, final Filter filter)
 			throws InvalidSyntaxException {
@@ -600,9 +611,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			channel = (ChannelEndpointImpl) channels.get(uri);
 		}
 		if (clazz == null) {
-			return channel.getRemoteReferences(null);
+			return channel.getAllRemoteReferences(null);
 		}
-		return channel.getRemoteReferences(RemoteOSGiActivator.context
+		return channel.getAllRemoteReferences(RemoteOSGiActivator.context
 				.createFilter(filter != null ? "(&" + filter + "("
 						+ Constants.OBJECTCLASS + "=" + clazz + "))" : "("
 						+ Constants.OBJECTCLASS + "=" + clazz + ")"));
@@ -630,7 +641,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 				.get(endpoint.toString());
 		if (test != null) {
 			test.usageCounter++;
-			return test.getRemoteReferences(null);
+			return test.getAllRemoteReferences(null);
 		}
 
 		try {

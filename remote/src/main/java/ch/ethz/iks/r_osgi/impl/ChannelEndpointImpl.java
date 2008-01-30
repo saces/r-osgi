@@ -668,13 +668,24 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
+	 * get the remote reference for a given serviceID.
+	 * 
+	 * @param serviceID
+	 *            the uri.
+	 * @return the remote service reference, or <code>null</code>.
+	 */
+	RemoteServiceReferenceImpl getRemoteReference(final String uri) {
+		return (RemoteServiceReferenceImpl) remoteServices.get(uri);
+	}
+
+	/**
 	 * Get the remote references.
 	 * 
 	 * @param filter
 	 *            a filter, or <code>null</code>.
 	 * @return all remote service references which match the filter.
 	 */
-	RemoteServiceReference[] getRemoteReferences(final Filter filter) {
+	RemoteServiceReference[] getAllRemoteReferences(final Filter filter) {
 		final List result = new ArrayList();
 		final RemoteServiceReferenceImpl[] refs = (RemoteServiceReferenceImpl[]) remoteServices
 				.values().toArray(
@@ -791,19 +802,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				return null;
 			}
 		}
-	}
-
-	/**
-	 * get the remote reference for a given URI.
-	 * 
-	 * @param serviceID
-	 *            the uri.
-	 * @return the remote service reference, or <code>null</code>.
-	 */
-	private RemoteServiceReferenceImpl getRemoteReference(final String serviceID) {
-		System.out.println("REQUESTED " + serviceID);
-		System.out.println("HAVING " + remoteServices);
-		return (RemoteServiceReferenceImpl) remoteServices.get(serviceID);
 	}
 
 	/**

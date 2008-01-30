@@ -29,7 +29,8 @@ import ch.ethz.iks.util.Scheduler;
 public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 		ScheduleListener {
 
-	private static final int DISCOVERY_INTERVAL = 10;
+	// TODO: make it configurable
+	private static final int DISCOVERY_INTERVAL = 30;
 
 	/**
 	 * SLP registration scheduler.

@@ -62,12 +62,14 @@ import ch.ethz.iks.r_osgi.RemoteServiceListener;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
+import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryListener;
 import ch.ethz.iks.r_osgi.types.ServiceUIComponent;
 
 /**
  * @author Jan S. Rellermeyer, ETH Zurich
  */
-class ServiceUI extends Frame implements RemoteServiceListener {
+class ServiceUI extends Frame implements RemoteServiceListener,
+		ServiceDiscoveryListener {
 
 	private static final long serialVersionUID = 7556679981800636909L;
 
@@ -210,10 +212,8 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 															.addActionListener(new ActionListener() {
 																public void actionPerformed(
 																		final ActionEvent e) {
-																	final RemoteServiceReference selected = (RemoteServiceReference) knownServices
-																			.get(list
-																					.getSelectedItem());
-																	fetchService(selected);
+																	fetchService(list
+																			.getSelectedItem());
 																	setVisible(false);
 																}
 															});
@@ -239,7 +239,7 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 										}.setVisible(true);
 									} catch (RemoteOSGiException e1) {
 										e1.printStackTrace();
-									} 
+									}
 									setVisible(false);
 								}
 							});
@@ -257,9 +257,7 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 		service.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent evt) {
 				String serviceName = (String) evt.getItem();
-				RemoteServiceReference ref = (RemoteServiceReference) knownServices
-						.get(serviceName);
-				fetchService(ref);
+				fetchService(serviceName);
 				service.remove(serviceName);
 			}
 		});
@@ -274,8 +272,16 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 		setVisible(true);
 	}
 
-	private void fetchService(final RemoteServiceReference ref) {
+	private void fetchService(final String uri) {
 		try {
+			RemoteServiceReference ref = (RemoteServiceReference) knownServices
+					.get(uri);
+
+			if (ref == null) {
+				ref = ServiceUIActivator.remote.getRemoteServiceReference(new URI(uri));
+				knownServices.put(uri, ref);
+			}
+			
 			ServiceUIActivator.remote.getRemoteService(ref);
 			if (ref != null) {
 				String presentation = (String) ref
@@ -390,5 +396,26 @@ class ServiceUI extends Frame implements RemoteServiceListener {
 			return;
 		}
 
+	}
+
+	public void announceService(String serviceInterface, URI uri) {
+
+		// knownServices.put(uri.toString(), ref);
+		statusLine.setText("New " + uri);
+		new CleanStatusLineThread();
+		service.add(uri.toString());
+		service.invalidate();
+		validate();
+		return;
+	}
+
+	public void discardService(String serviceInterface, URI uri) {
+		knownServices.remove(uri.toString());
+		statusLine.setText("Lost " + uri);
+		new CleanStatusLineThread();
+		removePanel(uri.toString());
+		service.invalidate();
+		validate();
+		return;
 	}
 }

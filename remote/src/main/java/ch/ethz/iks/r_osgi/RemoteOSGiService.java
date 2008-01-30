@@ -171,6 +171,9 @@ public interface RemoteOSGiService {
 	 */
 	void disconnect(final URI endpoint) throws RemoteOSGiException;
 
+	
+	public RemoteServiceReference getRemoteServiceReference(final URI serviceURI);
+	
 	/**
 	 * 
 	 * @param url
@@ -179,7 +182,7 @@ public interface RemoteOSGiService {
 	 * @return
 	 * @throws InvalidSyntaxException
 	 */
-	public RemoteServiceReference[] getRemoteServiceReferences(final URI uri,
+	public RemoteServiceReference[] getRemoteServiceReferences(final URI endpointAddress,
 			final String clazz, final Filter filter)
 			throws InvalidSyntaxException;
 
