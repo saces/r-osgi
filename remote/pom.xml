@@ -9,7 +9,7 @@
 	<groupId>ch.ethz.iks.r-osgi</groupId>
 	<artifactId>remote</artifactId>
 	<packaging>osgi-bundle</packaging>
-	<name>R-OSGi Remote</name>
+	<name>R-OSGi Remote Service</name>
 	
 	<build>
 		<resources>
@@ -37,12 +37,12 @@
 				<configuration>
 					<osgiManifest>
 						<bundleActivator>ch.ethz.iks.r_osgi.impl.RemoteOSGiActivator</bundleActivator>
-						<bundleName>R-OSGi</bundleName>
+						<bundleName>R-OSGi Remote Service</bundleName>
 						<bundleSymbolicName>ch.ethz.iks.r_osgi.remote</bundleSymbolicName>
-						<bundleDescription>R-OSGi remote bundle</bundleDescription>
-						<bundleVendor>Jan S. Rellermeyer, IKS, ETH Zurich</bundleVendor>
+						<bundleDescription>R-OSGi Remote Service</bundleDescription>
+						<bundleVendor>Jan S. Rellermeyer, ETH Zurich</bundleVendor>
 						<importPackage>org.osgi.framework, org.osgi.util.tracker, org.osgi.service.log, org.osgi.service.event</importPackage>
-						<exportPackage>org.osgi.service.event, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.channels, ch.ethz.iks.r_osgi.types, ch.ethz.iks.util, org.objectweb.asm</exportPackage>
+						<exportPackage>ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.channels, ch.ethz.iks.r_osgi.messages, ch.ethz.iks.r_osgi.types, ch.ethz.iks.r_osgi.service_discovery, ch.ethz.iks.util, org.objectweb.asm</exportPackage>
 						<dynamicImportPackage>*</dynamicImportPackage>
 					</osgiManifest>
 				</configuration>

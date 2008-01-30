@@ -35,7 +35,7 @@
 						<bundleSymbolicName>ch.ethz.iks.clock</bundleSymbolicName>						
 						<bundleDescription>R-OSGi Clock</bundleDescription>
 						<bundleVendor>Jan S. Rellermeyer, IKS, ETH Zurich</bundleVendor>
-						<importPackage>org.osgi.framework, org.osgi.service.event, ch.ethz.iks.r_osgi, ch.ethz.iks.util</importPackage>
+						<importPackage>org.osgi.framework, org.osgi.service.event, ch.ethz.iks.r_osgi.types, ch.ethz.iks.util</importPackage>
 						<exportPackage>ch.ethz.iks.clock</exportPackage>
 					</osgiManifest>
 				</configuration>
@@ -54,6 +54,12 @@
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi</artifactId>
       <version>3.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.ethz.iks.concierge</groupId>
+      <artifactId>event-admin</artifactId>
+      <version>1.0.0.RC2</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

@@ -33,8 +33,8 @@
 						<bundleActivator>ch.ethz.iks.r_osgi.serviceUI.ServiceUIActivator</bundleActivator>
 						<bundleName>R-OSGi ServiceUI</bundleName>
 						<bundleSymbolicName>ch.ethz.iks.r_osgi.serviceUI</bundleSymbolicName>
-						<bundleVendor>Jan S. Rellermeyer, IKS, ETH Zurich</bundleVendor>
-						<importPackage>org.osgi.framework, org.osgi.service.event, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.types</importPackage>
+						<bundleVendor>Jan S. Rellermeyer, ETH Zurich</bundleVendor>
+						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.types</importPackage>
 					</osgiManifest>
 				</configuration>
 			</plugin>

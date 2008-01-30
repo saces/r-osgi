@@ -34,7 +34,7 @@
 						<bundleName>R-OSGi Bluetooth Transport and Service Discovery</bundleName>
 						<bundleSymbolicName>ch.ethz.iks.r_osgi.transport.bluetooth</bundleSymbolicName>						
 						<bundleVendor>Jan S. Rellermeyer, ETH Zurich</bundleVendor>
-						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.messages, ch.ethz.iks.r_osgi.channels, ch.ethz.iks.r_osgi.service_discovery, javax.bluetooth</importPackage>
+						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.messages, ch.ethz.iks.r_osgi.channels, ch.ethz.iks.r_osgi.service_discovery, javax.bluetooth, javax.microedition.io</importPackage>
 					</osgiManifest>
 				</configuration>
 			</plugin>
@@ -53,11 +53,6 @@
 			<artifactId>remote</artifactId>
 			<version>${pom.version}</version>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>ch.ethz.iks.r-osgi.sample</groupId>
-			<artifactId>sample.api</artifactId>
-			<version>${pom.version}</version>
 		</dependency>
     	<dependency>
       		<groupId>net.sf.bluecove</groupId>

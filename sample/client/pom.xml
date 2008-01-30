@@ -33,8 +33,8 @@
 						<bundleActivator>ch.ethz.iks.r_osgi.sample.client.Activator</bundleActivator>
 						<bundleName>R-OSGi Sample Client</bundleName>
 						<bundleSymbolicName>ch.ethz.iks.r_osgi.sample.client</bundleSymbolicName>						
-						<bundleVendor>Jan S. Rellermeyer, IKS, ETH Zurich</bundleVendor>
-						<importPackage>org.osgi.framework, org.osgi.service.event, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.sample.api</importPackage>
+						<bundleVendor>Jan S. Rellermeyer, ETH Zurich</bundleVendor>
+						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.sample.api</importPackage>
 					</osgiManifest>
 				</configuration>
 			</plugin>

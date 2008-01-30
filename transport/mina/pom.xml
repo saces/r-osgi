@@ -34,7 +34,7 @@
 						<bundleName>R-OSGi Mina Transport</bundleName>
 						<bundleSymbolicName>ch.ethz.iks.r_osgi.transport.mina</bundleSymbolicName>						
 						<bundleVendor>Jan S. Rellermeyer, ETH Zurich</bundleVendor>
-						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.messages, ch.ethz.iks.r_osgi.channels</importPackage>
+						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.messages, ch.ethz.iks.r_osgi.channels, org.apache.mina.common, org.apache.mina.common.support, org.apache.mina.filter, org.apache.mina.filter.codec, org.apache.mina.filter.codec.demux, org.apache.mina.transport.socket.nio</importPackage>
 					</osgiManifest>
 				</configuration>
 			</plugin>

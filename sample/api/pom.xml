@@ -32,7 +32,7 @@
 					<osgiManifest>
 						<bundleName>R-OSGi Sample API</bundleName>
 						<bundleSymbolicName>ch.ethz.iks.r_osgi.sample.api</bundleSymbolicName>						
-						<bundleVendor>Jan S. Rellermeyer, IKS, ETH Zurich</bundleVendor>
+						<bundleVendor>Jan S. Rellermeyer, ETH Zurich</bundleVendor>
 						<exportPackage>ch.ethz.iks.r_osgi.sample.api</exportPackage>
 					</osgiManifest>
 				</configuration>
