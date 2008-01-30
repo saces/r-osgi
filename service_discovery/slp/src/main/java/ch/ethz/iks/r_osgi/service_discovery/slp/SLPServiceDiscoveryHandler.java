@@ -323,7 +323,7 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 					} catch (RemoteOSGiException re) {
 						re.printStackTrace();
 					}
-					Thread.sleep(DISCOVERY_INTERVAL);
+					Thread.sleep(DISCOVERY_INTERVAL * 1000);
 				}
 			} catch (InterruptedException ie) {
 				ie.printStackTrace();
