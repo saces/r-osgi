@@ -6,6 +6,7 @@ Bundle-Version: 1.0.0.RC1
 Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
 Import-Package: org.osgi.framework
 Require-Bundle: ch.ethz.iks.r_osgi.remote
-Bundle-RequiredExecutionEnvironment: CDC-1.0/Foundation-1.0
+Bundle-RequiredExecutionEnvironment: CDC-1.0/Foundation-1.0,
+ OSGi/Minimum-1.0
 Eclipse-LazyStart: false
 Bundle-Activator: ch.ethz.iks.r_osgi.serviceUI.ServiceUIActivator

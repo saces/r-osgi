@@ -19,5 +19,6 @@ DynamicImport-Package: *
 Bundle-ClassPath: .,
  asm-3.0.jar
 Bundle-Activator: ch.ethz.iks.r_osgi.impl.RemoteOSGiActivator
-Bundle-RequiredExecutionEnvironment: CDC-1.0/Foundation-1.0
+Bundle-RequiredExecutionEnvironment: CDC-1.0/Foundation-1.0,
+ OSGi/Minimum-1.0
 Eclipse-LazyStart: true
