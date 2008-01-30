@@ -34,7 +34,7 @@
 						<bundleName>R-OSGi SLP Service Discovery</bundleName>
 						<bundleSymbolicName>ch.ethz.iks.r_osgi.service_discovery.slp</bundleSymbolicName>						
 						<bundleVendor>Jan S. Rellermeyer, ETH Zurich</bundleVendor>
-						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi.service_discovery, ch.ethz.iks.slp</importPackage>
+						<importPackage>org.osgi.framework, org.osgi.util.tracker, ch.ethz.iks.r_osgi, ch.ethz.iks.util, ch.ethz.iks.r_osgi.service_discovery, ch.ethz.iks.slp</importPackage>
 					</osgiManifest>
 				</configuration>
 			</plugin>

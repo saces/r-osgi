@@ -44,12 +44,12 @@
   </organization>
   <modules>
     <module>remote</module>
-    <module>transport/mina</module>
-    <module>transport/bluetooth</module>
     <module>sample/api</module>
     <module>sample/client</module>
     <module>sample/service</module>
     <module>sample/clockservice</module>
+    <module>transport/mina</module>
+    <module>transport/bluetooth</module>
     <module>service_discovery/slp</module>
     <module>serviceUI</module>
   </modules>
