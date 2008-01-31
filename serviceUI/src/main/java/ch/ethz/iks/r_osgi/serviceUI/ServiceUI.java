@@ -53,7 +53,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import ch.ethz.iks.r_osgi.URI;
@@ -98,6 +103,8 @@ class ServiceUI extends Frame implements RemoteServiceListener,
 	private HashMap knownServices = new HashMap(2);
 
 	private HashMap serviceString_panel = new HashMap(2);
+
+	private Set discoveredServices = new HashSet();
 
 	ServiceUI() {
 		super("R-OSGi ServiceUI");
@@ -272,16 +279,21 @@ class ServiceUI extends Frame implements RemoteServiceListener,
 		setVisible(true);
 	}
 
-	private void fetchService(final String uri) {
+	private void fetchService(final String service) {
+		System.out.println("sERVICE " + service);
+		System.out.println("SUB " + service.indexOf("@"));
+		final String uri = service.substring(service.indexOf("@") + 1);
+
 		try {
 			RemoteServiceReference ref = (RemoteServiceReference) knownServices
 					.get(uri);
 
 			if (ref == null) {
-				ref = ServiceUIActivator.remote.getRemoteServiceReference(new URI(uri));
+				ref = ServiceUIActivator.remote
+						.getRemoteServiceReference(new URI(uri));
 				knownServices.put(uri, ref);
 			}
-			
+
 			ServiceUIActivator.remote.getRemoteService(ref);
 			if (ref != null) {
 				String presentation = (String) ref
@@ -339,6 +351,9 @@ class ServiceUI extends Frame implements RemoteServiceListener,
 
 	private void removePanel(String name) {
 		Panel panel = (Panel) serviceString_panel.remove(name);
+		if (panel == null) {
+			return;
+		}
 		selector.remove(name);
 		selector.invalidate();
 		if (panels.indexOf(name) == currentPanel) {
@@ -375,22 +390,27 @@ class ServiceUI extends Frame implements RemoteServiceListener,
 
 	public void remoteServiceEvent(final RemoteServiceEvent event) {
 		final RemoteServiceReference ref = event.getRemoteReference();
-		final String url = event.getRemoteReference().getURI().toString();
+		final String uri = event.getRemoteReference().getURI().toString();
+		final String[] interfaces = (String[]) ref
+				.getProperty(Constants.OBJECTCLASS);
 
 		switch (event.getType()) {
 		case RemoteServiceEvent.REGISTERED:
-			knownServices.put(url, ref);
-			statusLine.setText("New " + url);
-			new CleanStatusLineThread();
-			service.add(url);
-			service.invalidate();
-			validate();
+			knownServices.put(uri, ref);
+			if (!discoveredServices.contains(uri)) {
+				statusLine.setText("New " + uri);
+				new CleanStatusLineThread();
+				service.add(Arrays.asList(interfaces) + "@" + uri);
+				service.invalidate();
+				validate();
+			}
 			return;
 		case RemoteServiceEvent.UNREGISTERING:
-			knownServices.remove(url);
-			statusLine.setText("Lost " + url);
+			knownServices.remove(uri);
+			discoveredServices.remove(uri);
+			statusLine.setText("Lost " + uri);
 			new CleanStatusLineThread();
-			removePanel(url);
+			removePanel(Arrays.asList(interfaces) + "@" + uri);
 			service.invalidate();
 			validate();
 			return;
@@ -399,22 +419,28 @@ class ServiceUI extends Frame implements RemoteServiceListener,
 	}
 
 	public void announceService(String serviceInterface, URI uri) {
-
-		// knownServices.put(uri.toString(), ref);
+		discoveredServices.add(uri.toString());
 		statusLine.setText("New " + uri);
 		new CleanStatusLineThread();
-		service.add(uri.toString());
+		service.add(serviceInterface + "@" + uri.toString());
 		service.invalidate();
 		validate();
 		return;
 	}
 
 	public void discardService(String serviceInterface, URI uri) {
-		knownServices.remove(uri.toString());
+		discoveredServices.remove(uri.toString());
 		statusLine.setText("Lost " + uri);
 		new CleanStatusLineThread();
+		final String serviceStr = serviceInterface + "@" + uri.toString();
+		for (int i = 0; i < service.getItemCount(); i++) {
+			if (service.getItem(i).equals(serviceStr)) {
+				service.remove(serviceStr);
+				service.invalidate();
+				continue;
+			}
+		}
 		removePanel(uri.toString());
-		service.invalidate();
 		validate();
 		return;
 	}

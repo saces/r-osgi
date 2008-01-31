@@ -3,9 +3,12 @@ package ch.ethz.iks.r_osgi.service_discovery.slp;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
@@ -30,7 +33,7 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 		ScheduleListener {
 
 	// TODO: make it configurable
-	private static final int DISCOVERY_INTERVAL = 30;
+	private static final int DISCOVERY_INTERVAL = 20;
 
 	/**
 	 * SLP registration scheduler.
@@ -47,7 +50,7 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 
 	private boolean hasListeners = false;
 
-	private ArrayList seenServices = new ArrayList();
+	private Set seenServices = new HashSet();
 
 	// known to a certain listener ?
 	// sref -> [known service urls]
@@ -191,9 +194,16 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 				.announceService(serviceInterfaceName, uri);
 	}
 
-	private void discardService(ServiceURL lostService) {
-		// TODO: implement
+	private void discardService(final URI uri,
+			final String serviceInterfaceName, final ServiceReference ref) {
+		((ServiceDiscoveryListener) discoveryListenerTracker.getService(ref))
+				.discardService(serviceInterfaceName, uri);
+	}
 
+	private URI uriFromServiceURL(final ServiceURL service) {
+		return URI.create(service.getProtocol() + "://" + service.getHost()
+				+ ":" + service.getPort() + "#"
+				+ service.getURLPath().substring(1));
 	}
 
 	private final class DiscoveryThread extends Thread {
@@ -232,14 +242,7 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 								}
 
 								// create the URI
-								final URI uri = URI.create(service
-										.getProtocol()
-										+ "://"
-										+ service.getHost()
-										+ ":"
-										+ service.getPort()
-										+ "#"
-										+ service.getURLPath().substring(1));
+								final URI uri = uriFromServiceURL(service);
 
 								// find the srefs that match
 								final List l = (List) queries.get(filters[i]);
@@ -253,7 +256,8 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 										final List known = (List) knownServices
 												.get(refs[j]);
 										if (known == null
-												|| !known.contains(service)) {
+												|| !known.contains(service
+														.toString())) {
 
 											// does the listener look for this
 											// type
@@ -276,10 +280,6 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 											}
 
 											for (int k = 0; k < interfaces.length; k++) {
-												System.out.println("CHECKING "
-														+ interfaces[k]
-														+ " against "
-														+ serviceInterfaceName);
 												if (interfaces[k]
 														.equals(serviceInterfaceName)) {
 													CollectionUtils
@@ -313,9 +313,22 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 							} else {
 								warningList.remove(lostService);
 								seenServices.remove(lostService);
-								// be polite: first notify the listeners and
-								// then unregister the proxy bundle ...
-								discardService(lostService);
+								final URI uri = uriFromServiceURL(lostService);
+								final ServiceReference[] refs = (ServiceReference[]) discoveryListenerTracker
+										.getServiceReferences();
+								for (int i = 0; i < refs.length; i++) {
+									final List known = (List) knownServices
+											.get(refs[i]);
+									if (known != null
+											&& known.contains(lostService
+													.toString())) {
+										known.remove(lostService.toString());
+										discardService(uri, lostService
+												.getServiceType()
+												.getConcreteTypeName().replace(
+														'/', '.'), refs[i]);
+									}
+								}
 							}
 						}
 					} catch (ServiceLocationException sle) {
