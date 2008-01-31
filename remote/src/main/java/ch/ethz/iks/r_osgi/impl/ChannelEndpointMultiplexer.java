@@ -34,7 +34,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	private Map mappings = new HashMap();
 
 	ChannelEndpointMultiplexer(final ChannelEndpointImpl primary) {
-		this.primary = primary;
+		this.primary = primary;		
 	}
 
 	public void dispose() {
@@ -186,9 +186,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	public void addRedundantEndpoint(URI service, URI redundantService) {
 		final ChannelEndpoint redundantEndpoint = RemoteOSGiServiceImpl
 				.getChannel(redundantService);
-		System.err.println("for service " + service
-				+ " adding redundant service " + redundantService + " through "
-				+ redundantEndpoint);
+		primary.hasRedundantLinks = true;
 		Mapping mapping = (Mapping) mappings.get(service);
 		if (mapping == null) {
 			mapping = new Mapping(service.toString());
@@ -208,13 +206,11 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 		mapping.removeRedundant(redundantEndpoint);
 		if (mapping.isEmpty()) {
 			mappings.remove(service);
+			primary.hasRedundantLinks = false;
 		}
 	}
 
 	public void setEndpointPolicy(URI service, int policy) {
-		System.err.println();
-		System.err.println("SETTING POLICY FOR SERVICE " + service + " TO "
-				+ policy);
 		policies.put(service.toString(), new Integer(policy));
 	}
 
