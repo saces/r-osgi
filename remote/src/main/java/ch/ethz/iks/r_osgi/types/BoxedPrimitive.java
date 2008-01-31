@@ -62,6 +62,7 @@ public final class BoxedPrimitive implements Serializable {
 	 *            the object.
 	 */
 	public BoxedPrimitive(final Object o) {
+		this();
 		boxed = o;
 	}
 

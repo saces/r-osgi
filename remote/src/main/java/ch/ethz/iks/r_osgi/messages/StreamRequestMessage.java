@@ -32,8 +32,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import ch.ethz.iks.util.SmartSerializer;
-
 /**
  * Stream request message.
  * 

@@ -30,7 +30,6 @@ package ch.ethz.iks.r_osgi;
 
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
-import ch.ethz.iks.r_osgi.types.Timestamp;
 
 /**
  * This interface is used by generated proxy bundles. Applications don't have to

@@ -599,8 +599,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	}
 
 	public RemoteServiceReference[] getRemoteServiceReferences(URI service,
-			final String clazz, final Filter filter)
-			throws InvalidSyntaxException {
+			final String clazz, final Filter filter) {
 		final String uri = getChannelURI(service);
 		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels.get(uri);
 		if (channel == null) {
@@ -610,10 +609,15 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		if (clazz == null) {
 			return channel.getAllRemoteReferences(null);
 		}
-		return channel.getAllRemoteReferences(RemoteOSGiActivator.context
-				.createFilter(filter != null ? "(&" + filter + "("
-						+ Constants.OBJECTCLASS + "=" + clazz + "))" : "("
-						+ Constants.OBJECTCLASS + "=" + clazz + ")"));
+		try {
+			return channel.getAllRemoteReferences(RemoteOSGiActivator.context
+					.createFilter(filter != null ? "(&" + filter + "("
+							+ Constants.OBJECTCLASS + "=" + clazz + "))" : "("
+							+ Constants.OBJECTCLASS + "=" + clazz + ")"));
+		} catch (InvalidSyntaxException ise) {
+			ise.printStackTrace();
+			return null;
+		}
 	}
 
 	/**
@@ -777,7 +781,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 				((NetworkChannelFactory) factories[i]).deactivate(this);
 			} catch (IOException ioe) {
 				if (log != null) {
-				log.log(LogService.LOG_ERROR, ioe.getMessage(), ioe);
+					log.log(LogService.LOG_ERROR, ioe.getMessage(), ioe);
 				}
 			}
 		}

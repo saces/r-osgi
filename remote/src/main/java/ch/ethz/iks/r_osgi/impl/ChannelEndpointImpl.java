@@ -1053,6 +1053,15 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				return null;
 			}
 			case LeaseUpdateMessage.SERVICE_REMOVED: {
+				final RemoteServiceReference ref = (RemoteServiceReference) remoteServices
+						.remove(getRemoteAddress().resolve("#" + serviceID)
+								.toString());
+				if (ref != null) {
+					RemoteOSGiServiceImpl
+							.notifyRemoteServiceListeners(new RemoteServiceEvent(
+									RemoteServiceEvent.UNREGISTERING, ref));
+				}
+
 				final Bundle bundle = (Bundle) proxyBundles.remove(serviceID);
 				if (bundle != null) {
 					try {
@@ -1063,14 +1072,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					proxiedServices.remove(serviceID);
 					remoteServices.remove(getRemoteAddress().resolve(
 							"#" + serviceID).toString());
-				}
-				final RemoteServiceReference ref = (RemoteServiceReference) remoteServices
-						.remove(getRemoteAddress().resolve("#" + serviceID)
-								.toString());
-				if (ref != null) {
-					RemoteOSGiServiceImpl
-							.notifyRemoteServiceListeners(new RemoteServiceEvent(
-									RemoteServiceEvent.UNREGISTERING, ref));
 				}
 				return null;
 			}

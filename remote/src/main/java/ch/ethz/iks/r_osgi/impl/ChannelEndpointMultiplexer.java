@@ -45,6 +45,7 @@ import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpointManager;
 
 /**
+ * Channel endpoint multiplexer. <i>EXPERIMENTAL</i>
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
  */
@@ -52,39 +53,71 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 		ChannelEndpointManager {
 
 	/**
-	 * 
+	 * the primary channel.
 	 */
 	private ChannelEndpointImpl primary;
 
 	/**
-	 * 
+	 * the policies.
 	 */
 	private HashMap policies = new HashMap(0);
 
+	/**
+	 * the service registration.
+	 */
 	private ServiceRegistration reg;
 
+	/**
+	 * the mappings.
+	 */
 	private Map mappings = new HashMap();
 
+	/**
+	 * create a new channel endpoint multiplexer.
+	 * 
+	 * @param primary
+	 *            the primary channel endpoint.
+	 */
 	ChannelEndpointMultiplexer(final ChannelEndpointImpl primary) {
 		this.primary = primary;
 	}
 
+	/**
+	 * dispose the multiplexer
+	 */
 	public void dispose() {
 
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#getPresentationProperties(java.lang.String)
+	 */
 	public Dictionary getPresentationProperties(String serviceURL) {
 		return primary.getPresentationProperties(serviceURL);
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#getProperties(java.lang.String)
+	 */
 	public Dictionary getProperties(String serviceURL) {
 		return primary.getProperties(serviceURL);
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#getRemoteAddress()
+	 */
 	public URI getRemoteAddress() {
 		return primary.getRemoteAddress();
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#invokeMethod(java.lang.String,
+	 *      java.lang.String, java.lang.Object[])
+	 */
 	public Object invokeMethod(String serviceURI, String methodSignature,
 			Object[] args) throws Throwable {
 		final Mapping mapping = (Mapping) mappings.get(serviceURI);
@@ -156,39 +189,54 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 		}
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#receivedMessage(ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage)
+	 */
 	public void receivedMessage(RemoteOSGiMessage msg) {
 		throw new IllegalArgumentException(
 				"Not supported through endpoint multiplexer");
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#trackRegistration(java.lang.String,
+	 *      org.osgi.framework.ServiceRegistration)
+	 */
 	public void trackRegistration(final String service,
 			final ServiceRegistration reg) {
 		this.reg = reg;
 		primary.trackRegistration(service, reg);
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#untrackRegistration(java.lang.String)
+	 */
 	public void untrackRegistration(final String service) {
 		primary.untrackRegistration(service);
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#isConnected()
+	 */
 	public boolean isConnected() {
 		return true;
 	}
 
+	/**
+	 * Mapping.
+	 * 
+	 */
 	private class Mapping {
 
-		private String serviceURI;
 		private Random random = new Random(System.currentTimeMillis());
 		private List redundant = new ArrayList(0);
 		private Map uriMapping = new HashMap(0);
 
 		private Mapping(final String serviceURI) {
-			this.serviceURI = serviceURI;
 			uriMapping.put(primary, serviceURI);
-		}
-
-		private ChannelEndpoint getOne() {
-			return primary;
 		}
 
 		private void addRedundant(final String redundantServiceURI,
@@ -225,6 +273,11 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpointManager#addRedundantEndpoint(ch.ethz.iks.r_osgi.URI,
+	 *      ch.ethz.iks.r_osgi.URI)
+	 */
 	public void addRedundantEndpoint(URI service, URI redundantService) {
 		final ChannelEndpoint redundantEndpoint = RemoteOSGiServiceImpl
 				.getChannel(redundantService);
@@ -237,10 +290,19 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 		mapping.addRedundant(redundantService.toString(), redundantEndpoint);
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpointManager#getLocalAddress()
+	 */
 	public URI getLocalAddress() {
 		return primary.getLocalAddress();
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpointManager#removeRedundantEndpoint(ch.ethz.iks.r_osgi.URI,
+	 *      ch.ethz.iks.r_osgi.URI)
+	 */
 	public void removeRedundantEndpoint(URI service, URI redundantService) {
 		final ChannelEndpoint redundantEndpoint = RemoteOSGiServiceImpl
 				.getChannel(redundantService);
@@ -252,6 +314,11 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 		}
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpointManager#setEndpointPolicy(ch.ethz.iks.r_osgi.URI,
+	 *      int)
+	 */
 	public void setEndpointPolicy(URI service, int policy) {
 		policies.put(service.toString(), new Integer(policy));
 	}

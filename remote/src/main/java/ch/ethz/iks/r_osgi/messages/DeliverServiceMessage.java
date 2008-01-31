@@ -34,7 +34,6 @@ import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import ch.ethz.iks.r_osgi.RemoteOSGiException;
 
 /**
  * <p>

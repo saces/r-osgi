@@ -29,10 +29,8 @@
 package ch.ethz.iks.r_osgi;
 
 import org.osgi.framework.Filter;
-import org.osgi.framework.InvalidSyntaxException;
 import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpointManager;
-import ch.ethz.iks.r_osgi.types.Timestamp;
 
 /**
  * <p>
@@ -171,35 +169,62 @@ public interface RemoteOSGiService {
 	 */
 	void disconnect(final URI endpoint) throws RemoteOSGiException;
 
-	
-	public RemoteServiceReference getRemoteServiceReference(final URI serviceURI);
-	
 	/**
+	 * get a remote service reference for a given URI.
 	 * 
-	 * @param url
-	 * @param clazz
-	 * @param filter
-	 * @return
-	 * @throws InvalidSyntaxException
+	 * @param serviceURI
+	 *            the uri of the service. Has to be a channel URI including a
+	 *            fragment, which is the service ID on the other peer.
+	 * @return the remote service reference, or <code>null</code>, if the
+	 *         service is not present.
 	 */
-	public RemoteServiceReference[] getRemoteServiceReferences(final URI endpointAddress,
-			final String clazz, final Filter filter)
-			throws InvalidSyntaxException;
+	RemoteServiceReference getRemoteServiceReference(final URI serviceURI);
 
 	/**
-	 * get the service that has just been fetched. Only works if the service has
-	 * been fetched in form of a proxy.
+	 * get remote service references for all services on a certain peer that
+	 * match the given criteria.
 	 * 
-	 * @param url
-	 *            the service url.
+	 * @param endpointAddress
+	 *            the URI of the peer.
+	 * @param clazz
+	 *            a service interface class, or <code>null</code> for all
+	 *            services.
+	 * @param filter
+	 *            a filter string, or <code>null</code>
+	 * @return an array of remote service references, or <code>null</code> if
+	 *         no services match.
+	 */
+	RemoteServiceReference[] getRemoteServiceReferences(
+			final URI endpointAddress, final String clazz, final Filter filter);
+
+	/**
+	 * get the a remote service. If there is no proxy bundle for the service so
+	 * far, it is generated.
+	 * 
+	 * @param ref
+	 *            the remote service reference.
 	 * @return the service belonging to the service url or null, if no such
 	 *         service is present.
 	 */
 	Object getRemoteService(final RemoteServiceReference ref);
 
-	void ungetRemoteService(RemoteServiceReference remoteServiceReference);
+	/**
+	 * unget the service. The proxy bundle will be uninstalled. The service will
+	 * be no longer available, unless it is retrieved through
+	 * {@link #getRemoteService(RemoteServiceReference)} again.
+	 * 
+	 * @param remoteServiceReference
+	 */
+	void ungetRemoteService(final RemoteServiceReference remoteServiceReference);
 
-	
+	/**
+	 * get the endpoint manager for a channel to a given remote peer.
+	 * 
+	 * @param remoteEndpointAddress
+	 *            the endpoint address of the remote peer.
+	 * @return the endpoint manager, or <code>null</code> if no such channel
+	 *         exists.
+	 */
 	ChannelEndpointManager getEndpointManager(final URI remoteEndpointAddress);
 
 }

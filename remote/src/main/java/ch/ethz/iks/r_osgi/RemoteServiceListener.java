@@ -32,14 +32,12 @@ import java.util.EventListener;
 
 /**
  * <p>
- * DiscoveryListener interface is used by applications to register for
- * discovered services. From release 0.5.0, this listener is registered using
- * the whiteboard pattern, i.e., by registering the implementation as service
- * under the DiscoveryListener interface.
+ * The RemoteServiceListener interface is used by applications to register for
+ * remote service events. Has to be registered using the whiteboard pattern.
  * </p>
  * 
- * @author Jan S. Rellermeyer, ETH Zürich
- * @since 0.1
+ * @author Jan S. Rellermeyer, ETH Zurich
+ * @since 1.0
  */
 public interface RemoteServiceListener extends EventListener {
 
@@ -54,8 +52,9 @@ public interface RemoteServiceListener extends EventListener {
 
 	/**
 	 * Name of the property which denotes the filter for the listener. Only
-	 * services matching the filter are announced to the listener, if this
-	 * property is set to a filter <code>String</code>.
+	 * events caused by services matching the filter are announced to the
+	 * listener, if this property is set to a
+	 * <code>org.osgi.framework.Filter</code> object.
 	 * 
 	 * @since 0.6
 	 */
@@ -64,16 +63,11 @@ public interface RemoteServiceListener extends EventListener {
 	/**
 	 * <p>
 	 * notify the application that a remote service matching the constraints has
-	 * been located.
-	 * </p>
-	 * <p>
-	 * As soon as the service has been discovered and this method has been
-	 * called, the application can call {@link RemoteOSGiService}#fetchService(ServiceURL)}
-	 * to get a local proxy object for the remote service.
+	 * caused an event.
 	 * </p>
 	 * 
-	 * @param service
-	 *            the <code>ServiceURL</code> of the discovered service.
+	 * @param event
+	 *            the <code>RemoteServiceEvent</code>.
 	 */
 	void remoteServiceEvent(final RemoteServiceEvent event);
 
