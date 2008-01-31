@@ -679,15 +679,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 				.get(channelURI);
 		if (channel != null) {
 			if (channel.usageCounter == 1) {
-				System.err.println("DISCONNECTING " + endpoint);
 				channel.dispose();
 				multiplexers.remove(channelURI);
 			} else {
-				System.err.println("DECREMENTING THE USAGE OF " + endpoint);
 				channel.usageCounter--;
 			}
-		} else {
-			System.err.println("NO CHANNEL !!! " + endpoint);
 		}
 	}
 
