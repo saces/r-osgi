@@ -64,7 +64,6 @@ import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.messages.LeaseUpdateMessage;
 import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryHandler;
-import ch.ethz.iks.r_osgi.types.Timestamp;
 import ch.ethz.iks.util.CollectionUtils;
 
 /**
@@ -249,10 +248,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		eventAdminTracker = new ServiceTracker(RemoteOSGiActivator.context,
 				EventAdmin.class.getName(), null);
 		eventAdminTracker.open();
-		if (eventAdminTracker.getTrackingCount() == 0) {
-			// TODO: to log
-			System.err
-					.println("NO EVENT ADMIN FOUND. REMOTE EVENT DELIVERY TEMPORARILY DISABLED.");
+		if (eventAdminTracker.getTrackingCount() == 0 && log != null) {
+			log
+					.log(LogService.LOG_WARNING,
+							"NO EVENT ADMIN FOUND. REMOTE EVENT DELIVERY TEMPORARILY DISABLED.");
 		}
 
 		try {
@@ -454,10 +453,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							final RemoteServiceRegistration reg = (RemoteServiceRegistration) serviceRegistrations
 									.remove(sref);
 
-							// TODO: remove debug output
-							System.err.println("SERVICE REMOVED " + reference
-									+ " REMOTE_REG IS " + reg);
-
 							unregisterFromServiceDiscovery(reg);
 
 							final LeaseUpdateMessage lu = new LeaseUpdateMessage();
@@ -482,8 +477,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							try {
 								factory.activate(RemoteOSGiServiceImpl.this);
 							} catch (IOException ioe) {
-								// TODO: to log
-								ioe.printStackTrace();
+								if (log != null) {
+									log.log(LogService.LOG_ERROR, ioe
+											.getMessage(), ioe);
+								}
 							}
 							return factory;
 						}
@@ -597,7 +594,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		if (channel == null) {
 			connect(serviceURI);
 			channel = (ChannelEndpointImpl) channels.get(uri);
-		}		
+		}
 		return channel.getRemoteReference(serviceURI.toString());
 	}
 
@@ -783,8 +780,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			try {
 				((NetworkChannelFactory) factories[i]).deactivate(this);
 			} catch (IOException ioe) {
-				// TODO: to log
-				ioe.printStackTrace();
+				if (log != null) {
+				log.log(LogService.LOG_ERROR, ioe.getMessage(), ioe);
+				}
 			}
 		}
 		eventAdminTracker.close();
