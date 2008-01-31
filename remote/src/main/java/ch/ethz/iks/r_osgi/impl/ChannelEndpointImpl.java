@@ -182,6 +182,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private static final String NO_LOOPS = "(!("
 			+ RemoteEventMessage.EVENT_SENDER_URI + "=*))";
 
+	boolean hasRedundantLinks = false;
+
 	/**
 	 * create a new channel endpoint.
 	 * 
@@ -418,6 +420,32 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			oldchannel.close();
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
+		}
+
+		if (!hasRedundantLinks) {
+			// inform all listeners about all services
+			RemoteServiceReference[] refs = (RemoteServiceReference[]) remoteServices
+					.values().toArray(
+							new RemoteServiceReference[remoteServices.size()]);
+			for (int i = 0; i < refs.length; i++) {
+				RemoteOSGiServiceImpl
+						.notifyRemoteServiceListeners(new RemoteServiceEvent(
+								RemoteServiceEvent.UNREGISTERING, refs[i]));
+			}
+
+			// uninstall the proxy bundle
+			final Bundle[] proxies = (Bundle[]) proxyBundles.values().toArray(
+					new Bundle[proxyBundles.size()]);
+
+			for (int i = 0; i < proxies.length; i++) {
+				try {
+					if (proxies[i].getState() != Bundle.UNINSTALLED) {
+						proxies[i].uninstall();
+					}
+				} catch (Throwable t) {
+
+				}
+			}
 		}
 
 		remoteServices = null;
