@@ -57,8 +57,6 @@ public class BluetoothServiceRecord {
 		serviceRecord.populateRecord(new int[] { (0x204 + 2 * offset) });
 		int timestamp = (int) serviceRecord.getAttributeValue(
 				0x204 + 2 * offset).getLong();
-		System.out
-				.println("MY TS " + modTimestamp + ", remote TS " + timestamp);
 		if (properties == null || timestamp != modTimestamp) {
 			// update the properties
 			serviceRecord.populateRecord(new int[] { 0x205 + 2 * offset });
@@ -80,7 +78,6 @@ public class BluetoothServiceRecord {
 				e.printStackTrace();
 			}
 			modTimestamp = timestamp;
-			System.out.println("NEW MOD TS " + modTimestamp);
 		}
 		return properties;
 	}

@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.log.LogService;
+
 import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
@@ -48,7 +50,6 @@ import ch.ethz.iks.r_osgi.channels.ChannelEndpointManager;
  */
 class ChannelEndpointMultiplexer implements ChannelEndpoint,
 		ChannelEndpointManager {
-
 
 	/**
 	 * 
@@ -107,8 +108,12 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 							primary.untrackRegistration(serviceURI);
 							primary = next;
 							primary.trackRegistration(serviceURI, reg);
-							System.err.println("DOING FAILOVER TO "
-									+ primary.getRemoteAddress());
+							if (RemoteOSGiServiceImpl.DEBUG) {
+								RemoteOSGiServiceImpl.log.log(
+										LogService.LOG_INFO,
+										"DOING FAILOVER TO "
+												+ primary.getRemoteAddress());
+							}
 							return primary.invokeMethod(mapping
 									.getMapped(primary), methodSignature, args);
 						}
@@ -130,8 +135,14 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 								primary.untrackRegistration(serviceURI);
 								primary = next;
 								primary.trackRegistration(serviceURI, reg);
-								System.err.println("DOING FAILOVER TO "
-										+ primary.getRemoteAddress());
+								if (RemoteOSGiServiceImpl.DEBUG) {
+									RemoteOSGiServiceImpl.log
+											.log(
+													LogService.LOG_INFO,
+													"DOING FAILOVER TO "
+															+ primary
+																	.getRemoteAddress());
+								}
 								return primary.invokeMethod(mapping
 										.getMapped(primary), methodSignature,
 										args);

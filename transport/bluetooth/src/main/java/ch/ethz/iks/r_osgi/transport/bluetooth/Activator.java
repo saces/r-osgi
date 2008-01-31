@@ -15,7 +15,6 @@ public class Activator implements BundleActivator {
 		Dictionary properties = new Hashtable();
 		properties.put(NetworkChannelFactory.PROTOCOL_PROPERTY,
 				BluetoothNetworkChannelFactory.PROTOCOL);
-		System.out.println("REGISTERING NETWORK CHANNEL FOR BLUETOOTH...");
 		context.registerService(new String[] {
 				NetworkChannelFactory.class.getName(),
 				ServiceDiscoveryHandler.class.getName() },

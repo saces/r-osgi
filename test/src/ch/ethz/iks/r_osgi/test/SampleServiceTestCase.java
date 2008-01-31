@@ -39,7 +39,6 @@ public class SampleServiceTestCase extends TestCase {
 
 		final RemoteServiceReference[] refs = remote.connect(uri);
 		assertNotNull(refs);
-		System.out.println("refs " + Arrays.asList(refs));
 		assertTrue(refs.length > 0);
 		final RemoteServiceReference[] refs2 = remote
 				.getRemoteServiceReferences(uri, ServiceInterface.class

@@ -55,8 +55,6 @@ public class SLPServiceRegistration {
 	}
 
 	void register(final Advertiser advertiser) throws ServiceLocationException {
-		// TODO: remove debug output
-		System.out.println("registering " + java.util.Arrays.asList(urls));
 		for (int i = 0; i < urls.length; i++) {
 			advertiser.register(urls[i], properties);
 		}
@@ -64,8 +62,6 @@ public class SLPServiceRegistration {
 
 	public void unregister(Advertiser advertiser)
 			throws ServiceLocationException {
-		// TODO: remove debug output
-		System.out.println("unregistering " + java.util.Arrays.asList(urls));
 		for (int i = 0; i < urls.length; i++) {
 			advertiser.deregister(urls[i]);
 		}

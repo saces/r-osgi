@@ -31,6 +31,7 @@ public class URI implements Serializable {
 		}
 	}
 
+	/*
 	public static void main(String[] args) throws Exception {
 		URI uri1 = new URI("http://localhost:8080");
 		URI uri2 = new URI("r-osgi://flowsgi.inf.ethz.ch:9278#32");
@@ -58,6 +59,7 @@ public class URI implements Serializable {
 		URI btUri = new URI("btspp://0010DCE96CB8:1");
 		System.out.println(btUri);
 	}
+	*/
 
 	private void parse(final String uriString) {
 		int cs = 0;

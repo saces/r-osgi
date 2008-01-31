@@ -280,8 +280,6 @@ class ServiceUI extends Frame implements RemoteServiceListener,
 	}
 
 	private void fetchService(final String service) {
-		System.out.println("sERVICE " + service);
-		System.out.println("SUB " + service.indexOf("@"));
 		final String uri = service.substring(service.indexOf("@") + 1);
 
 		try {

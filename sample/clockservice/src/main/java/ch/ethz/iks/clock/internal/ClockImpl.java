@@ -49,8 +49,6 @@ class ClockImpl implements Clock, ScheduleListener {
 		properties.put("alarm", alarm);
 		eventAdmin.postEvent(new Event("ch/ethz/iks/clock/ADD_ALARM",
 				properties));
-		System.out.println("ADDIND ALARM " + alarm.getTime());
-		System.out.println("CURRENT TIME " + System.currentTimeMillis());
 		scheduler.schedule(alarm, alarm.getTime());
 	}
 

@@ -99,7 +99,6 @@ public class MinaNetworkChannelFactory implements NetworkChannelFactory {
 		private URI localAddress;
 
 		private MinaNetworkChannel(ChannelEndpoint endpoint, URI address) {
-			System.err.println("ADDRESS IS " + address);
 			this.remoteAddress = address;
 			this.endpoint = endpoint;
 

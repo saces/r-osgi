@@ -93,7 +93,6 @@ public class DeliverServiceMessageCodec extends RemoteOSGiMessageCodec {
 		final Map injections = msg.getInjections();
 		final short blocks = (short) injections.size();
 		buf.putShort(blocks);
-		System.out.println("putting " + blocks + " blocks");
 		final String[] injectionNames = (String[]) injections.keySet().toArray(
 				new String[blocks]);
 		for (int i = 0; i < blocks; i++) {

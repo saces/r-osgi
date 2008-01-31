@@ -47,10 +47,8 @@ public class Activator implements BundleActivator {
 									.getRemoteServiceReferences(uri,
 											ServiceInterface.class.getName(),
 											null)[0];
-							System.out.println("REFERENCE " + ref);
 							service = (ServiceInterface) remote
 									.getRemoteService(ref);
-							System.out.println("HAVE THE SERVICE " + service);
 							clientThread = new ClientThread();
 							clientThread.start();
 						} catch (InvalidSyntaxException ise) {

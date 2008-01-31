@@ -289,8 +289,6 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					"Created Proxy Bundle " + file);
 		}
 
-		// TODO: remove debug output
-		System.out.println("PROXY CLASS " + file.getAbsolutePath());
 		return file.getAbsolutePath();
 	}
 

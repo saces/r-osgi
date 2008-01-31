@@ -844,12 +844,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		final RemoteServiceRegistration reg = RemoteOSGiServiceImpl
 				.getServiceRegistration(serviceID);
 
-		if (reg == null) {
-			// throw new IllegalStateException("Could not get " + serviceID);
-			System.err.println(getLocalAddress()
-					+ " could not get registration for service " + serviceID);
-			return RemoteOSGiServiceImpl.getServiceRegistration("53");
-		}
 		localServices.put(serviceID, reg);
 		return reg;
 	}
