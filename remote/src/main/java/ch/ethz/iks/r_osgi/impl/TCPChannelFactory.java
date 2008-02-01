@@ -54,20 +54,16 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	static final String PROTOCOL = "r-osgi";
 	private Remoting remoting;
 	private TCPThread thread;
-	private URI listeningAddress;
 
 	/**
 	 * get a new connection.
 	 * 
-	 * @param host
-	 *            the host to connect to.
-	 * @param port
-	 *            the port to connect to.
-	 * @param protocol
-	 *            ignored.
+	 * @param endpoint
+	 *            the channel endpoint.
+	 * @param endpointURI
+	 *            the URI of the remote host.
 	 * @return the transport channel.
-	 * @see ch.ethz.iks.r_osgi.channels.NetworkChannelFactory#getConnection(java.net.InetAddress,
-	 *      int, java.lang.String)
+	 * @see ch.ethz.iks.r_osgi.channels.NetworkChannelFactory#getConnection(ch.ethz.iks.r_osgi.channels.ChannelEndpoint)
 	 */
 	public NetworkChannel getConnection(final ChannelEndpoint endpoint,
 			final URI endpointURI) throws IOException {
@@ -75,13 +71,9 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	}
 
 	/**
-	 * bind the factory to the R-OSGi Remoting instance.
+	 * Activate the factory. Is called by R-OSGi when the factory is discovered.
 	 * 
-	 * @param socket
-	 *            the socket.
-	 * @return the wrapping transport channel.
-	 * @throws IOException
-	 *             in case of IO errors.
+	 * @see ch.ethz.iks.r_osgi.channels.NetworkChannelFactory#activate(ch.ethz.iks.r_osgi.Remoting)
 	 */
 	public void activate(final Remoting remoting) throws IOException {
 		this.remoting = remoting;
@@ -89,13 +81,14 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		thread.start();
 	}
 
+	/**
+	 * Deactivate the factory.
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.NetworkChannelFactory#deactivate(ch.ethz.iks.r_osgi.Remoting)
+	 */
 	public void deactivate(final Remoting remoting) throws IOException {
 		thread.interrupt();
 		this.remoting = null;
-	}
-
-	public URI getListeningAddress(String protocol) {
-		return listeningAddress;
 	}
 
 	/**
@@ -111,12 +104,12 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		private Socket socket;
 
 		/**
-		 * the remote endpoint
+		 * the remote endpoint address.
 		 */
 		private URI remoteEndpointAddress;
 
 		/**
-		 * the local endpoint
+		 * the local endpoint address.
 		 */
 		private URI localEndpointAddress;
 
@@ -131,7 +124,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		private ObjectOutputStream output;
 
 		/**
-		 * the endpoint.
+		 * the channel endpoint.
 		 */
 		private ChannelEndpoint endpoint;
 
@@ -141,14 +134,12 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		private boolean connected = true;
 
 		/**
-		 * create a new TCPChannel
+		 * create a new TCPChannel.
 		 * 
 		 * @param endpoint
 		 *            the channel endpoint.
-		 * @param host
-		 *            the host address.
-		 * @param port
-		 *            the port.
+		 * @param endpointAddress
+		 *            the remote peer's URI.
 		 * @throws IOException
 		 *             in case of IO errors.
 		 */
@@ -179,6 +170,14 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			open(socket);
 		}
 
+		/**
+		 * bind the channel to a channel endpoint.
+		 * 
+		 * @param endpoint
+		 *            the channel endpoint.
+		 * 
+		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#bind(ch.ethz.iks.r_osgi.channels.ChannelEndpoint)
+		 */
 		public void bind(ChannelEndpoint endpoint) {
 			this.endpoint = endpoint;
 			new ReceiverThread().start();
@@ -220,6 +219,9 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			return "TCPChannel (" + getRemoteAddress() + ")";
 		}
 
+		/**
+		 * close the channel.
+		 */
 		public void close() throws IOException {
 			socket.close();
 			// receiver.interrupt();
@@ -237,15 +239,19 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		}
 
 		/**
-		 * get the (unique) ID of the channel.
+		 * get the remote address.
 		 * 
-		 * @return the ID.
-		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getRemoteURL()
+		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getRemoteAddress()
 		 */
 		public URI getRemoteAddress() {
 			return remoteEndpointAddress;
 		}
 
+		/**
+		 * get the local address.
+		 * 
+		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#getLocalAddress()
+		 */
 		public URI getLocalAddress() {
 			return localEndpointAddress;
 		}
@@ -330,9 +336,6 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		private TCPThread() throws IOException {
 			socket = new ServerSocket(RemoteOSGiServiceImpl.R_OSGI_PORT);
-			listeningAddress = URI.create(PROTOCOL + "://"
-					+ socket.getInetAddress().getHostName() + ":"
-					+ socket.getLocalPort());
 		}
 
 		/**

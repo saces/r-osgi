@@ -664,7 +664,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * fetch the discovered remote service. The service will be fetched from the
 	 * service providing host and a proxy bundle is registered with the local
@@ -705,11 +705,21 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		return getMultiplexer(uri);
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getEndpointManager(ch.ethz.iks.r_osgi.URI)
+	 * @category Remoting
+	 */
 	public ChannelEndpointManager getEndpointManager(
 			final URI remoteEndpointAddress) {
 		return getMultiplexer(remoteEndpointAddress.toString());
 	}
 
+	/**
+	 * 
+	 * @param uri
+	 * @return
+	 */
 	private ChannelEndpointMultiplexer getMultiplexer(final String uri) {
 		final String channel = getChannelURI(URI.create(uri));
 		ChannelEndpointMultiplexer multiplexer = (ChannelEndpointMultiplexer) multiplexers
@@ -722,7 +732,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		return multiplexer;
 	}
 
-	static String getChannelURI(URI serviceURI) {
+	/**
+	 * 
+	 * @param serviceURI
+	 * @return
+	 */
+	private static String getChannelURI(URI serviceURI) {
 		return URI.create(
 				serviceURI.getScheme() + "://" + serviceURI.getHostName() + ":"
 						+ serviceURI.getPort()).toString();
@@ -768,6 +783,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 								.size()]);
 	}
 
+	/**
+	 * 
+	 * @param serviceID
+	 * @return
+	 */
 	static RemoteServiceRegistration getServiceRegistration(
 			final String serviceID) {
 
@@ -851,6 +871,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 	}
 
+	/**
+	 * 
+	 * @param event
+	 */
 	static void notifyRemoteServiceListeners(final RemoteServiceEvent event) {
 		final ServiceReference[] refs = remoteServiceListenerTracker
 				.getServiceReferences();
@@ -875,6 +899,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 	}
 
+	/**
+	 * 
+	 * @param ref
+	 * @param event
+	 */
 	private static void match(final ServiceReference ref,
 			final RemoteServiceEvent event) {
 		final Filter filter = (Filter) ref
@@ -930,10 +959,21 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 	}
 
+	/**
+	 * 
+	 * 
+	 * @see ch.ethz.iks.r_osgi.Remoting#createEndpoint(ch.ethz.iks.r_osgi.channels.NetworkChannel)
+	 * @category RemoteOSGiService
+	 */
 	public void createEndpoint(final NetworkChannel channel) {
 		new ChannelEndpointImpl(channel);
 	}
 
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#ungetRemoteService(ch.ethz.iks.r_osgi.RemoteServiceReference)
+	 * @category RemoteOSGiService
+	 */
 	public void ungetRemoteService(RemoteServiceReference remoteServiceReference) {
 		((RemoteServiceReferenceImpl) remoteServiceReference).getChannel()
 				.ungetRemoteService(remoteServiceReference.getURI());

@@ -81,10 +81,6 @@ public class MinaNetworkChannelFactory implements NetworkChannelFactory {
 
 	}
 
-	public URI getListeningAddress(String protocol) {
-		return listeningAddress;
-	}
-
 	public NetworkChannel getConnection(ChannelEndpoint endpoint,
 			URI endpointURI) throws IOException {
 		return new MinaNetworkChannel(endpoint, endpointURI);

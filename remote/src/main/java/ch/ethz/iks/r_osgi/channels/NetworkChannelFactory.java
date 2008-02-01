@@ -69,6 +69,4 @@ public interface NetworkChannelFactory {
 
 	void deactivate(final Remoting remoting) throws IOException;
 
-	URI getListeningAddress(String protocol);
-
 }
