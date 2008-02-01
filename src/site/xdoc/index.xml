@@ -12,47 +12,58 @@
 	<body>
 		<section name="Overview">
 			<p>
-			<b>Current release: 0.6.2</b><br/>
-			Fixed some bugs in the proxy generation. Now regards potential inheritance of the service interface.
+			<b>Current release: 1.0.0.RC1</b><br/>
+			<ul>
+				<li>Complete redesign of the R-OSGi model.</li> 
+				<li>Service discovery is now an orthogonal functionality and handled by an optional layer.</li>
+				<li>Remote services are now accessible in a way much more similar to local services. </li>
+				<li>Remote services can implement multiple service interfaces and the generated proxies will implement all of them </li>			
+				<li>Pluggable transports (e.g., tcp, tcp over mina, bluetooth, ...) </li>
+				<li>Pluggable service discovery modules (e.g., SLP service discovery, SSDP in bluetooth networks, ...) </li>
+			</ul>
 			</p>
 			<p>
-        	R-OSGi runs as an OSGi bundle and enables distribution for arbitrary OSGi framework implementations. 
-        	It uses SLP as underlying service discovery protocol and maps OSGi services to SLP service URLs of the service type <code>service:osgi</code>. Alternatively, clients can explicitly connect to known service providers.
-        </p>
+        	R-OSGi runs as an OSGi bundle and facilitates distribution for arbitrary OSGi framework implementations. 
+        	</p>
 		<p>
-        	All that a service provider framework has to do is registering a service for remote access. Subsequently, other peers can discover 
-        	the remote service if they have subscribed for this service.
-        	They are notified when a service has been discovered and can initiate the fetching of this remote service. 
-        	This will cause the service providing framework to transfer the service properties and the service interface
-        	to the client machine. The default policy involves the client framework to build a proxy bundle on the fly and register it with the local framework. 
-        	Local services can then access the remote service transparently, service method calls are  
-			send to the service provider and lead to remote method calls. <br/>
-			Since release 0.5.0, the service provider can also decide to register a service with a <i>transfer bundle</i> policy. In this case, the whole bundle 
-			is transferred to the client peer.  
+        	All that a service provider framework has to do is registering a service for remote access. Subsequently, other peers can connect 
+        	to the service provider peer and get access to the service. Remote services are accessed in an entirely transparent way. 
+        	For every remote service, a local proxy bundle is generated that registers the same service.
+        	Local service clients can hence access the remote service in the same way and without regarding distribution.  
+		</p>
+		<p>
+			Additionally, R-OSGi can interact with the EventAdmin service. Frameworks receive all events from connected peers that match one of their EventHandler subscriptions. For R3 frameworks (which do not feature an EventAdmin service), we have implemented an event admin backport as part of <a href="http://concierge.sourceforge.net">Concierge</a>. 
 		</p>
 		<p>		
-			R-OSGi uses SLP-style messages for remote invocations and does not rely on heavyweight frameworks like Jini and RMI.  
-			This makes it ideal for small and embedded devices with limited memory and network bandwidth. The service runs on every OSGi-minimal compliant environment.
-			<br/>R-OSGi has been tested with
-			<a href="http://www.knopflerfish.org">Knopflerfish</a> and <a href="http://oscar.objectweb.org">Oscar</a> as well 
+			Even though R-OSGi is a sophisticated middleware for OSGi frameworks, it uses a very efficient network protocol and 
+			has a small footprint.  
+			This makes it ideal for small and embedded devices with limited memory and network bandwidth. The service runs on every OSGi-compliant environment.
+			<br/>R-OSGi has been tested with <a href="http://www.eclipse.org/equinox">Eclipse Equinox</a>, 
+			<a href="http://www.knopflerfish.org">Knopflerfish</a>, and 
+			<a href="http://oscar.objectweb.org">Oscar</a> / <a href="http://felix.apache.org">Apache Felix</a>, as well 
 			as with our own lightweight OSGi implementation <a href="http://concierge.sourceforge.net">Concierge</a>. 
 			Our test platforms include a variety of different devices, hardware architectures and Java VMs. 
 		</p>
-			<p>
-			Additionally, R-OSGi can interact with the EventAdmin service. Frameworks receive all events from connected peers that match one of their EventHandler subscriptions. For R3 frameworks (which do not feature an EventAdmin service), we have implemented an event admin backport as part of <a href="http://concierge.sourceforge.net">Concierge</a>. 
-		</p>
-			<p>
+		<p>
 			In performance measurements, R-OSGi did not only outperform UPnP by an average factor of 280, but also performed even slightly better than RMI for many cases.
 		</p>
-			<p>
-			To see R-OSGi in action, have a look at our <a href="mindstorms.html">Lego Mindstorms Robots</a> being remote-controlled by R-OSGi.		
-		</p>
-			<p>
-			R-OSGi is part of the <a href="http://www.flowsgi.inf.ethz.ch">flowSGi</a> project, which is an ongoing research project at <a href="http://www.pc.inf.ethz.ch">Institute for Pervasive Computing</a>, <a href="http://www.ethz.ch">ETH Zurich</a>.		
+		<p>
+			To see R-OSGi in action, have a look at our <a href="mindstorms.html">Lego Mindstorms Robots</a> being remote-controlled through R-OSGi.		
 		</p>
 		<p>
+			R-OSGi is part of the <a href="http://www.flowsgi.inf.ethz.ch">flowSGi</a> project, which is an ongoing research project in the <a href="http://www.inf.ethz.ch">Department of Computer Science</a>, <a href="http://www.ethz.ch">ETH Zurich</a>.		
+		</p>
+		<p>
+			Recent publications: <br/>
+			<i>Jan S. Rellermeyer, Michael Duller, Ken Gilmer, Damianos Maragkos, Dimitrios Papageorgiou, Gustavo Alonso: <a href="http://www.iks.inf.ethz.ch/publications/publications/iot08.html" target="_new">The Software Fabric for the Internet of Things</a>. In: Proceedings of the 1st International Conference on the Internet of Things (IoT 2008), Zurich, Switzerland, 2008</i><br/>
+			<i>Jan S. Rellermeyer, Gustavo Alonso, Timothy Roscoe: <a href="http://www.iks.inf.ethz.ch/publications/publications/middleware07_r-osgi.html" target='new'>R-OSGi: Distributed Applications through Software Modularization</a>. In: Proceedings of the ACM/IFIP/USENIX 8th International Middleware Conference Conference (Middleware 2007), Newport Beach, CA, 2007</i><br/>
+			<i>Jan S. Rellermeyer, Gustavo Alonso, Timothy Roscoe: <a href="http://www.iks.inf.ethz.ch/publications/publications/oopsla07demo.html" target='new'>Ready for Distribution? Turning Modular into Distributed Applications with the R-OSGi Deployment Tool (Demo)</a>. In: Companion Proceedings of the ACM SIGPLAN International Conference on Object-Oriented Programming, Systems, Languages and Applications (OOPSLA 07), Montreal, Canada, 2007.</i><br/>          	
+			<i>Jan S. Rellermeyer, Gustavo Alonso, Timothy Roscoe: <a href="http://www.iks.inf.ethz.ch/publications/publications/etx07.html" target='new'>Building, Deploying, and Monitoring Distributed Applications with Eclipse and R-OSGi</a>. In: Eclipse Technology eXchange (ETX 07) Workshop (in conjunction with OOPSLA 07), Montreal, Canada, 2007</i><br/>
+        </p>		
+				
+		<p>
 			Thanks to all who attended our talk at EclipseCon 2007: <b><a href="http://www.eclipsecon.org/2007/index.php?page=sub/&amp;id=3661">Services Everywhere: OSGi in Distributed Environments</a></b>. Both the paper and the presentation slides are available on the <a href="http://eclipsezilla.eclipsecon.org/show_bug.cgi?id=3661">Eclipsezilla</a>.<br/>
-			<a href="http://www.eclipsecon.org/2007/"><img border="0" heigth="64" width="400" src="http://www.eclipsecon.org/2007/image600x96.gif"/></a>
+			<a href="http://www.eclipsecon.org/2007/"><img border="0" heigth="48" width="300" src="http://www.eclipsecon.org/2007/image600x96.gif"/></a>
 		</p>
 		</section>
 	</body>

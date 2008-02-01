@@ -20,11 +20,27 @@
       <organization>IKS, ETH Zurich</organization>
       <organizationUrl>http://www.iks.inf.ethz.ch</organizationUrl>
       <roles>
-        <role>Project creator</role>
+        <role>Project Creator</role>
+        <role>OSGi Preacher</role>
+        <role>Bytecode Virtuoso</role>
         <role>Researcher</role>
       </roles>
       <timezone>+1</timezone>
     </developer>
+    <developer>
+      <id>dullerm</id>
+      <name>Michael Duller</name>
+      <email>michael.duller_at_inf.ethz.ch</email>
+      <url>http://people.inf.ethz.ch/dullerm</url>
+      <organization>IKS, ETH Zurich</organization>
+      <organizationUrl>http://www.iks.inf.ethz.ch</organizationUrl>
+      <roles>
+        <role>Sensor Node Hacker</role>
+        <role>Data Stream Virtuoso</role>
+        <role>Researcher</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>        
   </developers>
   <licenses>
     <license>
@@ -34,8 +50,8 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:svn:https://r-osgi.svn.sourceforge.net/svnroot</connection>
-    <developerConnection>scm:svn:rjan@https://r-osgi.svn.sourceforge.net/svnroot</developerConnection>
+    <connection>scm:svn:https://r-osgi.svn.sourceforge.net/svnroot/r-osgi</connection>
+    <developerConnection>scm:svn:rjan@https://r-osgi.svn.sourceforge.net/svnroot/r-osgi</developerConnection>
     <url>http://r-osgi.svn.sourceforge.net/r-osgi</url>
   </scm>
   <organization>

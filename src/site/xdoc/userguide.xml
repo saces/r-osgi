@@ -10,7 +10,8 @@
 	<meta http-equiv="pragma" content="no-cache"/>
 	<meta http-equiv="robots" content="index, follow"/>
 	<body>
-		<section name="Getting started with R-OSGi">
+		<section name="THIS PAGE IS OUTDATED (reflects the 0.6.5 version) AND NEEDS A MAJOR REVISION"/>
+		<section name="Getting started with R-OSGi">			
 			<subsection name="Quick Start">
 			<p>
 					For a quick start, you can download the sample client and service distros. They contain a full configuration with Concierge, jSLP and R-OSGi for easy evaluation of our technology. Simply unpack the zips and place the client and service on two different machines within the same subnet

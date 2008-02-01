@@ -10,6 +10,7 @@
 	<meta http-equiv="pragma" content="no-cache"/>
 	<meta http-equiv="robots" content="index, follow"/>
 	<body>
+		<section name="THIS PAGE IS OUTDATED (reflects the 0.6.5 version) AND NEEDS A MAJOR REVISION"/>
 		<section name="Advanced R-OSGi">
 			<p>
 			For reasons of saving service provider's resources or to have client dependent code parts, services can register smart proxies. These are 

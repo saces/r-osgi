@@ -10,7 +10,8 @@
 	<meta http-equiv="pragma" content="no-cache"/>
 	<meta http-equiv="robots" content="index, follow"/>
 	<body>
-		<section name="Network Channels">
+		<section name="THIS PAGE IS OUTDATED (reflects the 0.6.5 version) AND NEEDS A MAJOR REVISION"/>
+		<section name="Network Channels">		
 			<subsection name="Default: TCP with service discovery">
 				<p>
 					The default way of accessing services is the service discovery. R-OSGi maintains the statements of supply and demand made through the 
