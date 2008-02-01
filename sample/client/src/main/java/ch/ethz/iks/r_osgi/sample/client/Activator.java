@@ -42,18 +42,12 @@ public class Activator implements BundleActivator {
 
 					public void announceService(String serviceInterface, URI uri) {
 						remote.connect(uri);
-						try {
-							final RemoteServiceReference ref = remote
-									.getRemoteServiceReferences(uri,
-											ServiceInterface.class.getName(),
-											null)[0];
-							service = (ServiceInterface) remote
-									.getRemoteService(ref);
-							clientThread = new ClientThread();
-							clientThread.start();
-						} catch (InvalidSyntaxException ise) {
-							ise.printStackTrace();
-						}
+						final RemoteServiceReference ref = remote
+								.getRemoteServiceReference(uri);
+						service = (ServiceInterface) remote
+								.getRemoteService(ref);
+						clientThread = new ClientThread();
+						clientThread.start();
 					}
 
 					public void discardService(String serviceInterface, URI uri) {

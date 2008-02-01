@@ -160,12 +160,12 @@ public interface RemoteOSGiService {
 			throws RemoteOSGiException;
 
 	/**
-	 * disconnect from a connected host
+	 * disconnect from a connected host.
 	 * 
-	 * @param host
-	 * @param port
-	 * @param protocol
+	 * @param endpoint
+	 *            the URI of the remote host.
 	 * @throws RemoteOSGiException
+	 *             if something goes wrong.
 	 */
 	void disconnect(final URI endpoint) throws RemoteOSGiException;
 
@@ -214,6 +214,7 @@ public interface RemoteOSGiService {
 	 * {@link #getRemoteService(RemoteServiceReference)} again.
 	 * 
 	 * @param remoteServiceReference
+	 *            thre remote service reference.
 	 */
 	void ungetRemoteService(final RemoteServiceReference remoteServiceReference);
 

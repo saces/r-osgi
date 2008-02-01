@@ -83,7 +83,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	}
 
 	/**
-	 * dispose the multiplexer
+	 * dispose the multiplexer.
 	 */
 	public void dispose() {
 
@@ -93,16 +93,16 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	 * 
 	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#getPresentationProperties(java.lang.String)
 	 */
-	public Dictionary getPresentationProperties(String serviceURL) {
-		return primary.getPresentationProperties(serviceURL);
+	public Dictionary getPresentationProperties(final String service) {
+		return primary.getPresentationProperties(service);
 	}
 
 	/**
 	 * 
 	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#getProperties(java.lang.String)
 	 */
-	public Dictionary getProperties(String serviceURL) {
-		return primary.getProperties(serviceURL);
+	public Dictionary getProperties(final String service) {
+		return primary.getProperties(service);
 	}
 
 	/**
@@ -193,7 +193,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	 * 
 	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#receivedMessage(ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage)
 	 */
-	public void receivedMessage(RemoteOSGiMessage msg) {
+	public void receivedMessage(final RemoteOSGiMessage msg) {
 		throw new IllegalArgumentException(
 				"Not supported through endpoint multiplexer");
 	}
@@ -278,7 +278,8 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpointManager#addRedundantEndpoint(ch.ethz.iks.r_osgi.URI,
 	 *      ch.ethz.iks.r_osgi.URI)
 	 */
-	public void addRedundantEndpoint(URI service, URI redundantService) {
+	public void addRedundantEndpoint(final URI service,
+			final URI redundantService) {
 		final ChannelEndpoint redundantEndpoint = RemoteOSGiServiceImpl
 				.getChannel(redundantService);
 		primary.hasRedundantLinks = true;
@@ -303,7 +304,8 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpointManager#removeRedundantEndpoint(ch.ethz.iks.r_osgi.URI,
 	 *      ch.ethz.iks.r_osgi.URI)
 	 */
-	public void removeRedundantEndpoint(URI service, URI redundantService) {
+	public void removeRedundantEndpoint(final URI service,
+			final URI redundantService) {
 		final ChannelEndpoint redundantEndpoint = RemoteOSGiServiceImpl
 				.getChannel(redundantService);
 		final Mapping mapping = (Mapping) mappings.get(service.toString());
@@ -319,15 +321,13 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpointManager#setEndpointPolicy(ch.ethz.iks.r_osgi.URI,
 	 *      int)
 	 */
-	public void setEndpointPolicy(URI service, int policy) {
+	public void setEndpointPolicy(final URI service, final int policy) {
 		policies.put(service.toString(), new Integer(policy));
 	}
 
 	/**
 	 * transform a timestamp into the peer's local time.
 	 * 
-	 * @param sender
-	 *            the sender serviceURL.
 	 * @param timestamp
 	 *            the Timestamp.
 	 * @return the transformed timestamp.

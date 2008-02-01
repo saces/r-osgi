@@ -67,8 +67,20 @@ public interface NetworkChannel {
 	 */
 	URI getLocalAddress();
 
-	void bind(ChannelEndpoint endpoint);
+	/**
+	 * bind the network channel to a channel endpoint.
+	 * 
+	 * @param endpoint
+	 *            the channel endpoint.
+	 */
+	void bind(final ChannelEndpoint endpoint);
 
+	/**
+	 * close the network channel.
+	 * 
+	 * @throws IOException
+	 *             if something goes wrong.
+	 */
 	void close() throws IOException;
 
 	/**

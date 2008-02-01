@@ -54,8 +54,8 @@ public interface ChannelEndpoint {
 	 * invoke a method on the remote host. This function is used by all proxy
 	 * bundles.
 	 * 
-	 * @param serviceURL
-	 *            the service URL.
+	 * @param service
+	 *            the URI of the service.
 	 * @param methodSignature
 	 *            the signature of the method.
 	 * @param args
@@ -73,8 +73,8 @@ public interface ChannelEndpoint {
 	 * get the attributes of a service. This function is used to simplify proxy
 	 * bundle generation.
 	 * 
-	 * @param serviceURL
-	 *            the serviceURL of the remote service.
+	 * @param service
+	 *            the URI of the remote service.
 	 * @return the service attributes.
 	 * @since 0.6
 	 */
@@ -84,8 +84,8 @@ public interface ChannelEndpoint {
 	 * get the attributes for the presentation of the service. This function is
 	 * used by proxies that support ServiceUI presentations.
 	 * 
-	 * @param serviceURL
-	 *            the serviceURL of the remote service.
+	 * @param service
+	 *            the URI of the remote service.
 	 * @return the attributes for the presentation.
 	 * @since 0.6
 	 */
@@ -105,7 +105,7 @@ public interface ChannelEndpoint {
 	/**
 	 * unregister a proxied service registration.
 	 * 
-	 * @param serviceURL
+	 * @param service
 	 *            the URI of the service.
 	 * @param reg
 	 *            the service registration object.
@@ -115,7 +115,7 @@ public interface ChannelEndpoint {
 	/**
 	 * get the URI of the remote channel endpoint.
 	 * 
-	 * @return the channel ID.
+	 * @return the channel URI.
 	 */
 	URI getRemoteAddress();
 
@@ -123,7 +123,5 @@ public interface ChannelEndpoint {
 	 * dispose of the channel endpoint.
 	 */
 	void dispose();
-
-	boolean isConnected();
 
 }

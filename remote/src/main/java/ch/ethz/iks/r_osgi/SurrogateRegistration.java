@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2007 Jan S. Rellermeyer
+/* Copyright (c) 2006-2008 Jan S. Rellermeyer
  * Information and Communication Systems Research Group (IKS),
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -29,11 +29,14 @@
 package ch.ethz.iks.r_osgi;
 
 /**
+ * <p>
  * Just an empty interface that adapter bundles can use to register legacy
  * services for remote access. Registering bundles should set the property
  * <code>SERVICE_REFERENCE</code> to the service reference of the legacy
  * service that is registered. Additionally, all the default properties like
- * <code>RemoteOSGiService.SMART_PROXY</code> can be set in the usual way.
+ * {@link RemoteOSGiService#SMART_PROXY} can be set on behalf of the legacy
+ * service in the usual way.
+ * </p>
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
  */

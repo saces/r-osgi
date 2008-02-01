@@ -501,125 +501,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	}
 
-	/*
-	 * ------ public methods ------
-	 */
-
-	public void registerWithServiceDiscovery(final RemoteServiceRegistration reg) {
-		// register the service with all service
-		// discovery
-		// handler
-		final Dictionary props = reg.getProperties();
-		final Object[] handler = serviceDiscoveryHandlerTracker.getServices();
-
-		if (handler != null) {
-			for (int i = 0; i < handler.length; i++) {
-				((ServiceDiscoveryHandler) handler[i]).registerService(reg
-						.getReference(), props, URI.create("r-osgi://"
-						+ RemoteOSGiServiceImpl.MY_ADDRESS + ":"
-						+ RemoteOSGiServiceImpl.R_OSGI_PORT + "#"
-						+ reg.getServiceID()));
-			}
-		}
-
-	}
-
-	public void unregisterFromServiceDiscovery(
-			final RemoteServiceRegistration reg) {
-		final Object[] handler = serviceDiscoveryHandlerTracker.getServices();
-		if (handler != null) {
-			for (int i = 0; i < handler.length; i++) {
-				((ServiceDiscoveryHandler) handler[i]).unregisterService(reg
-						.getReference());
-			}
-		}
-	}
-
-	/**
-	 * get the service that has been fetched under a certain
-	 * <code>ServiceURL</code>.
-	 * 
-	 * @param uri
-	 *            the <code>ServiceURL</code>.
-	 * @return the service object or <code>null</code> if the service is not
-	 *         (yet) present.
-	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getFetchedService(ch.ethz.iks.slp.ServiceURL)
-	 * @category RemoteOSGiService
-	 * @since 0.6
-	 */
-	public Object getRemoteService(final RemoteServiceReference ref) {
-		if (ref == null) {
-			throw new IllegalArgumentException("Remote Reference is null.");
-		}
-		ServiceReference sref = getFetchedServiceReference(ref);
-		if (sref == null) {
-			fetchService(ref);
-			sref = getFetchedServiceReference(ref);
-		}
-		return sref == null ? null : RemoteOSGiActivator.context
-				.getService(sref);
-	}
-
-	/**
-	 * get the service reference for the service that has been fetched under a
-	 * certain <code>ServiceURL</code>.
-	 * 
-	 * @param ref
-	 *            the <code>RemoteServiceReference</code> to the service.
-	 * @return the service reference of the service (or service proxy) or
-	 *         <code>null</code> if the service is not (yet) present.
-	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getFetchedServiceReference(ch.ethz.iks.slp.ServiceURL)
-	 * @category RemoteOSGiService
-	 * @since 0.6
-	 */
-	private ServiceReference getFetchedServiceReference(
-			final RemoteServiceReference ref) {
-		try {
-			final ServiceReference[] refs = RemoteOSGiActivator.context
-					.getServiceReferences(ref.getServiceInterfaces()[0], "("
-							+ SERVICE_URI + "=" + ref.getURI() + ")");
-			if (refs != null) {
-				return refs[0];
-			}
-		} catch (InvalidSyntaxException doesNotHappen) {
-			doesNotHappen.printStackTrace();
-		}
-		return null;
-	}
-
-	public RemoteServiceReference getRemoteServiceReference(URI serviceURI) {
-		final String uri = getChannelURI(serviceURI);
-		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
-				.get(getChannelURI(serviceURI));
-		if (channel == null) {
-			connect(serviceURI);
-			channel = (ChannelEndpointImpl) channels.get(uri);
-		}
-		return channel.getRemoteReference(serviceURI.toString());
-	}
-
-	public RemoteServiceReference[] getRemoteServiceReferences(URI service,
-			final String clazz, final Filter filter) {
-		final String uri = getChannelURI(service);
-		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels.get(uri);
-		if (channel == null) {
-			connect(service);
-			channel = (ChannelEndpointImpl) channels.get(uri);
-		}
-		if (clazz == null) {
-			return channel.getAllRemoteReferences(null);
-		}
-		try {
-			return channel.getAllRemoteReferences(RemoteOSGiActivator.context
-					.createFilter(filter != null ? "(&" + filter + "("
-							+ Constants.OBJECTCLASS + "=" + clazz + "))" : "("
-							+ Constants.OBJECTCLASS + "=" + clazz + ")"));
-		} catch (InvalidSyntaxException ise) {
-			ise.printStackTrace();
-			return null;
-		}
-	}
-
 	/**
 	 * connect to a remote OSGi host.
 	 * 
@@ -677,6 +558,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 	}
 
+	/**
+	 * 
+	 */
 	public void disconnect(final URI endpoint) throws RemoteOSGiException {
 		final String channelURI = getChannelURI(endpoint).toString();
 		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
@@ -691,16 +575,96 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 	}
 
-	public URI getLocalAddress(final URI endpoint) {
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getRemoteServiceReference(ch.ethz.iks.r_osgi.URI)
+	 */
+	public RemoteServiceReference getRemoteServiceReference(final URI serviceURI) {
+		final String uri = getChannelURI(serviceURI);
 		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
-				.get(getChannelURI(endpoint).toString());
-		if (channel != null) {
-			return channel.getLocalAddress();
-		} else {
+				.get(getChannelURI(serviceURI));
+		if (channel == null) {
+			connect(serviceURI);
+			channel = (ChannelEndpointImpl) channels.get(uri);
+		}
+		return channel.getRemoteReference(serviceURI.toString());
+	}
+
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getRemoteServiceReferences(ch.ethz.iks.r_osgi.URI,
+	 *      java.lang.String, org.osgi.framework.Filter)
+	 */
+	public RemoteServiceReference[] getRemoteServiceReferences(
+			final URI service, final String clazz, final Filter filter) {
+		final String uri = getChannelURI(service);
+		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels.get(uri);
+		if (channel == null) {
+			connect(service);
+			channel = (ChannelEndpointImpl) channels.get(uri);
+		}
+		if (clazz == null) {
+			return channel.getAllRemoteReferences(null);
+		}
+		try {
+			return channel.getAllRemoteReferences(RemoteOSGiActivator.context
+					.createFilter(filter != null ? "(&" + filter + "("
+							+ Constants.OBJECTCLASS + "=" + clazz + "))" : "("
+							+ Constants.OBJECTCLASS + "=" + clazz + ")"));
+		} catch (InvalidSyntaxException ise) {
+			ise.printStackTrace();
 			return null;
 		}
 	}
 
+	/**
+	 * 
+	 * @param ref
+	 *            the <code>RemoteServiceReference</code>.
+	 * @return the service object or <code>null</code> if the service is not
+	 *         (yet) present.
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getFetchedService(ch.ethz.iks.r_osgi.RemoteServiceReference)
+	 * @category RemoteOSGiService
+	 * @since 0.6
+	 */
+	public Object getRemoteService(final RemoteServiceReference ref) {
+		if (ref == null) {
+			throw new IllegalArgumentException("Remote Reference is null.");
+		}
+		ServiceReference sref = getFetchedServiceReference(ref);
+		if (sref == null) {
+			fetchService(ref);
+			sref = getFetchedServiceReference(ref);
+		}
+		return sref == null ? null : RemoteOSGiActivator.context
+				.getService(sref);
+	}
+
+	/**
+	 * 
+	 * @param ref
+	 *            the <code>RemoteServiceReference</code> to the service.
+	 * @return the service reference of the service (or service proxy) or
+	 *         <code>null</code> if the service is not (yet) present.
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getFetchedServiceReference(ch.ethz.iks.r_osgi.RemoteServiceReference)
+	 * @category RemoteOSGiService
+	 * @since 0.6
+	 */
+	private ServiceReference getFetchedServiceReference(
+			final RemoteServiceReference ref) {
+		try {
+			final ServiceReference[] refs = RemoteOSGiActivator.context
+					.getServiceReferences(ref.getServiceInterfaces()[0], "("
+							+ SERVICE_URI + "=" + ref.getURI() + ")");
+			if (refs != null) {
+				return refs[0];
+			}
+		} catch (InvalidSyntaxException doesNotHappen) {
+			doesNotHappen.printStackTrace();
+		}
+		return null;
+	}
+	
 	/**
 	 * fetch the discovered remote service. The service will be fetched from the
 	 * service providing host and a proxy bundle is registered with the local
@@ -872,7 +836,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * @param channel
 	 *            the local endpoint of the channel.
 	 */
-	static void unregisterChannel(final String channelURI) {
+	static void unregisterChannelEndpoint(final String channelURI) {
 		channels.remove(channelURI);
 	}
 
@@ -926,6 +890,46 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 	}
 
+	/**
+	 * register a service with the remote service discovery layer.
+	 */
+	private void registerWithServiceDiscovery(
+			final RemoteServiceRegistration reg) {
+		// register the service with all service
+		// discovery
+		// handler
+		final Dictionary props = reg.getProperties();
+		final Object[] handler = serviceDiscoveryHandlerTracker.getServices();
+
+		if (handler != null) {
+			for (int i = 0; i < handler.length; i++) {
+				((ServiceDiscoveryHandler) handler[i]).registerService(reg
+						.getReference(), props, URI.create("r-osgi://"
+						+ RemoteOSGiServiceImpl.MY_ADDRESS + ":"
+						+ RemoteOSGiServiceImpl.R_OSGI_PORT + "#"
+						+ reg.getServiceID()));
+			}
+		}
+
+	}
+
+	/**
+	 * unregister a service from the service discovery layer.
+	 * 
+	 * @param reg
+	 *            the remote service registration.
+	 */
+	private void unregisterFromServiceDiscovery(
+			final RemoteServiceRegistration reg) {
+		final Object[] handler = serviceDiscoveryHandlerTracker.getServices();
+		if (handler != null) {
+			for (int i = 0; i < handler.length; i++) {
+				((ServiceDiscoveryHandler) handler[i]).unregisterService(reg
+						.getReference());
+			}
+		}
+	}
+
 	public void createEndpoint(final NetworkChannel channel) {
 		new ChannelEndpointImpl(channel);
 	}
@@ -934,22 +938,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		((RemoteServiceReferenceImpl) remoteServiceReference).getChannel()
 				.ungetRemoteService(remoteServiceReference.getURI());
 
-	}
-
-	public URI getListeningAddress(final String protocol) {
-		try {
-			final ServiceReference[] refs = RemoteOSGiActivator.context
-					.getServiceReferences(
-							NetworkChannelFactory.class.getName(), "("
-									+ NetworkChannelFactory.PROTOCOL_PROPERTY
-									+ "=" + protocol + ")");
-			return refs == null ? null
-					: ((NetworkChannelFactory) RemoteOSGiActivator.context
-							.getService(refs[0])).getListeningAddress(protocol);
-		} catch (InvalidSyntaxException ise) {
-			ise.printStackTrace();
-			return null;
-		}
 	}
 
 }

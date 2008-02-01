@@ -102,8 +102,6 @@ public interface ChannelEndpointManager {
 	/**
 	 * transform a timestamp into the peer's local time.
 	 * 
-	 * @param sender
-	 *            the sender serviceURL.
 	 * @param timestamp
 	 *            the Timestamp.
 	 * @return the transformed timestamp.

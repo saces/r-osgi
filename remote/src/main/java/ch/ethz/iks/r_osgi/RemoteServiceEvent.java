@@ -81,7 +81,7 @@ public final class RemoteServiceEvent extends EventObject {
 	 * 
 	 * @return the type.
 	 */
-	public final int getType() {
+	public int getType() {
 		return (type);
 	}
 

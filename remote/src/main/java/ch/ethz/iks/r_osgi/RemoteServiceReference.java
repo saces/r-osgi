@@ -28,20 +28,55 @@
  */
 package ch.ethz.iks.r_osgi;
 
-import ch.ethz.iks.r_osgi.URI;
-
+/**
+ * <p>
+ * The remote service interface. Is the equivalent of the service interface on
+ * the local OSGi framework. Service properties are synchronized with the remote
+ * service, as long as the peer is connected.
+ * <p>
+ * 
+ * @author Jan S. Rellermeyer, ETH Zurich
+ * 
+ */
 public interface RemoteServiceReference {
 
-	static final long serialVersionUID = 1L;
+	/**
+	 * get the service interface class names.
+	 * 
+	 * @return the interface class names as a string array.
+	 */
+	String[] getServiceInterfaces();
 
-	public String[] getServiceInterfaces();
-		
-	public URI getURI();
-	
-	public Object getProperty(String key);
+	/**
+	 * get the URI of the remote service.
+	 * 
+	 * @return the URI of the remote service.
+	 */
+	URI getURI();
 
-	public String[] getPropertyKeys();
-	
-	public boolean isActive();
-	
+	/**
+	 * get a property of the remote service.
+	 * 
+	 * @param key
+	 *            the key.
+	 * @return the property belonging to the given key, or <code>null</code>
+	 *         if there is no such property set.
+	 */
+	Object getProperty(String key);
+
+	/**
+	 * get all property keys.
+	 * 
+	 * @return the key array.
+	 */
+	String[] getPropertyKeys();
+
+	/**
+	 * Is the service active?
+	 * 
+	 * @return true if there is a connection to the host and the service is
+	 *         still active and reachable.
+	 */
+	boolean isActive();
+
 }

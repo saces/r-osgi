@@ -90,7 +90,7 @@ import ch.ethz.iks.r_osgi.streams.OutputStreamProxy;
  * </p>
  * <p>
  * The network transport of channels is modular and exchangeable. Services can
- * state the supported protocols in their service url. R-OSGi maintains a list
+ * state the supported protocols in their service uri. R-OSGi maintains a list
  * of network channel factories and the protocols they support. Each channel
  * uses exactly one protocol.
  * <p>
@@ -140,17 +140,17 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private final Map receiveQueue = new HashMap(0);
 
 	/**
-	 * map of service url -> RemoteServiceRegistration.
+	 * map of service uri -> RemoteServiceRegistration.
 	 */
 	private final HashMap localServices = new HashMap(2);
 
 	/**
-	 * map of service url -> service registration.
+	 * map of service uri -> service registration.
 	 */
 	private final HashMap proxiedServices = new HashMap(0);
 
 	/**
-	 * map of service url -> proxy bundle. If the endpoint is closed, the
+	 * map of service uri -> proxy bundle. If the endpoint is closed, the
 	 * proxies are unregistered.
 	 */
 	final HashMap proxyBundles = new HashMap(0);
@@ -256,7 +256,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * bundles.
 	 * 
 	 * @param service
-	 *            the service URL.
+	 *            the service uri.
 	 * @param methodSignature
 	 *            the method signature.
 	 * @param args
@@ -408,7 +408,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					"DISPOSING ENDPOINT " + getRemoteAddress());
 		}
 
-		RemoteOSGiServiceImpl.unregisterChannel(getRemoteAddress().toString());
+		RemoteOSGiServiceImpl.unregisterChannelEndpoint(getRemoteAddress().toString());
 		if (handlerReg != null) {
 			handlerReg.unregister();
 		}
@@ -585,10 +585,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
-	 * get the channel ID.
+	 * get the channel URI.
 	 * 
 	 * @return the channel ID.
-	 * @see ch.ethz.iks.r_osgi.channels.ChannelAddress#getURL()
 	 * @category ChannelEndpoint
 	 */
 	public URI getRemoteAddress() {
@@ -598,6 +597,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		return networkChannel.getRemoteAddress();
 	}
 
+	/**
+	 * get hte local address.
+	 * 
+	 * @return
+	 */
 	URI getLocalAddress() {
 		if (networkChannel == null) {
 			throw new RuntimeException("CHANNEL IS NULL");

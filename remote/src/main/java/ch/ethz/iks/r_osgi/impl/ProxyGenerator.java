@@ -86,7 +86,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	private String implName;
 
 	/**
-	 * the service url.
+	 * the service uri.
 	 */
 	private String uri;
 
