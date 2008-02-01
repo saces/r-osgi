@@ -408,7 +408,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					"DISPOSING ENDPOINT " + getRemoteAddress());
 		}
 
-		RemoteOSGiServiceImpl.unregisterChannelEndpoint(getRemoteAddress().toString());
+		RemoteOSGiServiceImpl.unregisterChannelEndpoint(getRemoteAddress()
+				.toString());
 		if (handlerReg != null) {
 			handlerReg.unregister();
 		}
@@ -954,8 +955,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				remoteTopics.addAll(Arrays.asList(topicsAdded));
 			}
 		} else {
-			remoteTopics.removeAll(Arrays.asList(topicsRemoved));
-			remoteTopics.addAll(Arrays.asList(topicsAdded));
+			if (topicsRemoved != null) {
+				remoteTopics.removeAll(Arrays.asList(topicsRemoved));
+			}
+			if (topicsAdded != null) {
+				remoteTopics.addAll(Arrays.asList(topicsAdded));
+			}
 
 			if (remoteTopics.size() == 0) {
 				// unregister handler
