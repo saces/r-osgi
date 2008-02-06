@@ -10,7 +10,6 @@
 	<meta http-equiv="pragma" content="no-cache"/>
 	<meta http-equiv="robots" content="index, follow"/>
 	<body>
-		<section name="THIS PAGE IS OUTDATED (reflects the 0.6.5 version) AND NEEDS A MAJOR REVISION"/>
 		<section name="Advanced R-OSGi">
 			<p>
 			For reasons of saving service provider's resources or to have client dependent code parts, services can register smart proxies. These are 
@@ -136,13 +135,44 @@ public abstract class SmartService implements ServiceInterface {
 (...)
 
 Dictionary properties = new Hashtable();
-properties.put(RemoteOSGiService.R_OSGi_REGISTRATION, SERVICE_PROXY_POLICY);
+properties.put(RemoteOSGiService.R_OSGi_REGISTRATION, Boolean.TRUE);
 properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class.getName());
 
 context.registerService(ServiceInterface.class.getName(), new ServiceImpl(), properties);
 
 (...)
 </source>
+
+<br/>
+If you want to interact with other services in your smart proxy, you can let your smart proxy class implement
+<source>
+package ch.ethz.iks.r_osgi;
+
+public interface SmartProxy {
+
+	/**
+	 * This method is called when the smart proxy is started. Since it passes
+	 * the bundle context to the smart proxy, it can be used to retrieve other
+	 * services, etc.
+	 * 
+	 * @param context
+	 *            the bundle context of the proxy bundle.
+	 */
+	public void started(final BundleContext context);
+
+	/**
+	 * This method is called when the smart proxy is stopped.
+	 * 
+	 * @param context
+	 *            the bundle context.
+	 */
+	public void stopped(final BundleContext context);
+
+}
+</source>
+
+and get a <code>BundleContext</code> instance through the lifecycle methods that are called when the smart proxy is started or stopped.
+
 </p>
 </subsection>
 			<subsection name="Handling of existing services">
@@ -157,7 +187,7 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 
 		final Hashtable properties = new Hashtable();
 		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
-				RemoteOSGiService.SERVICE_PROXY_POLICY);
+				Boolean.TRUE);
 		properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class
 				.getName());		
 				

@@ -136,7 +136,8 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 		 */
 		private ChannelEndpoint endpoint;
 
-		private String channelUID; 
+		private String channelUID;
+
 		/**
 		 * create a new TCPChannel.
 		 * 
@@ -279,7 +280,6 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 			return url.toString();
 		}
 
-		
 		private class CallbackThread extends Thread {
 			private ObjectInputStream input;
 
@@ -304,7 +304,6 @@ final class HttpChannelFactory implements NetworkChannelFactory {
 				}
 			}
 		}
-
 
 	}
 }

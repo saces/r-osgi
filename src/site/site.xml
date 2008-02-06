@@ -24,6 +24,7 @@
 		<menu name="Overview">
 			<item name="Home" href="/index.html"/>
 			<item name="Getting Started" href="/userguide.html"/>
+			<item name="Service Discovery" href="/discovery.html"/>
 			<item name="Advanced R-OSGi" href="/advanced.html"/>
 			<item name="Network Channels" href="/channels.html"/>
 			<item name="ServiceUI" href="/serviceUI.html"/>

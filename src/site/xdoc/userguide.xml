@@ -1,187 +1,218 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <document>
 	<properties>
-		<title>R-OSGi - transparent OSGi remote extension for distributed services - User guide</title>
-		<author email="rellermeyer_AT_inf.ethz.ch">Jan S. Rellermeyer</author>
+		<title>
+			R-OSGi - transparent OSGi remote extension for distributed
+			services - User guide
+		</title>
+		<author email="rellermeyer_AT_inf.ethz.ch">
+			Jan S. Rellermeyer
+		</author>
 	</properties>
-	<meta name="keyword" content="User guide, OSGi, R-OSGi, rosgi, remote, remoting, Java, J2ME, embedded systems, Event, Service, EventAdmin, Remote Event, RemoteEvent, SLP, Remote services, service discovery"/>
-	<meta name="description" content="User guide for R-OSGi, the transparent way to access services on remote OSGi service platforms. Additionally, R-OSGi implements OSGi R4 EventAdmin service and is able to send RemoteEvents to other peers. It uses jSLP, the pure Java SLP implementation as underlying discovery protocol."/>
-	<meta http-equiv="cache-control" content="no-cache"/>
-	<meta http-equiv="pragma" content="no-cache"/>
-	<meta http-equiv="robots" content="index, follow"/>
+	<meta name="keyword"
+		content="User guide, OSGi, R-OSGi, rosgi, remote, remoting, Java, J2ME, embedded systems, Event, Service, EventAdmin, Remote Event, RemoteEvent, SLP, Remote services, service discovery" />
+	<meta name="description"
+		content="User guide for R-OSGi, the transparent way to access services on remote OSGi service platforms. Additionally, R-OSGi implements OSGi R4 EventAdmin service and is able to send RemoteEvents to other peers. It uses jSLP, the pure Java SLP implementation as underlying discovery protocol." />
+	<meta http-equiv="cache-control" content="no-cache" />
+	<meta http-equiv="pragma" content="no-cache" />
+	<meta http-equiv="robots" content="index, follow" />
 	<body>
-		<section name="THIS PAGE IS OUTDATED (reflects the 0.6.5 version) AND NEEDS A MAJOR REVISION"/>
-		<section name="Getting started with R-OSGi">			
+		<section name="Getting started with R-OSGi">
 			<subsection name="Quick Start">
-			<p>
-					For a quick start, you can download the sample client and service distros. They contain a full configuration with Concierge, jSLP and R-OSGi for easy evaluation of our technology. Simply unpack the zips and place the client and service on two different machines within the same subnet
-					and it should run out of the box. The SLP service discovery layer sometimes requires some adjustments of firewalls and the presence of a default route to run properly. See <a href="troubleshooting.html">Troubleshooting</a> for details.	
-					Please note that R-OSGi generally does not make any assumptions about static role assignment, such as client or service provider. Only for reasons of simplicity, the distribution is devided into a pure service provider and a pure service client part.	
-			</p>
+				<p>
+					For a quick start, you can download the sample
+					client and service distros. They contain a full
+					configuration of Concierge, R-OSGi, and an example
+					OSGi service that is accessed remotely. For easy
+					evaluation of our technology, simply unpack the zips
+					and start the client and the service on the same
+					machine. The client is preconfigured to expect the
+					service on
+					<code>localhost:9278</code>
+					. If you want to run the example over a real
+					network, you can configure the client by setting
+					<code>-Dch.ethz.iks.r_osgi.service.uri</code>
+					to the remote machine's URI (e.g.,
+					<code>r-osgi://godot.inf.ethz.ch:9278</code>
+					.
+				</p>
 			</subsection>
 			<subsection name="Creating your own deployment">
 				<p>
-					First of all, install an OSGi framework implementation of your choice. It should be at least OSGi R3 compliant. You can use, for instance, our own R3 implementation <a href="http://concierge.sourceforge.net">Concierge</a>.<br/>
-					Next, download the current version of R-OSGi from a <a href="http://sourceforge.net/project/showfiles.php?group_id=158382">sourceforge mirror</a>. <br/>
-					And download the current version of jSLP-OSGi from a <a href="http://sourceforge.net/project/showfiles.php?group_id=151721">sourceforge mirror</a>. <br/>
-					If you plan to use remote events, then you also need an EventAdmin implementation. Either your framework has one for you, or in case you are using an R3 framework (EventAdmin came out with R4), you can take the backport from Concierge.
-					Due to its lightweight architecture, R-OSGi runs on every Java VM which is at least CDC 1.0 compliant.
+					First of all, install an OSGi framework
+					implementation of your choice. It should be at least
+					OSGi R3 compliant. You can use, for instance, our
+					own R3 implementation
+					<a href="http://concierge.sourceforge.net">
+						Concierge
+					</a>
+					.
+					<br />
+					Next, download the current version of R-OSGi from a
+					<a
+						href="http://sourceforge.net/project/showfiles.php?group_id=158382">
+						sourceforge mirror
+					</a>
+					.
+					<br />
+					If you want to use service discovery, you
+					additionally have to download the current version of
+					jSLP-OSGi from a
+					<a
+						href="http://sourceforge.net/project/showfiles.php?group_id=151721">
+						sourceforge mirror
+					</a>
+					and the
+					<code>service_discovery.slp</code>
+					bundle.
+					<br />
+					If you plan to use remote events, then you also need
+					an EventAdmin implementation. Either your framework
+					has one for you, or in case you are using an R3
+					framework (EventAdmin came out with R4), you can
+					take the backport from Concierge. Due to its
+					lightweight architecture, R-OSGi runs on every Java
+					VM which implements at least J2ME CDC 1.0.
 				</p>
 			</subsection>
 			<subsection name="The big picture of R-OSGi">
 				<p>
-					There are two very different use cases for R-OSGi. In some settings, you want to have full transparency. That means, your application is not able to 
-					distinguish between local and remote services. This is typically the case when you add distribution to an existing application. <br/>
-					What you do in these cases is to implement an <i>Adapter Bundle</i> on client side. This bundle is responsible for registering a discovery listener and 
-					decide to fetch services when they are discovered. The simplest case is to register the listener with the <code>RemoteOSGiService.LISTENER_AUTO_FETCH</code> property set to 
-					true, which has the effect that whatever services has been discovered that matches one of the the <code>DiscoveryListener.SERVICE_INTERFACES</code> (if set), 
-					is directly fetched and in this sense <i>imported</i> into the local framework. The application itself has registered a listener and will be able to operate on the service
-					as if it was a local service, because it actually is a local service with the only difference that the logic resides on a remote machine and all calls to service methods are 
-					redirected through a remote method invocation scheme. \\
-					The registration of existing services for remote access through surrogate services is described in <a href="advanced.htlm">Advanced R-OSGi</a>.
+					There are two very different use cases for R-OSGi.
+					In some settings, you want to have full
+					transparency. That means, your application is not
+					able to distinguish between local and remote
+					services. This is typically the case when you add
+					distribution to an existing application.
+					<br />
+					What you do in these cases is to implement an
+					<i>Adapter Bundle</i>
+					on client side. This bundle is responsible for
+					either starting a connection to the remote host or
+					registering a discovery listener and decide to fetch
+					services when they are discovered. The application
+					itself will be able to operate on the service as if
+					it was a local service, because it actually is a
+					local service with the only difference that the
+					logic resides on a remote machine and all calls to
+					service methods are redirected through a remote
+					method invocation scheme.
+					<br />
+					The registration of existing services for remote
+					access through surrogate services is described in
+					<a href="advanced.htlm">Advanced R-OSGi</a>
+					.
 				</p>
 				<p>
-					The orthogonal setting is an application like the one we present below. In some cases, the application is absolutely aware of distribution. In fact, 
-					the purpose of the application is to connect to remote services and operate on them. In this situation, the application wants to have full control over the process 
-					of fetching and accessing the remote service. As in the example below, the application registers itself as a discovery listener. The service might be fetched at a later point in time, for instance, when the user decides to 
-					finally make use of the discovered service. Then, the application calls the <code>fetchService</code> method. The problem is now, that the newly imported service might have the same interface than existing services. 
-					In our example, we have connected to a new robot but we already have proxies for three other robots that we control. So how can we distinguish from the application's point of view. R-OSGi helps us here and provides 
-					the <code>getFetchedService</code> method to get exactly the service reference that corresponds to the service URL. 
-					It is still the OSGi framework that keeps track of all services and the newly fetches service is still just an ordinary service within the local framework (with the difference that it is a proxy). 
-					Just for the case that we are interested in a specific service from a specific host that we have just fetched, we can use this method to make our lifes a bit easier. In our example, the robot controller 
-					wants to present exactly the robot to the user that has been fetched before and this is the reason why we use this method.
+					In some cases, the application is absolutely aware
+					of distribution. In fact, the purpose of the
+					application is to connect to remote services and
+					operate on them. In this situation, the application
+					wants to have full control over the connection and
+					the access of the remote services.
 				</p>
 				<p>
-					Besides remote access to services, R-OSGi also features remote events. With the current 0.6.x release, the handling of events has fundamentally changed. Events are now by default 
-					forwarded to every connected peer that has a local registration of an <code>EventHandler</code> with matching topics. Thereby, the application are able to seemlessly make use of events that 
-					occured on a remote machine. If it is required to distinguish between local and remote events, this is still possible since all forwarded events contain an additional property <code>RemoteOSGiServiceImpl.EVENT_SENDER_URL</code>
-					which contains the ID of the network channel which forwarded the event. 
+					Besides remote access to services, R-OSGi also
+					features remote events. Once a remote connection is
+					established, Events are forwarded to every connected
+					peer that has a local registration of an
+					<code>EventHandler</code>
+					with matching topics. Thereby, the application are
+					able to seamlessly make use of events that occurred
+					on a remote machine. If it is required to
+					distinguish between local and remote events, this is
+					still possible since all forwarded events contain an
+					additional property
+					<code>sender.uri</code>
+					which contains the URI of the peer that forwarded
+					the event.
 				</p>
 			</subsection>
-			<subsection name="Registering a service for remote access (service provider side)">
-				A registration with a proxy policy is done in the following way:
-<source>
-public class RobotActivator implements BundleActivator {
+			<subsection
+				name="Registering a service for remote access (service provider side)">
+				A registration with a proxy policy is done in the
+				following way:
+				<source>
+public class RobotActivator implements
+	BundleActivator {
 
-	public void start(BundleContext context) {
-		Hashtable properties = new Hashtable();
+	public void start(BundleContext context) { Hashtable
+		
+		properties = new Hashtable();
 
 		// this is the hint for R-OSGi that the service 
-		// is made available for remote access
+		// ought to be made available for remote access
+
 		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
-				RemoteOSGiService.SERVICE_PROXY_POLICY);
+			Boolean.TRUE);
+
 
 		context.registerService(RobotDevice.class.getName(),
-				new RobotDeviceImpl(), properties);
+			new RobotDeviceImpl(), properties); 
 	}
 
-	public void stop(BundleContext context) throws Exception {
+	public void stop(BundleContext context) throws
+		Exception {
 
 	}
 
 }
-</source>
-			Now, other R-OSGi enabled peers can discover the service. To do so, they have to register a <code>DiscoveryListener</code> 
-			and thereby state their interest in certain services. 
-		</subsection>
-			<subsection name="Register a DiscoveryListener and fetch the service (service consumer side)">
+				</source>
+				Now, other R-OSGi enabled peers can connect to the peer
+				and get access to the service.
+			</subsection>
+			<subsection
+				name="Connect to a remote peer and get the service (service consumer side)">
 				<p>
-				Service discovery is only done if a client bundle has registered a <code>DiscoveryListener</code> for one or more service interfaces. 
-				In this case, R-OSGi periodically queries the network for matching services using SLP ServiceRequests.
-				The following example shows how to register a DiscoveryListener:
-<source>
+					First of all, we have to get the RemoteOSGiService
+					and establish a connection to a peer.
+					<source>
 
-// create a new RobotDeviceListener
-listener = new RobotDeviceListener(context, remote);
-	
-// register for discovery 
-context.registerService(DiscoveryListener.class.getName(), listener, null);
+// get the RemoteOSGiService 
+final ServiceReference sref = context.getServiceReference(RemoteOSGiService.class.getName());
 
-</source>
-					<br/>
-				In this case, the listener will be called whenever any service (of type service:osgi) has been discovered. To have finer granularity, 
-				add a service type string to the property <code>DiscoveryListener.SERVICE_INTERFACES</code>. E.g. the discovery listener for RobotDevice could be registered for 
-				the service interface <code>ch.ethz.iks.robot.RobotDevice</code>: (altered example)
-<source>
+if (sref == null) { 
+	throw new BundleException("No R-OSGi found"); 
+} 
 
-// create a new RobotDeviceListener
-listener = new RobotDeviceListener(context, remote);
+remote = (RemoteOSGiService) context.getService(sref);
 
-// create and set the properties
-Dictionary properties = new Hashtable();
-properties.put(DiscoveryListener.SERVICE_INTERFACES, new String[] {"service:osgi:ch/ethz/iks/robot/RobotDevice"});
+// connect 
+remote.connect(new URI("r-osgi://fluidpaq1.inf.ethz.ch:9278"));
 
-// register for discovery 
-context.registerService(DiscoveryListener.class.getName(), listener, properties);
+					</source>
+					<br />
+					The connect method returns an array of
+					<code>RemoteServiceReference</code>
+					objects. These are the services which are currently
+					available on the remote peer. One can use this
+					array, or get a service by one of its interfaces,
+					properties, etc. Just like it works in OSGi.
+					Example:
 
-</source>
-
- <br/>
-				DiscoveryListener have the following methods:
-<source>
-package osgi.service.proposition.remote;
-
-public interface DiscoveryListener {
-
-    void notifyDiscovery(ServiceURL service);
-    void notifyServiceLost(ServiceURL service);
-
-}
-</source>
-					<br/>
-				Whenever a matching service has been discovered, the <code>notifyDiscovery</code> method is called. The listener can then decide, if 
-				the application is interested in the service, e.g. by giving feedback to the user or deciding according to the ServiceURL. <br/>
-				The following example is a discovery listener for <code>RobotDevice</code> that accepts all discovered service and calls the 
-				<code>fetchService</code> method of the <code>RemoteOSGiService</code> to get a proxy bundle for the remote <code>RobotDevice</code>:
-<source>
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import ch.ethz.iks.r_osgi.DiscoveryListener;
-import ch.ethz.iks.r_osgi.RemoteOSGiService;
-import ch.ethz.iks.slp.ServiceURL;
-import ch.ethz.iks.robot.RobotDevice;
-
-public class RobotDeviceListener implements DiscoveryListener {
-
-	private RemoteOSGiService remote;
-	private BundleContext context;
-
-    
-	RobotDeviceListener(BundleContext bcontext, RemoteOSGiService rosgi) {
-		remote = rosgi;
-		context = bcontext;
-	}
-
-	public void notifyDiscovery(ServiceURL service) {
-
-		try {
-			// fetch the service, i.e. let this framework 
-			// build a proxy bundle on the fly and register
-			// it with the local service registry            
-			remote.fetchService(service);
-				
-			// we have many RobotDevices, so get a reference to 
-			// exactly the device that has just been discovered
-			RobotDevice robot = (RobotDevice) remote.getFetchedService(service);
-								
-			// and start a new instance of RobotController to control this device
-			controller = new RobotController(service, robot);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void notifyServiceLost(ServiceURL service) { 
-		// we lost contact to the service, so shut down the controller instance.
-		RobotController.dispose(service);
-	}
-}
-</source>
-					<br/>
-				The <code>notifyDiscovery</code> method is called exactly once, at the time where a distinct service has been seen the first time. 
-				The <code>notifyServiceLost</code> method is also called exactly once, at the time where a previously seen service has not been 
-				rediscovered or if a method call has failed due to unattainability of the service. 
-			</p>
+					<source>
+final RemoteServiceReference[] srefs =
+	remote.getServiceReferences(new URI("r-osgi://fluidpaq1.inf.ethz.ch:9278"),
+	RobotDevice.class.getName(), null);
+					</source>
+					<br />
+					This remote reference has similar properties as a
+					local service reference has. It can be used to
+					access the service properties, and it is the key for
+					getting access to a service:
+					<source>
+RobotDevice robot = (RobotDevice) remote.getRemoteService(srefs[0]);
+					</source>
+					<br />
+					With the call of the
+					<code>getRemoteService</code>
+					method, a local proxy for the remote service is
+					created. The service proxy is registered with the
+					local service registry and can also be retrieved
+					like a normal OSGi service. To get rid of a remote
+					service, you can call
+					<code>ungetRemoteService</code>
+					.
+				</p>
 			</subsection>
 		</section>
 	</body>

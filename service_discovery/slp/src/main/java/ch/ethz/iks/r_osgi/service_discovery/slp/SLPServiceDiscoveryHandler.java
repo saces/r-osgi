@@ -32,8 +32,11 @@ import ch.ethz.iks.util.Scheduler;
 public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 		ScheduleListener {
 
-	// TODO: make it configurable
-	private static final int DISCOVERY_INTERVAL = 20;
+	private static final int DISCOVERY_INTERVAL = Integer
+			.parseInt(System
+					.getProperty(
+							"ch.ethz.iks.r_osgi.service_discovery.slp.discovery_interval",
+							"20"));
 
 	/**
 	 * SLP registration scheduler.
@@ -70,7 +73,7 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 	 * constant that holds the property string for SLP registration lifetime.
 	 * Default is 60 seconds.
 	 */
-	private static final String DEFAULT_SLP_LIFETIME_PROPERTY = "ch.ethz.iks.r_osgi.remote.defaultLifetime";
+	private static final String DEFAULT_SLP_LIFETIME_PROPERTY = "ch.ethz.iks.r_osgi.service_discovery.slp.defaultLifetime";
 
 	/**
 	 * default lifetime for SLP registration.

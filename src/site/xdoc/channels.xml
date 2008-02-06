@@ -1,56 +1,43 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <document>
 	<properties>
-		<title>R-OSGi - transparent OSGi remote extension for distributed services - Network Channels</title>
-		<author email="rellermeyer_AT_inf.ethz.ch">Jan S. Rellermeyer</author>
+		<title>
+			R-OSGi - transparent OSGi remote extension for distributed
+			services - Network Channels
+		</title>
+		<author email="rellermeyer_AT_inf.ethz.ch">
+			Jan S. Rellermeyer
+		</author>
 	</properties>
-	<meta name="keyword" content="Projects, using, OSGi, R-OSGi, rosgi, remote, remoting, Java, J2ME, embedded systems, Event, Service, EventAdmin, Remote Event, RemoteEvent, SLP, Remote services, service discovery"/>
-	<meta name="description" content="The Lego mindstorm robots are controlled by R-OSGi, the OSGi remote service framework based on jSLP, the pure java slp implementation."/>
-	<meta http-equiv="cache-control" content="no-cache"/>
-	<meta http-equiv="pragma" content="no-cache"/>
-	<meta http-equiv="robots" content="index, follow"/>
+	<meta name="keyword"
+		content="Projects, using, OSGi, R-OSGi, rosgi, remote, remoting, Java, J2ME, embedded systems, Event, Service, EventAdmin, Remote Event, RemoteEvent, SLP, Remote services, service discovery" />
+	<meta name="description"
+		content="The Lego mindstorm robots are controlled by R-OSGi, the OSGi remote service framework based on jSLP, the pure java slp implementation." />
+	<meta http-equiv="cache-control" content="no-cache" />
+	<meta http-equiv="pragma" content="no-cache" />
+	<meta http-equiv="robots" content="index, follow" />
 	<body>
-		<section name="THIS PAGE IS OUTDATED (reflects the 0.6.5 version) AND NEEDS A MAJOR REVISION"/>
-		<section name="Network Channels">		
-			<subsection name="Default: TCP with service discovery">
-				<p>
-					The default way of accessing services is the service discovery. R-OSGi maintains the statements of supply and demand made through the 
-					registration of services and discovery listeners and explores its network environment to find matchings. The used protocol for service discovery 
-					is SLP. However, if no preconfigured <i>DirectoryAgent</i> is present, the service discovery only works within the boundaries of the subnet. 
-					<br/>
-					By default, R-OSGi uses its own lightweight binary protocol over persistent TCP connections. In R-OSGi, connections are made through
-					the abstraction of <code>NetworkChannels</code>. The set of supported channel types can be modularily extended by registering additional 
-					<code>NetworkChannelFactories</code> for specific protocols.
-				</p>
-			</subsection>
-			<subsection name="Alternative: Explicit connection">
-				<p>
-					Instead of performing service discovery, applications can also explicitly connect to a well-known peer. The way of doing this is to call
-<source>
-	ServiceURL[] connect(final InetAddress host, final int port,
-			final String protocol) throws RemoteOSGiException;
-</source>
-					of the RemoteOSGiService. As expected, this connects to the remote peer (which also directly enabled event forwarding, if the topic spaces match) and 
-					returns a list of all available services. The next step is usually to pick a service and to call <code>fetchService</code>. 					
-				</p>
-			</subsection>
-			<subsection name="Alternative: R-OSGi over Http(s)">
-				<p>
-					The modularity of NetworkChannels make it possible to add alternative ways of transporting the R-OSGi messages at runtime. As a proof of concept, 
-					we have implemented a Http(s) <code>NetworkChannelFactory</code> which supports both <i>http</i> and <i>https</i> as protocols. <code>NetworkChannelFactories</code> 
-					are responsible for handling outgoing traffic. Incoming traffic has to be catched by an external <i>Bridge</i>, the R-OSGi messages have to be regenerated and forwarded by TCP 
-					to the local R-OSGi instance. In our case, this is done by an <code>AcceptorServlet</code> which unwraps the piggybacked R-OSGi messages. Typically, the process of 
-					bridging between an alternative protocol or transport and the native R-OSGi message format also involves <i>rewriting</i> of the serviceURLs contained in the message. The reason is that 
-					all serviceURLs are relative to the native protocol path. By using the 
-<source>
-		public abstract void rewrite(final String protocol, final String host,
-			final int port) throws IllegalArgumentException;
-</source>					 
-					method on all outgoing R-OSGi messages (prior to wrapping them by Http messages), all serviceURLs can be rewritten to reflect the protocol <i>http</i>, the 
-					host name used by the <i>HttpService</i> and, for instance, port <i>8080</i> where the servlet container runs on. If the serviceURLs are not rewritten, they would 
-					always point to the native protocol and (by default) to port <i>9278</i>.  
-				</p>
-			</subsection>
+		<section name="Network Channels">
+			<p>
+				By default, R-OSGi uses its own lightweight binary
+				protocol over persistent TCP connections. In R-OSGi,
+				connections are made through the abstraction of
+				<code>NetworkChannels</code>
+				. The set of supported channel types can be extended by
+				registering additional
+				<code>NetworkChannelFactories</code>
+				for specific transports.
+			</p>
+			<p>
+				Two examples of alternative transports are the Mina and
+				the Bluetooth transports. The Mina NetworkChannelFactory
+				operates with the same protocol as standard R-OSGi but
+				over
+				<a href="http://mina.apache.org">Mina</a>
+				high performance connections. The Bluetooth
+				NetworkChannelFactory implements both the transport and
+				the service discovery over the Bluetooth RFCOMM layer.
+			</p>
 		</section>
 	</body>
 </document>

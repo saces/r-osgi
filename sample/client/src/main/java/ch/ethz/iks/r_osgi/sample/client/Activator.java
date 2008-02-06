@@ -22,8 +22,6 @@ public class Activator implements BundleActivator {
 
 	private Thread clientThread;
 
-	private static final boolean discovery = false;
-
 	public void start(final BundleContext context) {
 		try {
 			System.out.println("starting sample client");
@@ -36,7 +34,7 @@ public class Activator implements BundleActivator {
 				throw new BundleException("OSGi remote service is not present.");
 			}
 
-			if (discovery) {
+			if (Boolean.getBoolean("ch.ethz.iks.r_osgi.service.discovery")) {
 				context.registerService(ServiceDiscoveryListener.class
 						.getName(), new ServiceDiscoveryListener() {
 
@@ -58,7 +56,9 @@ public class Activator implements BundleActivator {
 				}, null);
 
 			} else {
-				final URI uri = new URI("r-osgi://localhost:9278");
+				final URI uri = new URI(System.getProperty(
+						"ch.ethz.iks.r_osgi.service.uri",
+						"r-osgi://localhost:9278"));
 				// final URI uri = new URI("r-osgi://84.73.219.12:9278");
 				// final URI uri = new URI("btspp://0010DCE96CB8:1");
 				// final URI uri = new URI("btspp://0014A4D46D9A:1");
