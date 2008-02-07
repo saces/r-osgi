@@ -50,7 +50,8 @@ public class Activator implements BundleActivator {
 			}
 			Dictionary properties = new Hashtable();
 			properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
-					RemoteOSGiService.SERVICE_PROXY_POLICY);
+					Boolean.TRUE);
+					//		RemoteOSGiService.SERVICE_PROXY_POLICY);
 			properties.put(RemoteOSGiService.PRESENTATION, "ch.ethz.iks.clock.internal.ClockUI");
 			context.registerService(Clock.class.getName(), new ClockImpl(
 					(EventAdmin) context.getService(sref)), properties);

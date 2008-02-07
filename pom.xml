@@ -106,6 +106,7 @@
       <groupId>asm</groupId>
       <artifactId>asm</artifactId>
       <version>3.0</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>ch.ethz.iks.slp</groupId>
