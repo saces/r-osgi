@@ -410,7 +410,7 @@ final class CodeAnalyzer implements ClassVisitor {
 	 */
 	public void visitInnerClass(final String name, final String outerName,
 			final String innerName, final int access) {
-		if (!name.equals(currentClass)) {
+		if (!name.equals(currentClass) && !visited.contains(currentClass)) {
 			closure.add(name.replace('/', '.'));
 		}
 	}
