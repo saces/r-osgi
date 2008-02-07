@@ -54,11 +54,6 @@
 			<version>${pom.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>ch.ethz.iks.r-osgi.sample</groupId>
-			<artifactId>sample.api</artifactId>
-			<version>${pom.version}</version>
-		</dependency>
     	<dependency>
       		<groupId>backport-util-concurrent</groupId>
       		<artifactId>backport-util-concurrent</artifactId>
