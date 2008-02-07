@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+	<properties>
+		<title>
+			R-OSGi - transparent OSGi remote extension for distributed
+			services - Service Discovery
+		</title>
+		<author email="rellermeyer_AT_inf.ethz.ch">
+			Jan S. Rellermeyer
+		</author>
+	</properties>
+	<meta name="keyword"
+		content="Projects, using, OSGi, R-OSGi, rosgi, remote, remoting, Java, J2ME, embedded systems, Event, Service, EventAdmin, Remote Event, RemoteEvent, SLP, Remote services, service discovery" />
+	<meta name="description" content="Service Discovery with R-OSGi." />
+	<meta http-equiv="cache-control" content="no-cache" />
+	<meta http-equiv="pragma" content="no-cache" />
+	<meta http-equiv="robots" content="index, follow" />
+	<body>
+		<section name="Service Discovery">
+			<p>
+				With the 1.0 release, service discovery has become an
+				orthogonal concern and is no longer an integral part of
+				R-OSGi. You can use service discovery, if you want, but
+				it requires to install additional bundles. R-OSGi
+				contains the API for service discovery. For the
+				discovery, several different implementations can be
+				used. One is the SLP service discovery that uses
+				<a href="http://jslp.sourceforge.net">jSLP</a>
+				but we also have an implementation on top of Bluetooth
+				SDP as part of the Bluetooth transport implementation.
+			</p>
+			<p>
+				If there is a service discovery implementation running, 
+				you can register your discovery listener like in the following example:
+<source>
+context.registerService(ServiceDiscoveryListener.class
+	.getName(), new ServiceDiscoveryListener() {
+
+		public void announceService(final String serviceInterface, final URI uri) {
+			remote.connect(uri);
+			final RemoteServiceReference ref = remote
+				.getRemoteServiceReference(uri);
+			service = (ServiceInterface) remote
+				.getRemoteService(ref);
+			...
+		}
+
+		public void discardService(String serviceInterface, URI uri) {
+			System.out.println("LOST SERVICE " + uri);
+			// the service proxy is unregistered automatically
+		}
+
+}, null);
+</source> 
+			</p>
+		</section>
+	</body>
+</document>
