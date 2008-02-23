@@ -15,6 +15,8 @@ import ch.ethz.iks.r_osgi.test.service.impl.ArgumentTestServiceImpl;
 
 public class ArgumentTest extends TestCase {
 
+	private static final URI uri = new URI("r-osgi://localhost:9278");
+
 	private RemoteOSGiService remote;
 
 	private BundleContext context;
@@ -34,7 +36,6 @@ public class ArgumentTest extends TestCase {
 		context.registerService(ArgumentTestService.class.getName(),
 				new ArgumentTestServiceImpl(), props);
 
-		final URI uri = new URI("r-osgi://localhost:9278");
 		remote.connect(uri);
 		final RemoteServiceReference[] refs = remote
 				.getRemoteServiceReferences(uri, ArgumentTestService.class
@@ -46,6 +47,7 @@ public class ArgumentTest extends TestCase {
 	}
 
 	protected void tearDown() throws Exception {
+		remote.disconnect(uri);
 		super.tearDown();
 	}
 

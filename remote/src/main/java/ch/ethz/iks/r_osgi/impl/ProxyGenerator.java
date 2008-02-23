@@ -311,6 +311,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		final ClassReader reader = new ClassReader(interfaceClass);
 		writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		reader.accept(this, null, ClassReader.SKIP_DEBUG);
+		recurseInterfaceHierarchy();
 		interfaceClassNames = null;
 		final byte[] bytes = writer.toByteArray();
 		return bytes;
@@ -356,9 +357,15 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 						+ ".class");
 				final ClassReader reader;
 				if (bytes == null) {
-					reader = new ClassReader(Class.forName(
-							superIface.replace('/', '.')).getClassLoader()
-							.getResourceAsStream(superIface + ".class"));
+					try {
+						reader = new ClassReader(Class.forName(
+								superIface.replace('/', '.')).getClassLoader()
+								.getResourceAsStream(superIface + ".class"));
+					} catch (IOException ioe) {
+						throw new IOException("While processing "
+								+ superIface.replace('/', '.') + ": "
+								+ ioe.getMessage());
+					}
 				} else {
 					reader = new ClassReader(bytes);
 				}
@@ -392,6 +399,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		MethodVisitor method;
 		final FieldVisitor field;
 
+		// initial class / interface ?
 		if (name.equals(smartProxyClassNameDashed)
 				|| (smartProxyClassName == null && name
 						.equals(interfaceClassNames[0].replace('.', '/')))) {
@@ -444,6 +452,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitMaxs(2, 1);
 				method.visitEnd();
 
+				// add the remaining interfaces to the list to be visited later
+				for (int i = 1; i < interfaceClassNames.length; i++) {
+					superInterfaces.add(interfaceClassNames[i]
+							.replace('.', '/'));
+				}
 			}
 
 			field = writer.visitField(ACC_PRIVATE, "endpoint", "L" + ENDPOINT_I
