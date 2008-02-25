@@ -52,6 +52,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.ItemListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -246,6 +247,8 @@ class ServiceUI extends Frame implements RemoteServiceListener,
 										}.setVisible(true);
 									} catch (RemoteOSGiException e1) {
 										e1.printStackTrace();
+									} catch (IOException ioe) {
+										
 									}
 									setVisible(false);
 								}

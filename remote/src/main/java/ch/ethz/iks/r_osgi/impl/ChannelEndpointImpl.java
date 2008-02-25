@@ -1136,6 +1136,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					throw t.getTargetException();
 				}
 			} catch (Throwable t) {
+				// TODO: send to log
+				t.printStackTrace();
 				final MethodResultMessage m = new MethodResultMessage();
 				m.setXID(invMsg.getXID());
 				m.setException(t);

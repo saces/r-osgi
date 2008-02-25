@@ -516,7 +516,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * @since 0.6
 	 */
 	public RemoteServiceReference[] connect(final URI uri)
-			throws RemoteOSGiException {
+			throws RemoteOSGiException, IOException {
 
 		URI endpoint = URI.create(getChannelURI(uri));
 		final ChannelEndpointImpl test = (ChannelEndpointImpl) channels
@@ -547,10 +547,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			}
 			throw new RemoteOSGiException("No NetworkChannelFactory for "
 					+ protocol + " found.");
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-			throw new RemoteOSGiException("Connection to " + endpoint
-					+ " failed", ioe);
 		} catch (InvalidSyntaxException e) {
 			// does not happen
 			e.printStackTrace();
@@ -584,8 +580,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
 				.get(getChannelURI(serviceURI));
 		if (channel == null) {
-			connect(serviceURI);
-			channel = (ChannelEndpointImpl) channels.get(uri);
+			try {
+				connect(serviceURI);
+				channel = (ChannelEndpointImpl) channels.get(uri);
+			} catch (IOException ioe) {
+				throw new RemoteOSGiException("Cannot connect to " + uri);
+			}
 		}
 		return channel.getRemoteReference(serviceURI.toString());
 	}
@@ -600,8 +600,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		final String uri = getChannelURI(service);
 		ChannelEndpointImpl channel = (ChannelEndpointImpl) channels.get(uri);
 		if (channel == null) {
-			connect(service);
-			channel = (ChannelEndpointImpl) channels.get(uri);
+			try {
+				connect(service);
+				channel = (ChannelEndpointImpl) channels.get(uri);
+			} catch (IOException ioe) {
+				throw new RemoteOSGiException("Cannot connect to " + uri);
+			}
 		}
 		if (clazz == null) {
 			return channel.getAllRemoteReferences(null);

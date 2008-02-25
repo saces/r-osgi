@@ -28,6 +28,7 @@
  */
 package ch.ethz.iks.r_osgi;
 
+import java.io.IOException;
 import org.osgi.framework.Filter;
 import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpointManager;
@@ -154,10 +155,13 @@ public interface RemoteOSGiService {
 	 *         remote frameworks offers.
 	 * @throws RemoteOSGiException
 	 *             in case of connection errors.
+	 * @throws ConnectException
+	 *             if the connection attempt fails.
+	 * @throws IOException 
 	 * @since 0.6
 	 */
 	RemoteServiceReference[] connect(final URI endpoint)
-			throws RemoteOSGiException;
+			throws RemoteOSGiException, IOException;
 
 	/**
 	 * disconnect from a connected host.

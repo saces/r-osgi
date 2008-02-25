@@ -44,6 +44,7 @@ public class BluetoothServiceRecord {
 		return buffer.toString();
 	}
 
+	/*
 	private String toHex(int[] a) {
 		StringBuffer buffer = new StringBuffer();
 		for (int i = 0; i < a.length; i++) {
@@ -52,6 +53,7 @@ public class BluetoothServiceRecord {
 		}
 		return buffer.toString();
 	}
+	*/
 
 	public Dictionary getProperties() throws IOException {
 		serviceRecord.populateRecord(new int[] { (0x204 + 2 * offset) });

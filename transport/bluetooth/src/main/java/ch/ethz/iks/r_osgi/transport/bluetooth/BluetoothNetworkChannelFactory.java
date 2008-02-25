@@ -248,8 +248,8 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 	}
 
 	public void unregisterService(ServiceReference ref) {
-		final String[] interfaces = (String[]) ref
-				.getProperty(Constants.OBJECTCLASS);
+		// final String[] interfaces = (String[]) ref
+		// .getProperty(Constants.OBJECTCLASS);
 		services.remove(serviceMap.remove(ref));
 		try {
 			updateSDPRecord();

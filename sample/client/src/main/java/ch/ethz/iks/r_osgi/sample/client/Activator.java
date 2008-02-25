@@ -28,6 +28,8 @@
  */
 package ch.ethz.iks.r_osgi.sample.client;
 
+import java.io.IOException;
+
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -66,13 +68,17 @@ public class Activator implements BundleActivator {
 						.getName(), new ServiceDiscoveryListener() {
 
 					public void announceService(String serviceInterface, URI uri) {
-						remote.connect(uri);
-						final RemoteServiceReference ref = remote
-								.getRemoteServiceReference(uri);
-						service = (ServiceInterface) remote
-								.getRemoteService(ref);
-						clientThread = new ClientThread();
-						clientThread.start();
+						try {
+							remote.connect(uri);
+							final RemoteServiceReference ref = remote
+									.getRemoteServiceReference(uri);
+							service = (ServiceInterface) remote
+									.getRemoteService(ref);
+							clientThread = new ClientThread();
+							clientThread.start();
+						} catch (IOException ioe) {
+							ioe.printStackTrace();
+						}
 					}
 
 					public void discardService(String serviceInterface, URI uri) {

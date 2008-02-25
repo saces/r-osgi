@@ -3,7 +3,6 @@ package ch.ethz.iks.r_osgi.transport.bluetooth;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.Arrays;
 import java.util.Dictionary;
 
 import javax.bluetooth.DataElement;

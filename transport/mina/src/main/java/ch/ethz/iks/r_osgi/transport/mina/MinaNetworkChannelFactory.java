@@ -27,8 +27,6 @@ public class MinaNetworkChannelFactory implements NetworkChannelFactory {
 
 	private SocketAcceptor acceptor;
 
-	private URI listeningAddress;
-
 	public void activate(final Remoting remoting) throws IOException {
 		acceptor = new SocketAcceptor();
 		acceptor.getFilterChain().addLast("logger", new LoggingFilter());
@@ -73,8 +71,6 @@ public class MinaNetworkChannelFactory implements NetworkChannelFactory {
 			}
 
 		});
-		listeningAddress = URI.create(PROTOCOL_SCHEME + "://"
-				+ address.getHostName() + ":" + address.getPort());
 	}
 
 	public void deactivate(Remoting remoting) throws IOException {
