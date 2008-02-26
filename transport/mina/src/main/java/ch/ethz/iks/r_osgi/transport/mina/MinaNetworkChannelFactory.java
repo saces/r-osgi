@@ -113,7 +113,7 @@ public class MinaNetworkChannelFactory implements NetworkChannelFactory {
 
 		private void connect() {
 			final ConnectFuture connectFuture = connector.connect(
-					new InetSocketAddress(remoteAddress.getHostName(),
+					new InetSocketAddress(remoteAddress.getHost(),
 							remoteAddress.getPort()), this);
 			/*
 			 * connectFuture.addListener(new IoFutureListener() { public void

@@ -45,7 +45,7 @@ public class SLPServiceRegistration {
 			try {
 				urls[i] = new ServiceURL("service:osgi:"
 						+ interfaces[i].replace('.', '/') + "://"
-						+ uri.getScheme() + "://" + uri.getHostName() + ":"
+						+ uri.getScheme() + "://" + uri.getHost() + ":"
 						+ uri.getPort() + "/" + uri.getFragment(),
 						SLPServiceDiscoveryHandler.DEFAULT_SLP_LIFETIME * 1000);
 			} catch (ServiceLocationException sle) {
