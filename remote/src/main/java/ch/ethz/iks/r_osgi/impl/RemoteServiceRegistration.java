@@ -235,4 +235,8 @@ final class RemoteServiceRegistration {
 	DeliverServiceMessage getDeliverServiceMessage() {
 		return deliverServiceMessage;
 	}
+	
+	public String toString() {
+		return "RemoteServiceRegistration{" + reference.toString() + "}";
+	}
 }

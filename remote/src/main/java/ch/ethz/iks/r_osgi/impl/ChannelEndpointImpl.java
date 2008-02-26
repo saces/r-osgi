@@ -30,6 +30,7 @@ package ch.ethz.iks.r_osgi.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.NotSerializableException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -243,6 +244,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				if (reply != null) {
 					try {
 						networkChannel.sendMessage(reply);
+					} catch (NotSerializableException nse) {
+						throw new RemoteOSGiException("Error sending " + reply, nse);
 					} catch (IOException e) {
 						dispose();
 					}
@@ -784,6 +787,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					networkChannel.sendMessage(msg);
 				}
 			}
+		} catch (NotSerializableException nse) {
+			throw new RemoteOSGiException("Error sending " + msg, nse);
 		} catch (IOException ioe) {
 			// failed to reconnect...
 			dispose();

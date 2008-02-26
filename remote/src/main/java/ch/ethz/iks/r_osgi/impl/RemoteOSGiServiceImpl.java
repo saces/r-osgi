@@ -395,7 +395,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 								if (log != null) {
 									log.log(LogService.LOG_INFO, "REGISTERING "
-											+ reg + " AS PROXIED SERVICES");
+											+ reference + " AS PROXIED SERVICES");
 								}
 
 								serviceRegistrations.put(service, reg);
