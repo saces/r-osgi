@@ -1101,7 +1101,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	private static String generateSourceID(final String id) {
 		final int pos1 = id.indexOf("://");
 		char[] chars = id.substring(pos1 + 3).replace('/', '_').replace(':',
-				'_').toCharArray();
+				'_').replace('-', '_').toCharArray();
 		StringBuffer buffer = new StringBuffer();
 		for (int i = 0; i < chars.length; i++) {
 			if (chars[i] == '.') {
