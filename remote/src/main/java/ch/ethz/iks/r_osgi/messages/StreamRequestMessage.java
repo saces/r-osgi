@@ -127,7 +127,14 @@ public final class StreamRequestMessage extends RemoteOSGiMessage {
 		case WRITE_ARRAY:
 			this.lenOrVal = input.readInt();
 			this.b = new byte[lenOrVal];
-			input.read(b, 0, lenOrVal);
+			int rem = lenOrVal;
+			int read;
+			while((rem > 0) && ((read = input.read(b, 0, rem)) > 0)) {
+				rem = rem - read;
+			}
+			if (rem > 0) {
+				throw new IOException("Premature end of input stream.");
+			}
 			break;
 		default:
 			throw new IllegalArgumentException(

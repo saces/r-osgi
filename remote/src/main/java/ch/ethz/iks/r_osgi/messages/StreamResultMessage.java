@@ -111,7 +111,14 @@ public final class StreamResultMessage extends RemoteOSGiMessage {
 		case RESULT_ARRAY:
 			this.len = input.readInt();
 			this.b = new byte[len];
-			input.read(b, 0, len);
+			int rem = len;
+			int read;
+			while((rem > 0) && ((read = input.read(b, 0, rem)) > 0)) {
+				rem = rem - read;
+			}
+			if (rem > 0) {
+				throw new IOException("Premature end of input stream.");
+			}
 			break;
 		case RESULT_EXCEPTION:
 			exception = (IOException) SmartSerializer.deserialize(input);
