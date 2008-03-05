@@ -78,7 +78,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	/**
 	 * interface class name.
 	 */
-	private String[] interfaceClassNames;
+	private String[] serviceInterfaceNames;
 
 	/**
 	 * name of the implemented class.
@@ -110,6 +110,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * the service interface.
 	 */
 	private List superInterfaces = new ArrayList();
+
+	/**
+	 * the set of visited interfaces to avoid loops
+	 */
+	private Set visitedInterfaces = new HashSet();
 
 	/**
 	 * smart proxy class name.
@@ -304,15 +309,16 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 */
 	private byte[] generateProxyClass(final String[] interfaceNames,
 			final byte[] interfaceClass) throws IOException {
-		interfaceClassNames = interfaceNames;
+		serviceInterfaceNames = interfaceNames;
 		implName = "proxy/" + sourceID + "/"
 				+ interfaceNames[0].replace('.', '/') + "Impl";
 
 		final ClassReader reader = new ClassReader(interfaceClass);
 		writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		reader.accept(this, null, ClassReader.SKIP_DEBUG);
+		visitedInterfaces.add(interfaceNames[0].replace('.', '/'));
 		recurseInterfaceHierarchy();
-		interfaceClassNames = null;
+		serviceInterfaceNames = null;
 		final byte[] bytes = writer.toByteArray();
 		return bytes;
 	}
@@ -334,7 +340,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	private byte[] generateProxyClass(final String[] interfaceNames,
 			final byte[] interfaceClass, final String proxyName,
 			final byte[] proxyClass) throws IOException {
-		interfaceClassNames = interfaceNames;
+		serviceInterfaceNames = interfaceNames;
 		implName = "proxy/" + sourceID + "/" + proxyName.replace('.', '/')
 				+ "Impl";
 		smartProxyClassName = proxyName;
@@ -342,8 +348,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		final ClassReader reader = new ClassReader(proxyClass);
 		writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		reader.accept(this, null, ClassReader.SKIP_DEBUG);
+		visitedInterfaces.add(smartProxyClassNameDashed);
 		recurseInterfaceHierarchy();
-		interfaceClassNames = null;
+		serviceInterfaceNames = null;
 		byte[] bytes = writer.toByteArray();
 		return bytes;
 	}
@@ -353,24 +360,28 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		try {
 			while (!superInterfaces.isEmpty()) {
 				final String superIface = (String) superInterfaces.remove(0);
-				final byte[] bytes = (byte[]) injections.get(superIface
-						+ ".class");
-				final ClassReader reader;
-				if (bytes == null) {
-					try {
-						reader = new ClassReader(Class.forName(
-								superIface.replace('/', '.')).getClassLoader()
-								.getResourceAsStream(superIface + ".class"));
-					} catch (IOException ioe) {
-						throw new IOException("While processing "
-								+ superIface.replace('/', '.') + ": "
-								+ ioe.getMessage());
+				if (!visitedInterfaces.contains(superIface)) {
+					final byte[] bytes = (byte[]) injections.get(superIface
+							+ ".class");
+					final ClassReader reader;
+					if (bytes == null) {
+						try {
+							reader = new ClassReader(Class.forName(
+									superIface.replace('/', '.'))
+									.getClassLoader().getResourceAsStream(
+											superIface + ".class"));
+						} catch (IOException ioe) {
+							throw new IOException("While processing "
+									+ superIface.replace('/', '.') + ": "
+									+ ioe.getMessage());
+						}
+					} else {
+						reader = new ClassReader(bytes);
 					}
-				} else {
-					reader = new ClassReader(bytes);
-				}
 
-				reader.accept(this, null, 0);
+					visitedInterfaces.add(superIface);
+					reader.accept(this, null, 0);
+				}
 			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -402,18 +413,19 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		// initial class / interface ?
 		if (name.equals(smartProxyClassNameDashed)
 				|| (smartProxyClassName == null && name
-						.equals(interfaceClassNames[0].replace('.', '/')))) {
+						.equals(serviceInterfaceNames[0].replace('.', '/')))) {
 
 			if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 						"creating proxy class " + implName);
 			}
 
-			final String[] serviceInterfaces = new String[interfaceClassNames.length + 1];
-			for (int i = 0; i < interfaceClassNames.length; i++) {
-				serviceInterfaces[i] = interfaceClassNames[i].replace('.', '/');
+			final String[] serviceInterfaces = new String[serviceInterfaceNames.length + 1];
+			for (int i = 0; i < serviceInterfaceNames.length; i++) {
+				serviceInterfaces[i] = serviceInterfaceNames[i].replace('.',
+						'/');
 			}
-			serviceInterfaces[interfaceClassNames.length] = "org/osgi/framework/BundleActivator";
+			serviceInterfaces[serviceInterfaceNames.length] = "org/osgi/framework/BundleActivator";
 
 			if ((access & ACC_INTERFACE) == 0) {
 				// we have a smart proxy
@@ -432,6 +444,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				}
 
 			} else {
+				
 				// we have an interface
 				writer.visit(version >= V1_5 ? V1_5 : V1_2, ACC_PUBLIC
 						+ ACC_SUPER, implName, null, "java/lang/Object",
@@ -439,7 +452,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
 					RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 							"Creating Proxy Bundle from Interfaces "
-									+ Arrays.asList(interfaceClassNames));
+									+ Arrays.asList(serviceInterfaceNames));
 				}
 
 				// creates a MethodWriter for the (implicit) constructor
@@ -453,9 +466,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitEnd();
 
 				// add the remaining interfaces to the list to be visited later
-				for (int i = 1; i < interfaceClassNames.length; i++) {
-					superInterfaces.add(interfaceClassNames[i]
-							.replace('.', '/'));
+				for (int i = 1; i < serviceInterfaceNames.length; i++) {
+					if (!visitedInterfaces.contains(serviceInterfaceNames[i])) {
+						superInterfaces.add(serviceInterfaceNames[i].replace(
+								'.', '/'));
+					}
 				}
 			}
 
@@ -497,9 +512,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitLdcInsn(uri);
 				method.visitVarInsn(ALOAD, 1);
 
-				final int len = interfaceClassNames.length;
+				final int len = serviceInterfaceNames.length;
 				if (len < 6) {
-					method.visitInsn(ICONST[interfaceClassNames.length]);
+					method.visitInsn(ICONST[serviceInterfaceNames.length]);
 				} else {
 					method.visitIntInsn(BIPUSH, len);
 				}
@@ -507,13 +522,13 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				for (int i = 0; i < len && i < 6; i++) {
 					method.visitInsn(DUP);
 					method.visitInsn(ICONST[i]);
-					method.visitLdcInsn(interfaceClassNames[i]);
+					method.visitLdcInsn(serviceInterfaceNames[i]);
 					method.visitInsn(AASTORE);
 				}
 				for (int i = 6; i < len; i++) {
 					method.visitInsn(DUP);
 					method.visitIntInsn(BIPUSH, i);
-					method.visitLdcInsn(interfaceClassNames[i]);
+					method.visitLdcInsn(serviceInterfaceNames[i]);
 					method.visitInsn(AASTORE);
 				}
 				method.visitVarInsn(ALOAD, 0);
@@ -620,7 +635,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 		// add the interfaces to the list to be visited later
 		for (int i = 0; i < interfaces.length; i++) {
-			superInterfaces.add(interfaces[i]);
+			if (!visitedInterfaces.contains(interfaces[i])) {
+				superInterfaces.add(interfaces[i]);
+			}
 		}
 	}
 
@@ -964,9 +981,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		public MethodVisitor visitMethod(final int access, final String name,
 				final String desc, final String signature,
 				final String[] exceptions) {
+
 			if ("<init>()V".equals(name + desc)) {
 				return null;
 			}
+
 			return new MethodRewriter(super.cv.visitMethod(access, name,
 					checkRewriteDesc(desc), signature, exceptions));
 		}

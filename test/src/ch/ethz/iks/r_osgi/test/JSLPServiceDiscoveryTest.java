@@ -13,6 +13,7 @@ import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryListener;
+import ch.ethz.iks.r_osgi.test.service.impl.Service;
 import junit.framework.TestCase;
 
 public class JSLPServiceDiscoveryTest extends TestCase {
