@@ -239,17 +239,21 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				receiveQueue.put(xid, msg);
 				receiveQueue.notifyAll();
 				return;
-			} else {
-				final RemoteOSGiMessage reply = handleMessage(msg);
-				if (reply != null) {
-					try {
-						networkChannel.sendMessage(reply);
-					} catch (NotSerializableException nse) {
-						throw new RemoteOSGiException("Error sending " + reply, nse);
-					} catch (IOException e) {
-						dispose();
-					}
-				}
+			} else {				
+				new Thread() {					
+					public void run() {
+						final RemoteOSGiMessage reply = handleMessage(msg);						
+						if (reply != null) {
+							try {
+								networkChannel.sendMessage(reply);
+							} catch (NotSerializableException nse) {
+								throw new RemoteOSGiException("Error sending " + reply, nse);
+							} catch (IOException e) {
+								dispose();
+							}
+						}
+					}					
+				}.start();
 			}
 		}
 	}
