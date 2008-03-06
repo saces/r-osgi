@@ -129,7 +129,8 @@ public final class StreamRequestMessage extends RemoteOSGiMessage {
 			this.b = new byte[lenOrVal];
 			int rem = lenOrVal;
 			int read;
-			while((rem > 0) && ((read = input.read(b, 0, rem)) > 0)) {
+			while ((rem > 0)
+					&& ((read = input.read(b, lenOrVal - rem, rem)) > 0)) {
 				rem = rem - read;
 			}
 			if (rem > 0) {

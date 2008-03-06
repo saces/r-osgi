@@ -114,7 +114,8 @@ public final class StreamResultMessage extends RemoteOSGiMessage {
 				this.b = new byte[len];
 				int rem = len;
 				int read;
-				while ((rem > 0) && ((read = input.read(b, 0, rem)) > 0)) {
+				while ((rem > 0)
+						&& ((read = input.read(b, len - rem, rem)) > 0)) {
 					rem = rem - read;
 				}
 				if (rem > 0) {
