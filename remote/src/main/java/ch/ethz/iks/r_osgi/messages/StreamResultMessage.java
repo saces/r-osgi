@@ -94,7 +94,7 @@ public final class StreamResultMessage extends RemoteOSGiMessage {
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *      |            result             | result == -2: len, -3: excep. \
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      | result == -2: b                                               |
+	 *      | result == -2 &amp;&amp; len &gt; 0: b                                    |
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>.
 	 * 
@@ -110,14 +110,16 @@ public final class StreamResultMessage extends RemoteOSGiMessage {
 		switch (result) {
 		case RESULT_ARRAY:
 			this.len = input.readInt();
-			this.b = new byte[len];
-			int rem = len;
-			int read;
-			while((rem > 0) && ((read = input.read(b, 0, rem)) > 0)) {
-				rem = rem - read;
-			}
-			if (rem > 0) {
-				throw new IOException("Premature end of input stream.");
+			if (len > 0) {
+				this.b = new byte[len];
+				int rem = len;
+				int read;
+				while ((rem > 0) && ((read = input.read(b, 0, rem)) > 0)) {
+					rem = rem - read;
+				}
+				if (rem > 0) {
+					throw new IOException("Premature end of input stream.");
+				}
 			}
 			break;
 		case RESULT_EXCEPTION:
@@ -147,7 +149,9 @@ public final class StreamResultMessage extends RemoteOSGiMessage {
 		out.writeShort(result);
 		if (result == RESULT_ARRAY) {
 			out.writeInt(len);
-			out.write(b, 0, len);
+			if (len > 0) {
+				out.write(b, 0, len);
+			}
 		} else if (result == RESULT_EXCEPTION) {
 			SmartSerializer.serialize(exception, out);
 		}

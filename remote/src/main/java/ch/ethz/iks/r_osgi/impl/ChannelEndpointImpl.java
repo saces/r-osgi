@@ -1210,8 +1210,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					final StreamResultMessage m = new StreamResultMessage();
 					m.setXID(reqMsg.getXID());
 					m.setResult(StreamResultMessage.RESULT_ARRAY);
-					m.setData(b);
 					m.setLen(len);
+					if (len > 0) {
+						m.setData(b);
+					}
 					return m;
 				}
 				case StreamRequestMessage.WRITE: {
