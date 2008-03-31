@@ -314,7 +314,6 @@ public abstract class RemoteOSGiMessage {
 	protected static String[] readStringArray(final ObjectInputStream in)
 			throws IOException {
 		final short length = in.readShort();
-		System.out.println("EXPECTING A STRING ARRAY OF " + length);
 		final String[] result = new String[length];
 		for (short i = 0; i < length; i++) {
 			result[i] = in.readUTF();
