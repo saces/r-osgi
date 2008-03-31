@@ -31,7 +31,8 @@ package ch.ethz.iks.r_osgi.messages;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import ch.ethz.iks.util.SmartSerializer;
+
+
 
 /**
  * <p>
@@ -77,7 +78,11 @@ public final class TimeOffsetMessage extends RemoteOSGiMessage {
 	 */
 	public TimeOffsetMessage(final ObjectInputStream input) throws IOException {
 		super(TIME_OFFSET);
-		timeSeries = (long[]) SmartSerializer.deserialize(input);
+		final int size = input.readInt();
+		timeSeries = new long[size];
+		for (int i = 0; i < size; i++) {
+			timeSeries[i] = input.readLong();
+		}
 	}
 
 	/**
@@ -90,7 +95,10 @@ public final class TimeOffsetMessage extends RemoteOSGiMessage {
 	 * @see ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		SmartSerializer.serialize(timeSeries, out);
+		out.writeInt(timeSeries.length);
+		for (int i = 0; i < timeSeries.length; i++) {
+			out.writeLong(timeSeries[i]);
+		}
 	}
 
 	/**

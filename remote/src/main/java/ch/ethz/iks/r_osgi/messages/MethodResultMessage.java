@@ -32,8 +32,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 
-import ch.ethz.iks.util.SmartSerializer;
-
 /**
  * <p>
  * MethodResultMessage is used to return the result of a method invocation to
@@ -90,12 +88,16 @@ public final class MethodResultMessage extends RemoteOSGiMessage {
 	MethodResultMessage(final ObjectInputStream input) throws IOException {
 		super(METHOD_RESULT);
 		errorFlag = input.readByte();
-		if (errorFlag == 0) {
-			result = SmartSerializer.deserialize(input);
-			exception = null;
-		} else {
-			exception = (Throwable) SmartSerializer.deserialize(input);
-			result = null;
+		try {
+			if (errorFlag == 0) {
+				result = input.readObject();
+				exception = null;
+			} else {
+				exception = (Throwable) input.readObject();
+				result = null;
+			}
+		} catch (ClassNotFoundException c) {
+			throw new IOException(c.getMessage());
 		}
 	}
 
@@ -111,10 +113,10 @@ public final class MethodResultMessage extends RemoteOSGiMessage {
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		if (exception == null) {
 			out.writeByte(0);
-			SmartSerializer.serialize(result, out);
+			out.writeObject(result);
 		} else {
 			out.writeByte(1);
-			SmartSerializer.serialize(exception, out);
+			out.writeObject(exception);
 		}
 	}
 

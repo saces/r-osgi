@@ -33,7 +33,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 
-import ch.ethz.iks.util.SmartSerializer;
+// import ch.ethz.iks.util.SmartSerializer;
 
 /**
  * Lease update message. Sent whenever the information expressed in the original
@@ -111,7 +111,11 @@ public final class LeaseUpdateMessage extends RemoteOSGiMessage {
 		super(LEASE_UPDATE);
 		type = input.readShort();
 		serviceID = input.readUTF();
-		payload = (Object[]) SmartSerializer.deserialize(input);
+		try {
+			payload = (Object[]) input.readObject();
+		} catch (ClassNotFoundException c) {
+			throw new IOException(c.getMessage());
+		}
 	}
 
 	/**
@@ -126,7 +130,7 @@ public final class LeaseUpdateMessage extends RemoteOSGiMessage {
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		out.writeShort(type);
 		out.writeUTF(serviceID);
-		SmartSerializer.serialize(payload, out);
+		out.writeObject(payload);
 	}
 
 	/**
@@ -209,7 +213,8 @@ public final class LeaseUpdateMessage extends RemoteOSGiMessage {
 					(String[]) payload[1]).toString());
 		} else {
 			buffer.append(", service interfaces: "); //$NON-NLS-1$
-			buffer.append(payload[0] == null ? "" : Arrays.asList((String[]) payload[0]).toString());
+			buffer.append(payload[0] == null ? "" : Arrays.asList(
+					(String[]) payload[0]).toString());
 			buffer.append(", properties: "); //$NON-NLS-1$
 			buffer.append(payload[1]);
 		}

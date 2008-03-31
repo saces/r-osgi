@@ -125,7 +125,6 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 	 */
 	DeliverServiceMessage(final ObjectInputStream input) throws IOException {
 		super(DELIVER_SERVICE);
-
 		// the serviceID
 		serviceID = input.readUTF();
 		// imports

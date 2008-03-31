@@ -32,7 +32,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
-import ch.ethz.iks.util.SmartSerializer;
+
+// import ch.ethz.iks.util.SmartSerializer;
 
 /**
  * <p>
@@ -96,8 +97,12 @@ public final class InvokeMethodMessage extends RemoteOSGiMessage {
 		methodSignature = input.readUTF();
 		final short argLength = input.readShort();
 		arguments = new Object[argLength];
-		for (short i = 0; i < argLength; i++) {
-			arguments[i] = SmartSerializer.deserialize(input);
+		try {
+			for (short i = 0; i < argLength; i++) {
+				arguments[i] = input.readObject();
+			}
+		} catch (ClassNotFoundException c) {
+			throw new IOException(c.getMessage());
 		}
 	}
 
@@ -115,7 +120,7 @@ public final class InvokeMethodMessage extends RemoteOSGiMessage {
 		out.writeUTF(methodSignature);
 		out.writeShort(arguments.length);
 		for (short i = 0; i < arguments.length; i++) {
-			SmartSerializer.serialize(arguments[i], out);
+			out.writeObject(arguments[i]);
 		}
 	}
 
