@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="remote/src/main/java"/>
-	<classpathentry kind="src" path="remote/src/test/java"/>
 	<classpathentry kind="src" path="sample/api/src/main/java"/>
 	<classpathentry kind="src" path="sample/client/src/main/java"/>
 	<classpathentry kind="src" path="sample/service/src/main/java"/>
