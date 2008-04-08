@@ -74,7 +74,7 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 		// TODO: remove debug output
 		System.out.println("BT ACTIVATED");
 		thread.start();
-		new DiscoveryThread().start();
+		// new DiscoveryThread().start();
 	}
 
 	public void deactivate(Remoting remoting) throws IOException {
@@ -111,8 +111,10 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 		private BluetoothNetworkChannel(ChannelEndpoint endpoint,
 				final URI remoteEndpointURI) throws IOException {
 			this.remoteEndpointURI = remoteEndpointURI;
+			System.out.println("##############################TRYING TO CONNECT TO " + remoteEndpointURI);
 			this.con = (StreamConnection) Connector.open(remoteEndpointURI
 					.toString());
+			System.out.println("##############################HAVING CON " + con);
 			this.endpoint = endpoint;
 			open();
 			new ReceiverThread().start();
@@ -180,7 +182,7 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 		private class ReceiverThread extends Thread {
 
 			private ReceiverThread() {
-				this.setName("TCPChannel:ReceiverThread:" + getRemoteAddress());
+				this.setName("BTChannel:ReceiverThread:" + getRemoteAddress());
 				this.setDaemon(true);
 			}
 
@@ -316,8 +318,9 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 			}
 
 			for (int i = 0; i < devices.length; i++) {
-				discovery.searchServices(new int[] { 0x0002 },
+				 discovery.searchServices(new int[] { 0x0003 },
 						new UUID[] { new UUID(9278) }, devices[i], listener);
+//				discovery.searchServices(null, new UUID[] { new UUID(9278) }, devices[i], listener);
 				synchronized (listener) {
 					listener.wait();
 				}
@@ -387,6 +390,12 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 		private ArrayList services = new ArrayList();
 
 		public void deviceDiscovered(RemoteDevice btDevice, DeviceClass cod) {
+			try {
+				System.out.println("FOUND DEVICE ... "
+						+ btDevice.getFriendlyName(false) + " - " + btDevice.getBluetoothAddress());
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
 			devices.add(btDevice);
 		}
 
@@ -404,10 +413,12 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 		}
 
 		public void servicesDiscovered(int transID, ServiceRecord[] servRecord) {
+			System.out.println("FOUND SERVICE RECORDs " + servRecord.length);
 			services.addAll(Arrays.asList(servRecord));
 		}
 
 		public void serviceSearchCompleted(int transID, int respCode) {
+			System.out.println("NO MORE SERVICES");
 			synchronized (this) {
 				notifyAll();
 			}
