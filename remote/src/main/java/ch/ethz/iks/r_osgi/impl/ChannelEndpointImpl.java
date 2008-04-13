@@ -600,7 +600,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	public URI getRemoteAddress() {
 		if (networkChannel == null) {
-			throw new RuntimeException("CHANNEL IS NULL");
+			return null;
 		}
 		return networkChannel.getRemoteAddress();
 	}
