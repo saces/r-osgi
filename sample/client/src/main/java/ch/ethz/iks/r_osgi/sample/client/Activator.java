@@ -29,6 +29,7 @@
 package ch.ethz.iks.r_osgi.sample.client;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -97,10 +98,11 @@ public class Activator implements BundleActivator {
 				// final URI uri = new URI("btspp://0014A4D46D9A:1");
 				// final URI uri = new URI("r-osgi://localhost:9270");
 				remote.connect(uri);
-				final RemoteServiceReference ref = remote
-						.getRemoteServiceReference(uri);
-				System.out.println("REFERENCE " + ref);
-				service = (ServiceInterface) remote.getRemoteService(ref);
+				final RemoteServiceReference[] refs = remote
+						.getRemoteServiceReferences(uri, ServiceInterface.class
+								.getName(), null);
+				System.out.println("REFERENCES " + Arrays.asList(refs));
+				service = (ServiceInterface) remote.getRemoteService(refs[0]);
 				clientThread = new ClientThread();
 				clientThread.start();
 			}

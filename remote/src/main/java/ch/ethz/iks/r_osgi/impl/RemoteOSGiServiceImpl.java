@@ -586,7 +586,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			} catch (IOException ioe) {
 				throw new RemoteOSGiException("Cannot connect to " + uri);
 			}
-		}
+		} 
 		return channel.getRemoteReference(serviceURI.toString());
 	}
 

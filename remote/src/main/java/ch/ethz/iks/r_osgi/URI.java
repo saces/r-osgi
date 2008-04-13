@@ -223,7 +223,7 @@ public final class URI implements Serializable {
 	 * @see java.lang.Object#hashCode()
 	 */
 	public int hashCode() {
-		return scheme.hashCode() + hostString.hashCode() + port
+		return scheme.hashCode() + (host == null ? hostString.hashCode() : host.hashCode()) + port
 				+ (fragment != null ? fragment.hashCode() : 0);
 	}
 
