@@ -1071,6 +1071,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				return null;
 			}
 			case LeaseUpdateMessage.SERVICE_REMOVED: {
+				if (networkChannel == null) {
+					return null;
+				}
 				final RemoteServiceReference ref = (RemoteServiceReference) remoteServices
 						.remove(getRemoteAddress().resolve("#" + serviceID)
 								.toString());

@@ -33,6 +33,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import org.osgi.service.log.LogService;
@@ -271,7 +272,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 						"{TCP Channel} sending " + message);
 			}
-			
+
 			message.send(output);
 		}
 
@@ -322,7 +323,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		/**
 		 * the socket.
 		 */
-		private final ServerSocket socket;
+		private ServerSocket socket;
 
 		/**
 		 * creates and starts a new TCPThread.
@@ -331,7 +332,23 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 *             if the server socket cannot be opened.
 		 */
 		private TCPThread() throws IOException {
-			socket = new ServerSocket(RemoteOSGiServiceImpl.R_OSGI_PORT);
+			int e = 0;
+			while (true) {
+				try {
+					socket = new ServerSocket(RemoteOSGiServiceImpl.R_OSGI_PORT
+							+ e);
+					if (e != 0) {
+						System.err
+								.println("Port "
+										+ RemoteOSGiServiceImpl.R_OSGI_PORT
+										+ " already in use. This instance of R-OSGi is running on port "
+										+ (RemoteOSGiServiceImpl.R_OSGI_PORT + e));
+					}
+					return;
+				} catch (BindException b) {
+					e++;
+				}
+			}
 		}
 
 		/**
