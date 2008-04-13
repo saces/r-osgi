@@ -33,6 +33,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 
+import ch.ethz.iks.util.SmartSerializer;
+
 // import ch.ethz.iks.util.SmartSerializer;
 
 /**
@@ -111,11 +113,7 @@ public final class LeaseUpdateMessage extends RemoteOSGiMessage {
 		super(LEASE_UPDATE);
 		type = input.readShort();
 		serviceID = input.readUTF();
-		try {
-			payload = (Object[]) input.readObject();
-		} catch (ClassNotFoundException c) {
-			throw new IOException(c.getMessage());
-		}
+		payload = (Object[]) SmartSerializer.deserialize(input);
 	}
 
 	/**
@@ -130,7 +128,7 @@ public final class LeaseUpdateMessage extends RemoteOSGiMessage {
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		out.writeShort(type);
 		out.writeUTF(serviceID);
-		out.writeObject(payload);
+		SmartSerializer.serialize(payload, out);
 	}
 
 	/**

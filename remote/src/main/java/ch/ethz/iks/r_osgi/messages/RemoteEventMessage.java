@@ -33,6 +33,7 @@ import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.util.Dictionary;
 
+import ch.ethz.iks.util.SmartSerializer;
 
 /**
  * <p>
@@ -93,12 +94,7 @@ public final class RemoteEventMessage extends RemoteOSGiMessage {
 	RemoteEventMessage(final ObjectInputStream input) throws IOException {
 		super(REMOTE_EVENT);
 		topic = input.readUTF();
-		try {
-			properties = (Dictionary) input.readObject();	
-		} catch (ClassNotFoundException c) {
-			throw new IOException(c.getMessage());
-		}
-		
+		properties = (Dictionary) SmartSerializer.deserialize(input);
 	}
 
 	/**
@@ -157,7 +153,7 @@ public final class RemoteEventMessage extends RemoteOSGiMessage {
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		out.writeUTF(topic);
-		out.writeObject(properties);
+		SmartSerializer.serialize(properties, out);
 	}
 
 	/**

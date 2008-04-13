@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import ch.ethz.iks.util.SmartSerializer;
+
 /**
  * Stream result message.
  * 
@@ -122,11 +124,7 @@ public final class StreamResultMessage extends RemoteOSGiMessage {
 			}
 			break;
 		case RESULT_EXCEPTION:
-			try {
-			exception = (IOException) input.readObject();
-			} catch (ClassNotFoundException c) {
-				throw new IOException(c.getMessage());
-			}
+			exception = (IOException) SmartSerializer.deserialize(input);
 			break;
 		case RESULT_WRITE_OK:
 			break;
@@ -156,7 +154,7 @@ public final class StreamResultMessage extends RemoteOSGiMessage {
 				out.write(b, 0, len);
 			}
 		} else if (result == RESULT_EXCEPTION) {
-			out.writeObject(exception);
+			SmartSerializer.serialize(exception, out);
 		}
 	}
 
