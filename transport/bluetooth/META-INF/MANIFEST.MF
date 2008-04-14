@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ch.ethz.iks.r_osgi.transport.bluetooth
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.transport.bluetooth
-Bundle-Version: 1.0.0.RC1
+Bundle-Version: 1.0.0.RC2
 Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
 Require-Bundle: ch.ethz.iks.r_osgi.remote
 Bundle-Activator: ch.ethz.iks.r_osgi.transport.bluetooth.Activator

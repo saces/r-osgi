@@ -2,11 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: R-OSGi Sample Client
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.sample.client
-Bundle-Version: 1.0.0.RC1
+Bundle-Version: 1.0.0.RC2
 Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
-Require-Bundle: ch.ethz.iks.r_osgi.remote;bundle-version="1.0.0.RC1",
+Require-Bundle: ch.ethz.iks.r_osgi.remote;bundle-version="1.0.0.RC2",
  org.eclipse.equinox.event
-Import-Package: ch.ethz.iks.r_osgi.sample.api;version="1.0.0.RC1",
+Import-Package: ch.ethz.iks.r_osgi.sample.api;version="1.0.0.RC2",
  org.osgi.framework;version="1.3.0",
  org.osgi.service.event;version="1.0.1"
 Bundle-Activator: ch.ethz.iks.r_osgi.sample.client.Activator

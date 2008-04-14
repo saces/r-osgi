@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: ch.ethz.iks.r_osgi.mina
+Bundle-Name: R-OSGi Mina Transport
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.transport.mina
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.0.RC2
 Require-Bundle: ch.ethz.iks.r_osgi.remote
 Import-Package: org.apache.mina.common,
  org.apache.mina.filter,
@@ -16,5 +16,4 @@ Export-Package: ch.ethz.iks.r_osgi.transport.mina,
 Eclipse-LazyStart: true
 Bundle-ClassPath: .
 Bundle-RequiredExecutionEnvironment: OSGi/Minimum-1.1,
- CDC-1.1/Foundation-1.1,
- J2SE-1.4
+ CDC-1.1/Foundation-1.1
