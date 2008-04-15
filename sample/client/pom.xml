@@ -34,7 +34,7 @@
 						<bundleName>R-OSGi Sample Client</bundleName>
 						<bundleSymbolicName>ch.ethz.iks.r_osgi.sample.client</bundleSymbolicName>						
 						<bundleVendor>Jan S. Rellermeyer, ETH Zurich</bundleVendor>
-						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.service_discovery, ch.ethz.iks.r_osgi.sample.api</importPackage>
+						<importPackage>org.osgi.framework, org.osgi.service.event, ch.ethz.iks.r_osgi, ch.ethz.iks.r_osgi.service_discovery, ch.ethz.iks.r_osgi.sample.api</importPackage>
 					</osgiManifest>
 				</configuration>
 			</plugin>
@@ -60,6 +60,12 @@
 			<version>${pom.version}</version>
 			<scope>provided</scope>
 		</dependency>
+    	<dependency>
+      		<groupId>ch.ethz.iks.concierge</groupId>
+      		<artifactId>event-admin</artifactId>
+      		<version>1.0.0.RC2</version>
+      		<scope>provided</scope>
+    	</dependency>			
 	</dependencies>
 	
 	<reporting>

@@ -30,11 +30,15 @@ package ch.ethz.iks.r_osgi.sample.client;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Hashtable;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventConstants;
+import org.osgi.service.event.EventHandler;
 
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
@@ -42,7 +46,7 @@ import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryListener;
 
-public class Activator implements BundleActivator {
+public class Activator implements BundleActivator, EventHandler {
 
 	private ServiceReference sref;
 
@@ -64,6 +68,10 @@ public class Activator implements BundleActivator {
 				throw new BundleException("OSGi remote service is not present.");
 			}
 
+			final Hashtable props = new Hashtable();
+			props.put(EventConstants.EVENT_TOPIC, new String[] { "test/*" });
+			context.registerService(EventHandler.class.getName(), this, props);
+			
 			if (Boolean.getBoolean("ch.ethz.iks.r_osgi.service.discovery")) {
 				context.registerService(ServiceDiscoveryListener.class
 						.getName(), new ServiceDiscoveryListener() {
@@ -153,6 +161,10 @@ public class Activator implements BundleActivator {
 				// let the thread terminate
 			}
 		}
+	}
+
+	public void handleEvent(Event event) {
+		System.out.println("---> Received event " + event.getTopic());		
 	};
 
 }
