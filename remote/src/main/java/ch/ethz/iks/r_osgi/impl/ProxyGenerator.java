@@ -70,6 +70,7 @@ import ch.ethz.iks.r_osgi.types.ServiceUIComponent;
  * @since 0.1
  */
 class ProxyGenerator implements ClassVisitor, Opcodes {
+	
 	/**
 	 * sourceID.
 	 */
@@ -434,7 +435,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				ifaces.add("org/osgi/framework/BundleActivator");
 				ifaces.addAll(Arrays.asList(serviceInterfaces));
 				// V1_1
-				writer.visit(version >= V1_5 ? V1_5 : V1_2, ACC_PUBLIC
+				writer.visit((version >= V1_5 && RemoteOSGiServiceImpl.IS_5) ? V1_5 : V1_2, ACC_PUBLIC
 						+ ACC_SUPER, implName, null, superName,
 						(String[]) ifaces.toArray(new String[ifaces.size()]));
 
@@ -446,7 +447,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			} else {
 				
 				// we have an interface
-				writer.visit(version >= V1_5 ? V1_5 : V1_2, ACC_PUBLIC
+				writer.visit((version >= V1_5 && RemoteOSGiServiceImpl.IS_5) ? V1_5 : V1_2, ACC_PUBLIC
 						+ ACC_SUPER, implName, null, "java/lang/Object",
 						serviceInterfaces);
 				if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
@@ -923,7 +924,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				final String superName, final String[] interfaces) {
 			// rewriting
 
-			super.cv.visit(version >= V1_5 ? V1_5 : V1_2, access,
+			super.cv.visit((version >= V1_5 && RemoteOSGiServiceImpl.IS_5) ? V1_5 : V1_2, access,
 					checkRewrite(name), signature, checkRewrite(superName),
 					interfaces);
 		}

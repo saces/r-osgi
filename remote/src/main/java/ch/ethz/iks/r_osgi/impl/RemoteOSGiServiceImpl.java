@@ -78,6 +78,18 @@ import ch.ethz.iks.util.CollectionUtils;
  */
 final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
+	static boolean IS_5 = false;
+	
+	static {
+		String verString = System.getProperty("java.class.version");
+		if (verString != null) {
+			if (Float.parseFloat(verString) >= 49) {
+				IS_5 = true;
+			}
+		}
+	}
+
+	
 	/**
 	 * the R-OSGi standard port.
 	 */

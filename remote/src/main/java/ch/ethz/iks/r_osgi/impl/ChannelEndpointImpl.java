@@ -701,6 +701,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		} catch (BundleException e) {
 			final Throwable nested = e.getNestedException() == null ? e : e
 					.getNestedException();
+			nested.printStackTrace();
 			throw new RemoteOSGiException(
 					"Could not install the generated bundle " + bundleLocation,
 					nested);
