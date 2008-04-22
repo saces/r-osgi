@@ -101,39 +101,28 @@ public final class URI implements Serializable {
 	}
 
 	/*
-	public static void main(String[] args) throws Exception {
-		URI uri1 = new URI("http://localhost:8080");
-		URI uri2 = new URI("r-osgi://flowsgi.inf.ethz.ch:9278#32");
-		System.out.println();
-		System.out.println(uri1);
-		System.out.println(uri1.getScheme());
-		System.out.println(uri1.getHost());
-		System.out.println(uri1.getPort());
-		System.out.println(uri1.getFragment());
-		System.out.println();
-		System.out.println(uri2);
-		System.out.println(uri2.getScheme());
-		System.out.println(uri2.getHost());
-		System.out.println(uri2.getPort());
-		System.out.println(uri2.getFragment());
-		System.out.println();
-		System.out.println(uri1.resolve("#55"));
-		System.out.println();
-		System.out.println(uri1.equals("http://127.0.0.1:8080"));
-		URI uri3 = new URI("http://127.0.0.1:8080");
-		System.out.println(uri3.equals(uri1));
-		System.out.println(uri3.hashCode());
-		System.out.println(uri1.hashCode());
+	 * public static void main(String[] args) throws Exception { URI uri1 = new
+	 * URI("http://localhost:8080"); URI uri2 = new
+	 * URI("r-osgi://flowsgi.inf.ethz.ch:9278#32"); System.out.println();
+	 * System.out.println(uri1); System.out.println(uri1.getScheme());
+	 * System.out.println(uri1.getHost()); System.out.println(uri1.getPort());
+	 * System.out.println(uri1.getFragment()); System.out.println();
+	 * System.out.println(uri2); System.out.println(uri2.getScheme());
+	 * System.out.println(uri2.getHost()); System.out.println(uri2.getPort());
+	 * System.out.println(uri2.getFragment()); System.out.println();
+	 * System.out.println(uri1.resolve("#55")); System.out.println();
+	 * System.out.println(uri1.equals("http://127.0.0.1:8080")); URI uri3 = new
+	 * URI("http://127.0.0.1:8080"); System.out.println(uri3.equals(uri1));
+	 * System.out.println(uri3.hashCode()); System.out.println(uri1.hashCode());
+	 * 
+	 * URI btUri = new URI("btspp://0010DCE96CB8:1"); System.out.println(btUri);
+	 * System.out.println(); URI uri4 = new URI("r-osgi://192.168.1.1:9000");
+	 * System.out.println(uri4); System.out.println(); System.out.println(uri4); }
+	 */
 
-		URI btUri = new URI("btspp://0010DCE96CB8:1");
-		System.out.println(btUri);
-		System.out.println();
-		URI uri4 = new URI("r-osgi://192.168.1.1:9000");
-		System.out.println(uri4);
-		System.out.println();
-		System.out.println(uri4);
+	public static void main(String[] args) {
+		System.out.println(URI.create("r-osgi://localhost"));
 	}
-	*/
 
 	/**
 	 * parse an URI.
@@ -146,6 +135,8 @@ public final class URI implements Serializable {
 			if (p1 > -1) {
 				scheme = uriString.substring(0, p1);
 				cs = p1 + 3;
+			} else {
+				scheme = "r-osgi";
 			}
 			final int p2 = uriString.lastIndexOf("#");
 			if (p2 > -1) {
@@ -156,6 +147,14 @@ public final class URI implements Serializable {
 			if (p3 > -1) {
 				port = Integer.parseInt(uriString.substring(p3 + 1, ce));
 				ce = p3;
+			} else {
+				if ("r-osgi".equals(scheme)) {
+					port = 9278;
+				} else if ("http".equals(scheme)) {
+					port = 80;
+				} else if ("https".equals(scheme)) {
+					port = 443;
+				}
 			}
 			hostString = uriString.substring(cs, ce);
 			if (scheme.startsWith("r-osgi") || scheme.startsWith("http")) {
@@ -223,8 +222,9 @@ public final class URI implements Serializable {
 	 * @see java.lang.Object#hashCode()
 	 */
 	public int hashCode() {
-		return scheme.hashCode() + (host == null ? hostString.hashCode() : host.hashCode()) + port
-				+ (fragment != null ? fragment.hashCode() : 0);
+		return scheme.hashCode()
+				+ (host == null ? hostString.hashCode() : host.hashCode())
+				+ port + (fragment != null ? fragment.hashCode() : 0);
 	}
 
 	/**
