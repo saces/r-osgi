@@ -676,8 +676,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		// send the FetchServiceMessage and get a DeliverServiceMessage in
 		// return
+		long time = System.currentTimeMillis();
 		final RemoteOSGiMessage msg = sendMessage(fetchReq);
-		String bundleLocation = null;
+		System.err.println("Fetch Message: " + (System.currentTimeMillis() - time));
+		time = System.currentTimeMillis();
+		
+		//String bundleLocation = null;
 
 		try {
 			final DeliverServiceMessage deliv = (DeliverServiceMessage) msg;
@@ -685,25 +689,37 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					"#" + deliv.getServiceID());
 
 			// generate a proxy bundle for the service
-			bundleLocation = new ProxyGenerator().generateProxyBundle(service,
-					deliv);
-
+			
+			//bundleLocation = new ProxyGenerator().generateProxyBundle(service,
+			//		deliv);
+			InputStream in = new ProxyGenerator().generateProxyBundle(service, deliv);
+			
+			System.err.println("Build Proxy: " + (System.currentTimeMillis() - time));
+			time = System.currentTimeMillis();
+			
 			// install the proxy bundle
-			final Bundle bundle = RemoteOSGiActivator.context
-					.installBundle("file:" + bundleLocation);
-
+//			final Bundle bundle = RemoteOSGiActivator.context
+//					.installBundle("file:" + bundleLocation);
+			
+			final Bundle bundle = RemoteOSGiActivator.context.installBundle(service.toString(), in);
+			
+			System.err.println("Install Proxy: " + (System.currentTimeMillis() - time));
+			time = System.currentTimeMillis();
+			
 			// store the bundle for state updates and cleanup
 			proxyBundles.put(service.getFragment(), bundle);
 
 			// start the bundle
 			bundle.start();
-
+			System.err.println("Start Proxy: " + (System.currentTimeMillis() - time));
+			time = System.currentTimeMillis();
+			
 		} catch (BundleException e) {
 			final Throwable nested = e.getNestedException() == null ? e : e
 					.getNestedException();
 			nested.printStackTrace();
 			throw new RemoteOSGiException(
-					"Could not install the generated bundle " + bundleLocation,
+					"Could not install the generated bundle " + ref.toString(),
 					nested);
 		}
 	}

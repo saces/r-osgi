@@ -28,9 +28,10 @@
  */
 package ch.ethz.iks.r_osgi.impl;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -70,7 +71,7 @@ import ch.ethz.iks.r_osgi.types.ServiceUIComponent;
  * @since 0.1
  */
 class ProxyGenerator implements ClassVisitor, Opcodes {
-	
+
 	/**
 	 * sourceID.
 	 */
@@ -195,7 +196,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * @throws IOException
 	 *             in case of proxy generation error
 	 */
-	protected String generateProxyBundle(final URI service,
+	protected InputStream generateProxyBundle(final URI service,
 			final DeliverServiceMessage deliv) throws IOException {
 
 		this.uri = service.toString();
@@ -208,8 +209,6 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 						.getInterfaceClass(), deliv.getSmartProxyName(), deliv
 						.getProxyClass());
 
-		int pos = implName.lastIndexOf('/');
-		final String fileName = pos > 0 ? implName.substring(pos) : implName;
 		final String className = implName.replace('/', '.');
 		JarEntry jarEntry;
 
@@ -229,10 +228,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		if (!"".equals(deliv.getExports())) {
 			attr.putValue("Export-Package", deliv.getExports());
 		}
-		final File file = RemoteOSGiActivator.context.getDataFile(fileName
-				+ "_" + sourceID + ".jar");
-		final JarOutputStream out = new JarOutputStream(new FileOutputStream(
-				file), mf);
+		final ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		final JarOutputStream out = new JarOutputStream(bout, mf);
 
 		CRC32 crc = new CRC32();
 		crc.update(bytes, 0, bytes.length);
@@ -290,12 +287,17 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		out.flush();
 		out.finish();
 		out.close();
+
 		if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
-			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
-					"Created Proxy Bundle " + file);
+			// final File file =
+			// RemoteOSGiActivator.context.getDataFile(fileName
+			// + "_" + sourceID + ".jar");
+
+			// RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
+			// "Created Proxy Bundle " + file);
 		}
 
-		return file.getAbsolutePath();
+		return new ByteArrayInputStream(bout.toByteArray());
 	}
 
 	/**
@@ -435,9 +437,11 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				ifaces.add("org/osgi/framework/BundleActivator");
 				ifaces.addAll(Arrays.asList(serviceInterfaces));
 				// V1_1
-				writer.visit((version >= V1_5 && RemoteOSGiServiceImpl.IS_5) ? V1_5 : V1_2, ACC_PUBLIC
-						+ ACC_SUPER, implName, null, superName,
-						(String[]) ifaces.toArray(new String[ifaces.size()]));
+				writer.visit(
+						(version >= V1_5 && RemoteOSGiServiceImpl.IS_5) ? V1_5
+								: V1_2, ACC_PUBLIC + ACC_SUPER, implName, null,
+						superName, (String[]) ifaces.toArray(new String[ifaces
+								.size()]));
 
 				if (java.util.Arrays.asList(interfaces).contains(
 						"ch/ethz/iks/r_osgi/SmartProxy")) {
@@ -445,11 +449,12 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				}
 
 			} else {
-				
+
 				// we have an interface
-				writer.visit((version >= V1_5 && RemoteOSGiServiceImpl.IS_5) ? V1_5 : V1_2, ACC_PUBLIC
-						+ ACC_SUPER, implName, null, "java/lang/Object",
-						serviceInterfaces);
+				writer.visit(
+						(version >= V1_5 && RemoteOSGiServiceImpl.IS_5) ? V1_5
+								: V1_2, ACC_PUBLIC + ACC_SUPER, implName, null,
+						"java/lang/Object", serviceInterfaces);
 				if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
 					RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 							"Creating Proxy Bundle from Interfaces "
@@ -924,9 +929,10 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				final String superName, final String[] interfaces) {
 			// rewriting
 
-			super.cv.visit((version >= V1_5 && RemoteOSGiServiceImpl.IS_5) ? V1_5 : V1_2, access,
-					checkRewrite(name), signature, checkRewrite(superName),
-					interfaces);
+			super.cv.visit(
+					(version >= V1_5 && RemoteOSGiServiceImpl.IS_5) ? V1_5
+							: V1_2, access, checkRewrite(name), signature,
+					checkRewrite(superName), interfaces);
 		}
 
 		/**
