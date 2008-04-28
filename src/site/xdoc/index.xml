@@ -12,7 +12,7 @@
 	<body>
 		<section name="Overview">
 			<p>
-			<b>Current release: 1.0.0.RC1</b><br/>
+			<b>Current release: 1.0.0.RC2</b><br/>
 			<ul>
 				<li>Complete redesign of the R-OSGi model.</li> 
 				<li>Service discovery is now an orthogonal functionality and handled by an optional layer.</li>
@@ -20,6 +20,7 @@
 				<li>Remote services can implement multiple service interfaces and the generated proxies will implement all of them </li>			
 				<li>Pluggable transports (e.g., tcp, tcp over mina, bluetooth, ...) </li>
 				<li>Pluggable service discovery modules (e.g., SLP service discovery, SSDP in bluetooth networks, ...) </li>
+				<li>RC2 fixes issues with the stream handling and the URI reverse lookup problem</li>
 			</ul>
 			</p>
 			<p>
