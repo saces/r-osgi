@@ -9,6 +9,7 @@
 	<classpathentry kind="src" path="transport/bluetooth/src/main/java"/>
 	<classpathentry kind="src" path="service_discovery/slp/src/main/java"/>
 	<classpathentry kind="src" path="serviceUI/src/main/java"/>
+	<classpathentry kind="src" path="sample/concierge/shell/src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3.8.1"/>
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER/modules"/>
