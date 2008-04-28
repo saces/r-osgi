@@ -211,9 +211,13 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	RemoteOSGiServiceImpl() throws IOException {
 		// find out own IP address
 		// TODO: allow configuration
+		try {
 		MY_ADDRESS = InetAddress.getAllByName(InetAddress.getLocalHost()
 				.getHostName())[0].getHostAddress();
-
+		} catch (Throwable t) {
+			MY_ADDRESS = System.getProperty("ch.ethz.iks.r_osgi.ip", "127.0.0.1");
+		}
+		
 		// set the debug switches
 		String prop = RemoteOSGiActivator.context
 				.getProperty(PROXY_DEBUG_PROPERTY);
