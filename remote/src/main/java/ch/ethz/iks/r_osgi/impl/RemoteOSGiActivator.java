@@ -73,6 +73,16 @@ public final class RemoteOSGiActivator implements BundleActivator {
 			RemoteOSGiServiceImpl.log = (LogService) context.getService(logRef);
 		}
 
+		if (remoting == null) {
+			// get the instance of RemoteOSGiServiceImpl
+			remoting = new RemoteOSGiServiceImpl();
+		}
+
+		// and register the service
+		context.registerService(new String[] {
+				RemoteOSGiService.class.getName(), Remoting.class.getName() },
+				remoting, null);
+		
 		// register the default tcp channel
 		if (!"false"
 				.equals(context
@@ -83,16 +93,6 @@ public final class RemoteOSGiActivator implements BundleActivator {
 			context.registerService(NetworkChannelFactory.class.getName(),
 					new TCPChannelFactory(), properties);
 		}
-
-		if (remoting == null) {
-			// get the instance of RemoteOSGiServiceImpl
-			remoting = new RemoteOSGiServiceImpl();
-		}
-
-		// and register the service
-		context.registerService(new String[] {
-				RemoteOSGiService.class.getName(), Remoting.class.getName() },
-				remoting, null);
 	}
 
 	/**
