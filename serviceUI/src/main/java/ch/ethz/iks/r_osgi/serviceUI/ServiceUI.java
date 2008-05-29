@@ -108,7 +108,7 @@ class ServiceUI extends Frame implements RemoteServiceListener,
 	private Set discoveredServices = new HashSet();
 
 	ServiceUI() {
-		super("R-OSGi ServiceUI");
+		super("AlfredO");
 		Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
 		int width = size.width < 300 ? size.width : 300;
 		int heigth = size.height < 400 ? size.height - 10 : 400;
