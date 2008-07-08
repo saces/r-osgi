@@ -59,7 +59,7 @@ public final class StringUtils {
 		String[] tokens = new String[tokenizer.countTokens()];
 		int tokenCount = tokenizer.countTokens();
 		for (int i = 0; i < tokenCount; i++) {
-			tokens[i] = tokenizer.nextToken();
+			tokens[i] = tokenizer.nextToken().trim();
 		}
 
 		return tokens;

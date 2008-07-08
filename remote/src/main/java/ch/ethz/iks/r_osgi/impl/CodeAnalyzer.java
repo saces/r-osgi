@@ -246,6 +246,11 @@ final class CodeAnalyzer implements ClassVisitor {
 		message.setInjections((HashMap) injections.clone());
 		message.setImports(importDeclaration.toString());
 		message.setExports(exportDeclaration.toString());
+		
+		// TODO: remove debug output
+		System.out.println("INJECTIONS " + injections);
+		System.out.println("PROXY EXPORTS " + exportDeclaration.toString());
+		
 		visited.clear();
 		injections.clear();
 		closure.clear();
@@ -267,7 +272,13 @@ final class CodeAnalyzer implements ClassVisitor {
 		final String classFile = currentClass + ".class";
 
 		final String pkg = packageOf(className);
-		if (importsMap.containsKey(pkg)) {
+		
+		// TODO: remove debug output
+		System.out.println("PACKAGE " + pkg);
+		System.out.println("IMPORT MAP " + importsMap);
+		System.out.println("EXPORT MAP " + exportsMap);
+		System.out.println("CONTAINS ? " + exportsMap.containsKey(pkg));
+		if (importsMap.containsKey(pkg) || exportsMap.containsKey(pkg)) {
 			proxyExports.add(pkg);
 		}
 		try {
@@ -294,7 +305,7 @@ final class CodeAnalyzer implements ClassVisitor {
 	 */
 	private String packageOf(final String cls) {
 		final int p = cls.lastIndexOf(".");
-		return p > -1 ? cls.substring(0, p) : "";
+		return p > -1 ? cls.substring(0, p).trim() : "";
 	}
 
 	/**
@@ -305,6 +316,8 @@ final class CodeAnalyzer implements ClassVisitor {
 	 */
 	private void visitType(final Type t) {
 
+		System.out.println("VISITING " + t);
+		
 		if (t.getSort() < Type.ARRAY) {
 			visited.add(t.getClassName());
 			return;

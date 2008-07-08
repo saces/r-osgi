@@ -212,6 +212,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		final String className = implName.replace('/', '.');
 		JarEntry jarEntry;
 
+		System.out.println("DELIVER EXPORTS " + deliv.getExports());
+		
 		// generate Jar
 		final Manifest mf = new Manifest();
 		Attributes attr = mf.getMainAttributes();

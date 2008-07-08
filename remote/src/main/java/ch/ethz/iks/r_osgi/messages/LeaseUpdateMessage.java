@@ -35,8 +35,6 @@ import java.util.Arrays;
 
 import ch.ethz.iks.util.SmartSerializer;
 
-// import ch.ethz.iks.util.SmartSerializer;
-
 /**
  * Lease update message. Sent whenever the information expressed in the original
  * lease message has changed. This can be that either a service has been
