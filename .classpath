@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="remote/src/main/java"/>
-	<classpathentry kind="src" path="sample/api/src/main/java"/>
-	<classpathentry kind="src" path="sample/client/src/main/java"/>
-	<classpathentry kind="src" path="sample/service/src/main/java"/>
-	<classpathentry kind="src" path="sample/clockservice/src/main/java"/>
-	<classpathentry kind="src" path="sample/concierge/shell/src/main/java"/>
-	<classpathentry kind="src" path="transport/mina/src/main/java"/>
-	<classpathentry kind="src" path="transport/bluetooth/src/main/java"/>
-	<classpathentry kind="src" path="service_discovery/slp/src/main/java"/>
-	<classpathentry kind="src" path="serviceUI/src/main/java"/>
+	<classpathentry kind="src" output="remote/target/classes" path="remote/src/main/java"/>
+	<classpathentry kind="src" output="sample/api/target/classes" path="sample/api/src/main/java"/>
+	<classpathentry kind="src" output="sample/client/target/classes" path="sample/client/src/main/java"/>
+	<classpathentry kind="src" output="sample/service/target/classes" path="sample/service/src/main/java"/>
+	<classpathentry kind="src" output="sample/clockservice/target/classes" path="sample/clockservice/src/main/java"/>
+	<classpathentry kind="src" output="sample/concierge/shell/target/classes" path="sample/concierge/shell/src/main/java"/>
+	<classpathentry kind="src" output="transport/mina/target/classes" path="transport/mina/src/main/java"/>
+	<classpathentry kind="src" output="transport/bluetooth/target/classes" path="transport/bluetooth/src/main/java"/>
+	<classpathentry kind="src" output="service_discovery/slp/target/classes" path="service_discovery/slp/src/main/java"/>
+	<classpathentry kind="src" output="serviceUI/target/classes" path="serviceUI/src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3.8.1"/>
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER/modules"/>
