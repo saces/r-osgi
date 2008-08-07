@@ -322,7 +322,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 		final ClassReader reader = new ClassReader(interfaceClass);
 		writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		reader.accept(this, null, ClassReader.SKIP_DEBUG);
+		reader.accept(this, ClassReader.SKIP_DEBUG);
 		visitedInterfaces.add(interfaceNames[0].replace('.', '/'));
 		recurseInterfaceHierarchy();
 		serviceInterfaceNames = null;
@@ -354,7 +354,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		smartProxyClassNameDashed = smartProxyClassName.replace('.', '/');
 		final ClassReader reader = new ClassReader(proxyClass);
 		writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		reader.accept(this, null, ClassReader.SKIP_DEBUG);
+		reader.accept(this, ClassReader.SKIP_DEBUG);
 		visitedInterfaces.add(smartProxyClassNameDashed);
 		recurseInterfaceHierarchy();
 		serviceInterfaceNames = null;
@@ -387,7 +387,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					}
 
 					visitedInterfaces.add(superIface);
-					reader.accept(this, null, 0);
+					reader.accept(this, 0);
 				}
 			}
 		} catch (ClassNotFoundException e) {
