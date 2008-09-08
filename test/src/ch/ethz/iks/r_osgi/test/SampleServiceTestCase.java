@@ -1,10 +1,12 @@
 package ch.ethz.iks.r_osgi.test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.osgi.framework.BundleContext;
 
+import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.URI;
@@ -58,7 +60,28 @@ public class SampleServiceTestCase extends TestCase {
 			service.local();
 			assertEquals(service.echoService(s, new Integer(1)), s);
 			service.reverseService(s);
-			remote.ungetRemoteService(refs2[i]);
+
+			final int x = 10;
+			final int y = 10;
+
+			final Object result = service.checkArray(s, x);
+			assertTrue(result instanceof String[]);
+			final String[] res = (String[]) result;
+			for (int a = 0; a < x; a++) {
+					assertEquals(res[a], s);
+			}
+			
+			
+			final Object result2 = service.checkDoubleArray(s, x, y);
+			assertTrue(result2 instanceof String[][]);
+			final String[][] res2 = (String[][]) result2;
+			for (int a = 0; a < x; a++) {
+				for (int b = 0; b < y; b++) {
+					assertEquals(res2[a][b], s);
+				}
+			}
+			
+			remote.ungetRemoteService(refs2[i]);			
 			assertEquals(context.getServiceReferences(ServiceInterface.class
 					.getName(), "(" + RemoteOSGiService.SERVICE_URI + "=*)"),
 					null);
@@ -92,6 +115,18 @@ public class SampleServiceTestCase extends TestCase {
 			service.local();
 			assertEquals(service.echoService(s, new Integer(1)), s);
 			service.reverseService(s);
+
+			final int x = 10;
+			final int y = 10;
+			final Object result = service.checkDoubleArray(s, x, y);
+			assertTrue(result instanceof String[][]);
+			final String[][] res = (String[][]) result;
+			for (int a = 0; a < x; a++) {
+				for (int b = 0; b < y; b++) {
+					assertEquals(res[a][b], s);
+				}
+			}
+			
 			remote.ungetRemoteService(refs2[i]);
 			assertEquals(context.getServiceReferences(ServiceInterface.class
 					.getName(), "(" + RemoteOSGiService.SERVICE_URI + "=*)"),
@@ -99,4 +134,5 @@ public class SampleServiceTestCase extends TestCase {
 		}
 		remote.disconnect(uri);
 	}
+
 }

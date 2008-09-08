@@ -16,13 +16,13 @@ import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryListener;
 import ch.ethz.iks.r_osgi.test.service.impl.Service;
 import junit.framework.TestCase;
 
-public class JSLPServiceDiscoveryTest extends TestCase {
+public class JSLPServiceDiscoveryTestDisabled extends TestCase {
 
 	private ArrayList queue = new ArrayList();
 
 	private BundleContext context;
 
-	public JSLPServiceDiscoveryTest() {
+	public JSLPServiceDiscoveryTestDisabled() {
 		context = Activator.getActivator().getContext();
 
 	}
