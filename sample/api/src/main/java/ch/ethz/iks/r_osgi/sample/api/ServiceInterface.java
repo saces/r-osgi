@@ -18,5 +18,9 @@ public interface ServiceInterface {
 	public void local();
 	
 	public boolean verifyBlock(final byte[] data, final int i, final int j, final int k);
+	
+	public String[] checkArray(String str, int i);
+	
+	public String[][] checkDoubleArray(String str, int i, int j);
 
 }
