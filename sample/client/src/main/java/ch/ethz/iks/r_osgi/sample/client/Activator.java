@@ -154,6 +154,10 @@ public class Activator implements BundleActivator, EventHandler {
 						}
 						service.verifyBlock("This is a test".getBytes(), 0, 1,
 								2);
+						
+						System.out.println(service.checkArray("ABCDEF", 1000)[0]);
+						
+						System.out.println(service.checkDoubleArray("FEDCBA", 100, 100)[1][1]);
 						wait(5000);
 					}
 				}
