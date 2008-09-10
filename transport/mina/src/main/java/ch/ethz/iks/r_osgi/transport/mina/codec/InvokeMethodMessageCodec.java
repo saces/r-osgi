@@ -13,6 +13,7 @@ import org.apache.mina.filter.codec.demux.MessageDecoderResult;
 
 import ch.ethz.iks.r_osgi.messages.InvokeMethodMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
+import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
 
 /**
  * <pre>
@@ -71,7 +72,7 @@ public class InvokeMethodMessageCodec extends RemoteOSGiMessageCodec {
 		final Object[] arguments = msg.getArgs();
 		buf.putShort((short) arguments.length);
 		for (int i = 0; i < arguments.length; i++) {
-			buf.putObject(arguments[i]);
+			buf.putObject(arguments[i] instanceof BoxedPrimitive ? ((BoxedPrimitive) arguments[i]).getBoxed() : arguments[i]);
 		}
 	}
 
