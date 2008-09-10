@@ -231,9 +231,9 @@ public abstract class RemoteOSGiMessage {
 			out.write(1);
 			out.write(funcID);
 			out.writeShort(xid);
-			writeBody(out);
-			out.flush();
+			writeBody(out);			
 			out.reset();
+			out.flush();
 		}
 	}
 

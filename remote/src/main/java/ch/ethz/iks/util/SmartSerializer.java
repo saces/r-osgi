@@ -169,17 +169,6 @@ public final class SmartSerializer {
 		if (obj == null) {
 			out.writeUTF(""); //$NON-NLS-1$
 			return;
-		} else if (obj instanceof Hashtable) {
-			serialize((Hashtable) obj, out);
-			return;
-		} else if (obj instanceof String) {
-			out.writeUTF("S"); //$NON-NLS-1$
-			out.writeUTF((String) obj);
-			return;
-		} else if (obj.getClass().isArray()
-				&& !obj.getClass().getComponentType().isPrimitive()) {
-			serialize((Object[]) obj, out);
-			return;
 		}
 
 		final String clazzName = obj.getClass().getName();
@@ -194,7 +183,7 @@ public final class SmartSerializer {
 				throw new RuntimeException(obj.getClass().getName()
 						+ " is not serializable"); //$NON-NLS-1$
 			}
-			out.writeUTF("R"); //$NON-NLS-1$
+			out.writeUTF("R"); //$NON-NLS-1$			
 			out.writeObject((Serializable) obj);
 		}
 	}
@@ -213,37 +202,6 @@ public final class SmartSerializer {
 		final String type = in.readUTF().intern();
 		if (type == "") { //$NON-NLS-1$
 			return null;
-		} else if (type == "A") { //$NON-NLS-1$
-			final String componentType = in.readUTF();
-			final int length = in.read();
-
-			try {
-				final Class arrayClass = Class.forName(componentType);
-
-				final Object[] objects = (Object[]) Array.newInstance(
-						arrayClass, length);
-				for (int i = 0; i < length; i++) {
-					objects[i] = deserialize(in);
-				}
-				return objects;
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new IOException(e.getMessage());
-			}
-		} else if (type == "S") { //$NON-NLS-1$
-			// String object
-			return in.readUTF();
-		} else if (type == "java.util.Hashtable") { //$NON-NLS-1$
-			Hashtable htable = new Hashtable();
-
-			final int size = in.read();
-
-			for (int i = 0; i < size; i++) {
-				final Object key = deserialize(in);
-				final Object value = deserialize(in);
-				htable.put(key, value);
-			}
-			return htable;
 		} else if (type == "R") { //$NON-NLS-1$
 			// JAVA SERIALIZED OBJECT
 			try {

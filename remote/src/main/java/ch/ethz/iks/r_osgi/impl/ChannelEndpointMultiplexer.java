@@ -79,6 +79,9 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	 *            the primary channel endpoint.
 	 */
 	ChannelEndpointMultiplexer(final ChannelEndpointImpl primary) {
+		if (primary == null) {
+			throw new IllegalArgumentException("Multiplexer must not be constructed from NULL primary endpoint");
+		}
 		this.primary = primary;
 	}
 

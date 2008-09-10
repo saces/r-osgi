@@ -247,10 +247,6 @@ final class CodeAnalyzer implements ClassVisitor {
 		message.setImports(importDeclaration.toString());
 		message.setExports(exportDeclaration.toString());
 		
-		// TODO: remove debug output
-		System.out.println("INJECTIONS " + injections);
-		System.out.println("PROXY EXPORTS " + exportDeclaration.toString());
-		
 		visited.clear();
 		injections.clear();
 		closure.clear();
@@ -273,11 +269,6 @@ final class CodeAnalyzer implements ClassVisitor {
 
 		final String pkg = packageOf(className);
 		
-		// TODO: remove debug output
-		System.out.println("PACKAGE " + pkg);
-		System.out.println("IMPORT MAP " + importsMap);
-		System.out.println("EXPORT MAP " + exportsMap);
-		System.out.println("CONTAINS ? " + exportsMap.containsKey(pkg));
 		if (importsMap.containsKey(pkg) || exportsMap.containsKey(pkg)) {
 			proxyExports.add(pkg);
 		}
@@ -316,8 +307,6 @@ final class CodeAnalyzer implements ClassVisitor {
 	 */
 	private void visitType(final Type t) {
 
-		System.out.println("VISITING " + t);
-		
 		if (t.getSort() < Type.ARRAY) {
 			visited.add(t.getClassName());
 			return;

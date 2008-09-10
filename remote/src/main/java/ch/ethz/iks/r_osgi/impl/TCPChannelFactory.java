@@ -272,7 +272,6 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 						"{TCP Channel} sending " + message);
 			}
-
 			message.send(output);
 		}
 
@@ -301,6 +300,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 
 						endpoint.receivedMessage(msg);
 					} catch (IOException ioe) {
+						// TODO: debug output
+						ioe.printStackTrace();
 						connected = false;
 						try {
 							socket.close();

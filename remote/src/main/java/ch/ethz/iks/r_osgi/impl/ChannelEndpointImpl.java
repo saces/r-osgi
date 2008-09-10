@@ -280,7 +280,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	public Object invokeMethod(final String service,
 			final String methodSignature, final Object[] args) throws Throwable {
 		if (networkChannel == null) {
-			throw new RemoteOSGiException("Network channel went down");
+			throw new RemoteOSGiException("Channel is closed");
 		}
 		// check arguments for streams and replace with placeholder
 		for (int i = 0; i < args.length; i++) {
@@ -415,7 +415,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"DISPOSING ENDPOINT " + getRemoteAddress());
 		}
-
+		
 		RemoteOSGiServiceImpl.unregisterChannelEndpoint(getRemoteAddress()
 				.toString());
 		if (handlerReg != null) {
@@ -476,6 +476,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	public String toString() {
+		if (networkChannel == null) {
+			throw new RemoteOSGiException("Channel is closed");
+		}
 		return "ChannelEndpoint(" + networkChannel.toString() + ")";
 	}
 
@@ -601,7 +604,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	public URI getRemoteAddress() {
 		if (networkChannel == null) {
-			return null;
+			throw new RemoteOSGiException("Channel is closed");
 		}
 		return networkChannel.getRemoteAddress();
 	}
@@ -613,7 +616,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	URI getLocalAddress() {
 		if (networkChannel == null) {
-			throw new RuntimeException("CHANNEL IS NULL");
+			throw new RemoteOSGiException("Channel is closed");
 		}
 		return networkChannel.getLocalAddress();
 	}
@@ -668,7 +671,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	void fetchService(final RemoteServiceReference ref) throws IOException,
 			RemoteOSGiException {
 		if (networkChannel == null) {
-			throw new RuntimeException("CHANNEL IS NULL");
+			throw new RemoteOSGiException("Channel is closed.");
 		}
 
 		// build the FetchServiceMessage
@@ -767,7 +770,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	private void send(final RemoteOSGiMessage msg) {
 		if (networkChannel == null) {
-			throw new RemoteOSGiException("Network channel went down.");
+			throw new RemoteOSGiException("Channel is closed");
 		}
 
 		if (msg.getXID() == 0) {
@@ -832,7 +835,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				receiveQueue.remove(xid);
 
 				if (networkChannel == null) {
-					throw new RemoteOSGiException("Lost connection");
+					throw new RemoteOSGiException("Channel is closed");
 				} else if (reply == WAITING) {
 					throw new RemoteOSGiException(
 							"Method Invocation failed, timeout exceeded.");
