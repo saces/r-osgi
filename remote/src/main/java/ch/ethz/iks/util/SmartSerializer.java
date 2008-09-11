@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -98,57 +97,7 @@ public final class SmartSerializer {
 		classToId.put(Float.class.getName(), "F"); //$NON-NLS-1$
 	}
 
-	/**
-	 * serialize Hashtables. Useful to serialize properties of services etc.
-	 * 
-	 * @param htable
-	 *            the <code>Hashtable</code>.
-	 * @param out
-	 *            the output stream.
-	 * @throws IOException
-	 *             in case of errors.
-	 */
-	private static void serialize(final Hashtable htable,
-			final ObjectOutputStream out) throws IOException {
-		if (htable == null) {
-			out.writeUTF(""); //$NON-NLS-1$
-			return;
-		}
-		out.writeUTF("java.util.Hashtable"); //$NON-NLS-1$
-		out.write(htable.size());
-		for (Enumeration keys = htable.keys(); keys.hasMoreElements();) {
-			Object key = keys.nextElement();
-			Object value = htable.get(key);
-			serialize(key, out);
-			serialize(value, out);
-		}
-	}
 
-	/**
-	 * serialize an array of objects. Checks every element for
-	 * string-serializability.
-	 * 
-	 * @param obj
-	 *            the object array.
-	 * @param out
-	 *            the output stream.
-	 * @throws IOException
-	 *             in case of errors.
-	 */
-	private static void serialize(final Object[] obj,
-			final ObjectOutputStream out) throws IOException {
-		if (obj == null) {
-			out.writeUTF(""); //$NON-NLS-1$
-			return;
-		}
-
-		out.writeUTF("A"); //$NON-NLS-1$
-		out.writeUTF(obj.getClass().getComponentType().getName());
-		out.write(obj.length);
-		for (int i = 0; i < obj.length; i++) {
-			serialize(obj[i], out);
-		}
-	}
 
 	/**
 	 * serialize an object.

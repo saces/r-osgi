@@ -21,4 +21,4 @@ Bundle-ClassPath: .,
 Bundle-Activator: ch.ethz.iks.r_osgi.impl.RemoteOSGiActivator
 Bundle-RequiredExecutionEnvironment: OSGi/Minimum-1.0,
  CDC-1.0/Foundation-1.0
-Eclipse-LazyStart: true
+Bundle-ActivationPolicy: lazy
