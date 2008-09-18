@@ -23,8 +23,14 @@ import javax.bluetooth.UUID;
 import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
 import javax.microedition.io.StreamConnectionNotifier;
+
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
+
 import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.Remoting;
@@ -32,11 +38,21 @@ import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryHandler;
+import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryListener;
+import ch.ethz.iks.util.CollectionUtils;
 
 public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 		ServiceDiscoveryHandler {
 
 	public static final String PROTOCOL = "btspp";
+
+	private static final int DISCOVERY_INTERVAL = Integer
+	.parseInt(System
+			.getProperty(
+					"ch.ethz.iks.r_osgi.service_discovery.bluetooth.discovery_interval",
+					"60"));
+
+	
 	private URI listeningAddress;
 	private Remoting remoting;
 	private LocalDevice local;
@@ -51,8 +67,16 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 	private ArrayList services = new ArrayList();
 
 	private HashMap remoteServices = new HashMap();
+	
+	private ServiceTracker discoveryListenerTracker;
 
-	BluetoothNetworkChannelFactory() throws IOException {
+	private boolean hasListeners;
+	
+	private HashMap queries = new HashMap();
+	
+	private DiscoveryThread discoveryThread;
+
+	BluetoothNetworkChannelFactory(final BundleContext context) throws IOException {
 		local = LocalDevice.getLocalDevice();
 		local.setDiscoverable(DiscoveryAgent.GIAC);
 		discovery = local.getDiscoveryAgent();
@@ -65,6 +89,66 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 		record = local.getRecord(service);
 		record.setAttributeValue(0x0003, new DataElement(DataElement.UUID,
 				new UUID(9278)));
+		
+		if (DISCOVERY_INTERVAL > 0) {
+			discoveryThread = new DiscoveryThread();
+			discoveryThread.start();
+
+			try {
+				discoveryListenerTracker = new ServiceTracker(context, context
+						.createFilter("(" + Constants.OBJECTCLASS + "="
+								+ ServiceDiscoveryListener.class.getName()
+								+ ")"), new ServiceTrackerCustomizer() {
+
+					public Object addingService(ServiceReference reference) {
+
+						synchronized (thread) {
+							if (!hasListeners) {
+								hasListeners = true;
+								thread.notifyAll();
+							}
+						}
+
+						// TODO: modify the query
+
+						final String filter = (String) reference
+								.getProperty(ServiceDiscoveryListener.FILTER_PROPERTY);
+						CollectionUtils.addValue(queries, filter, reference);
+
+						// TODO: check all known services
+
+						return context.getService(reference);
+					}
+
+					public void modifiedService(ServiceReference reference,
+							Object service) {
+						// TODO: modify the query
+
+					}
+
+					public void removedService(ServiceReference reference,
+							Object service) {
+
+						final String filter = (String) reference
+								.getProperty(ServiceDiscoveryListener.FILTER_PROPERTY);
+						CollectionUtils.removeValue(queries,
+								new Object[] { filter }, reference);
+
+						synchronized (thread) {
+							if (discoveryListenerTracker.getTrackingCount() == 0) {
+								hasListeners = true;
+								thread.notifyAll();
+							}
+						}
+					}
+				});
+				discoveryListenerTracker.open();
+			} catch (InvalidSyntaxException ise) {
+				// should not happen
+				ise.printStackTrace();
+			}
+		}
+
 	}
 
 	public void activate(Remoting remoting) throws IOException {
@@ -82,10 +166,6 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 		this.remoting = null;
 	}
 
-	public URI getURI() {
-		// TODO: implement
-		return null;
-	}
 
 	public NetworkChannel getConnection(ChannelEndpoint endpoint,
 			URI endpointURI) throws IOException {
@@ -235,7 +315,6 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 
 	public void registerService(ServiceReference ref, Dictionary properties,
 			URI uri) {
-		System.out.println("NEW SERVICE " + uri);
 		final String[] interfaces = (String[]) ref
 				.getProperty(Constants.OBJECTCLASS);
 		BluetoothServiceRegistration reg = new BluetoothServiceRegistration(
@@ -250,8 +329,6 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 	}
 
 	public void unregisterService(ServiceReference ref) {
-		// final String[] interfaces = (String[]) ref
-		// .getProperty(Constants.OBJECTCLASS);
 		services.remove(serviceMap.remove(ref));
 		try {
 			updateSDPRecord();
@@ -438,7 +515,7 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 				while (!isInterrupted()) {
 					synchronized (this) {
 						search();
-						wait(20000);
+						wait(DISCOVERY_INTERVAL * 1000);
 					}
 				}
 			} catch (InterruptedException e) {

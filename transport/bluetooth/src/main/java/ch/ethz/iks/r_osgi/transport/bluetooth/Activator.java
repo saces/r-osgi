@@ -18,7 +18,7 @@ public class Activator implements BundleActivator {
 		context.registerService(new String[] {
 				NetworkChannelFactory.class.getName(),
 				ServiceDiscoveryHandler.class.getName() },
-				new BluetoothNetworkChannelFactory(), properties);
+				new BluetoothNetworkChannelFactory(context), properties);
 	}
 
 	public void stop(BundleContext context) throws Exception {
