@@ -29,6 +29,7 @@
 package ch.ethz.iks.util;
 
 import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -129,7 +130,7 @@ public final class SmartSerializer {
 		} else {
 			// fallback: Java Serialization
 			if (!(obj instanceof Serializable)) {
-				throw new RuntimeException(obj.getClass().getName()
+				throw new NotSerializableException(obj.getClass().getName()
 						+ " is not serializable"); //$NON-NLS-1$
 			}
 			out.writeUTF("R"); //$NON-NLS-1$			

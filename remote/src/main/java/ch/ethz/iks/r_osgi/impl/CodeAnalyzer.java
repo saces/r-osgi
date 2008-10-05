@@ -240,6 +240,9 @@ final class CodeAnalyzer implements ClassVisitor {
 			}
 		}
 
+		// TODO: remove debug output
+		System.out.println("Injections: " + injections.keySet());
+		
 		final DeliverServiceMessage message = new DeliverServiceMessage();
 		message.setInterfaceNames(ifaces);
 		message.setSmartProxyName(smartProxy);

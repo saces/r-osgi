@@ -313,7 +313,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			return resultObj;
 		} catch (RemoteOSGiException e) {
 			throw new RemoteOSGiException("Method invocation of "
-					+ methodSignature + " failed.", e);
+					+ service + " " + methodSignature + " failed.", e);
 		}
 	}
 
