@@ -32,8 +32,8 @@ package ch.ethz.iks.r_osgi;
  * <p>
  * Just an empty interface that adapter bundles can use to register legacy
  * services for remote access. Registering bundles should set the property
- * <code>SERVICE_REFERENCE</code> to the service reference of the legacy
- * service that is registered. Additionally, all the default properties like
+ * <code>SERVICE_REFERENCE</code> to the service reference of the legacy service
+ * that is registered. Additionally, all the default properties like
  * {@link RemoteOSGiService#SMART_PROXY} can be set on behalf of the legacy
  * service in the usual way.
  * </p>

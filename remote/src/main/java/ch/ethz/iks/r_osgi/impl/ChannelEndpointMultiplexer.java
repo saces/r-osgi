@@ -34,15 +34,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 
-import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
-import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
-import ch.ethz.iks.r_osgi.types.Timestamp;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpointManager;
+import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
+import ch.ethz.iks.r_osgi.types.Timestamp;
 
 /**
  * Channel endpoint multiplexer. <i>EXPERIMENTAL</i>
@@ -60,7 +61,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	/**
 	 * the policies.
 	 */
-	private HashMap policies = new HashMap(0);
+	private final HashMap policies = new HashMap(0);
 
 	/**
 	 * the service registration.
@@ -70,7 +71,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	/**
 	 * the mappings.
 	 */
-	private Map mappings = new HashMap();
+	private final Map mappings = new HashMap();
 
 	/**
 	 * create a new channel endpoint multiplexer.
@@ -80,7 +81,8 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	 */
 	ChannelEndpointMultiplexer(final ChannelEndpointImpl primary) {
 		if (primary == null) {
-			throw new IllegalArgumentException("Multiplexer must not be constructed from NULL primary endpoint");
+			throw new IllegalArgumentException(
+					"Multiplexer must not be constructed from NULL primary endpoint");
 		}
 		this.primary = primary;
 	}
@@ -121,8 +123,8 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#invokeMethod(java.lang.String,
 	 *      java.lang.String, java.lang.Object[])
 	 */
-	public Object invokeMethod(String serviceURI, String methodSignature,
-			Object[] args) throws Throwable {
+	public Object invokeMethod(final String serviceURI,
+			final String methodSignature, final Object[] args) throws Throwable {
 		final Mapping mapping = (Mapping) mappings.get(serviceURI);
 		if (mapping == null) {
 			return primary.invokeMethod(serviceURI, methodSignature, args);
@@ -138,7 +140,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 					try {
 						return endpoint.invokeMethod(mapping
 								.getMapped(endpoint), methodSignature, args);
-					} catch (RemoteOSGiException e) {
+					} catch (final RemoteOSGiException e) {
 						final ChannelEndpointImpl next = mapping.getNext();
 						if (next != null) {
 							primary.untrackRegistration(serviceURI);
@@ -163,7 +165,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 						}
 						return primary.invokeMethod(mapping.getMapped(primary),
 								methodSignature, args);
-					} catch (RemoteOSGiException e) {
+					} catch (final RemoteOSGiException e) {
 						if (policy == FAILOVER_REDUNDANCY_POLICY) {
 							// do the failover
 							final ChannelEndpointImpl next = mapping.getNext();
@@ -234,9 +236,9 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	 */
 	private class Mapping {
 
-		private Random random = new Random(System.currentTimeMillis());
-		private List redundant = new ArrayList(0);
-		private Map uriMapping = new HashMap(0);
+		private final Random random = new Random(System.currentTimeMillis());
+		private final List redundant = new ArrayList(0);
+		private final Map uriMapping = new HashMap(0);
 
 		private Mapping(final String serviceURI) {
 			uriMapping.put(primary, serviceURI);
@@ -266,7 +268,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 		}
 
 		private ChannelEndpoint getAny() {
-			int ran = random.nextInt(redundant.size() + 1);
+			final int ran = random.nextInt(redundant.size() + 1);
 			if (ran == 0) {
 				return primary;
 			} else {

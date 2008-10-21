@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -28,11 +28,9 @@
  */
 package ch.ethz.iks.r_osgi.messages;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.IOException;
-
-import ch.ethz.iks.util.SmartSerializer;
 
 /**
  * <p>
@@ -79,24 +77,28 @@ public final class MethodResultMessage extends RemoteOSGiMessage {
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *      |  error flag   | result or Exception                           \
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 * </pre>.
+	 * </pre>
+	 * 
+	 * .
 	 * 
 	 * @param input
-	 *            an <code>ObjectInputStream</code> that provides the body of
-	 *            a R-OSGi network packet.
+	 *            an <code>ObjectInputStream</code> that provides the body of a
+	 *            R-OSGi network packet.
 	 * @throws IOException
 	 *             in case of IO failures.
+	 * @throws ClassNotFoundException
 	 */
-	MethodResultMessage(final ObjectInputStream input) throws IOException {
+	MethodResultMessage(final ObjectInputStream input) throws IOException,
+			ClassNotFoundException {
 		super(METHOD_RESULT);
 		errorFlag = input.readByte();
-			if (errorFlag == 0) {
-				result = SmartSerializer.deserialize(input);
-				exception = null;
-			} else {
-				exception = (Throwable) SmartSerializer.deserialize(input);
-				result = null;
-			}
+		if (errorFlag == 0) {
+			result = input.readObject();
+			exception = null;
+		} else {
+			exception = (Throwable) input.readObject();
+			result = null;
+		}
 	}
 
 	/**
@@ -111,19 +113,19 @@ public final class MethodResultMessage extends RemoteOSGiMessage {
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		if (exception == null) {
 			out.writeByte(0);
-			SmartSerializer.serialize(result, out);
+			out.writeObject(result);
 		} else {
 			out.writeByte(1);
-			SmartSerializer.serialize(exception, out);
+			out.writeObject(exception);
 		}
 	}
 
 	/**
 	 * did the method invocation cause an exception ?
 	 * 
-	 * @return <code>true</code>, if an exception has been thrown on the
-	 *         remote side. In this case, the exception can be retrieved through
-	 *         the <code>getException</code> method.
+	 * @return <code>true</code>, if an exception has been thrown on the remote
+	 *         side. In this case, the exception can be retrieved through the
+	 *         <code>getException</code> method.
 	 */
 	public boolean causedException() {
 		return (errorFlag == 1);
@@ -146,7 +148,7 @@ public final class MethodResultMessage extends RemoteOSGiMessage {
 	 */
 	public void setResult(final Object result) {
 		this.result = result;
-		this.errorFlag = 0;
+		errorFlag = 0;
 	}
 
 	/**
@@ -165,8 +167,8 @@ public final class MethodResultMessage extends RemoteOSGiMessage {
 	 *            the exception.
 	 */
 	public void setException(final Throwable t) {
-		this.exception = t;
-		this.errorFlag = 1;
+		exception = t;
+		errorFlag = 1;
 	}
 
 	/**
@@ -176,7 +178,7 @@ public final class MethodResultMessage extends RemoteOSGiMessage {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		StringBuffer buffer = new StringBuffer();
+		final StringBuffer buffer = new StringBuffer();
 		buffer.append("[METHOD_RESULT] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
 		buffer.append(", errorFlag: "); //$NON-NLS-1$

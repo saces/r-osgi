@@ -28,11 +28,9 @@
  */
 package ch.ethz.iks.r_osgi.messages;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.IOException;
-
-
 
 /**
  * <p>
@@ -68,11 +66,13 @@ public final class TimeOffsetMessage extends RemoteOSGiMessage {
 	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *       |                   Marshalled Long[]                           \
 	 *       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 * </pre>.
+	 * </pre>
+	 * 
+	 * .
 	 * 
 	 * @param input
-	 *            an <code>ObjectInputStream</code> that provides the body of
-	 *            a R-OSGi network packet.
+	 *            an <code>ObjectInputStream</code> that provides the body of a
+	 *            R-OSGi network packet.
 	 * @throws IOException
 	 *             in case of IO failures.
 	 */
@@ -105,7 +105,7 @@ public final class TimeOffsetMessage extends RemoteOSGiMessage {
 	 * add the current time to the time series.
 	 */
 	public void timestamp() {
-		int len = timeSeries.length;
+		final int len = timeSeries.length;
 		final long[] newSeries = new long[len + 1];
 		System.arraycopy(timeSeries, 0, newSeries, 0, len);
 		newSeries[len] = System.currentTimeMillis();
@@ -117,8 +117,8 @@ public final class TimeOffsetMessage extends RemoteOSGiMessage {
 	 * sending method must increase the XID to signal that this is a "new"
 	 * message rather than a strict retransmission.
 	 */
-	public void restamp(short newXID) {
-		this.xid = newXID;
+	public void restamp(final short newXID) {
+		xid = newXID;
 		timeSeries[timeSeries.length - 1] = System.currentTimeMillis();
 	}
 
@@ -138,7 +138,7 @@ public final class TimeOffsetMessage extends RemoteOSGiMessage {
 	 *            the time series.
 	 */
 	public final void setTimeSeries(final long[] series) {
-		this.timeSeries = series;
+		timeSeries = series;
 	}
 
 	/**
@@ -148,7 +148,7 @@ public final class TimeOffsetMessage extends RemoteOSGiMessage {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		StringBuffer buffer = new StringBuffer();
+		final StringBuffer buffer = new StringBuffer();
 		buffer.append("[TIME_OFFSET, "); //$NON-NLS-1$
 		buffer.append("] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);

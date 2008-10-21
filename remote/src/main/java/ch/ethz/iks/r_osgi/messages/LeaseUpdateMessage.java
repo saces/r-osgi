@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -32,8 +32,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
-
-import ch.ethz.iks.util.SmartSerializer;
 
 /**
  * Lease update message. Sent whenever the information expressed in the original
@@ -99,19 +97,23 @@ public final class LeaseUpdateMessage extends RemoteOSGiMessage {
 	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *    |   service information or url or topic array                      \
 	 *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 * </pre>.
+	 * </pre>
+	 * 
+	 * .
 	 * 
 	 * @param input
-	 *            an <code>ObjectInputStream</code> that provides the body of
-	 *            a R-OSGi network packet.
+	 *            an <code>ObjectInputStream</code> that provides the body of a
+	 *            R-OSGi network packet.
 	 * @throws IOException
 	 *             in case of IO failures.
+	 * @throws ClassNotFoundException
 	 */
-	LeaseUpdateMessage(final ObjectInputStream input) throws IOException {
+	LeaseUpdateMessage(final ObjectInputStream input) throws IOException,
+			ClassNotFoundException {
 		super(LEASE_UPDATE);
 		type = input.readShort();
 		serviceID = input.readUTF();
-		payload = (Object[]) SmartSerializer.deserialize(input);
+		payload = (Object[]) input.readObject();
 	}
 
 	/**
@@ -126,7 +128,7 @@ public final class LeaseUpdateMessage extends RemoteOSGiMessage {
 	public void writeBody(final ObjectOutputStream out) throws IOException {
 		out.writeShort(type);
 		out.writeUTF(serviceID);
-		SmartSerializer.serialize(payload, out);
+		out.writeObject(payload);
 	}
 
 	/**
@@ -193,7 +195,7 @@ public final class LeaseUpdateMessage extends RemoteOSGiMessage {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		StringBuffer buffer = new StringBuffer();
+		final StringBuffer buffer = new StringBuffer();
 		buffer.append("[STATE_UPDATE] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
 		buffer.append(", service "); //$NON-NLS-1$

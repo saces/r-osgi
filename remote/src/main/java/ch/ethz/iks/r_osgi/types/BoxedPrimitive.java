@@ -154,9 +154,9 @@ public final class BoxedPrimitive implements Serializable {
 	public Object getBoxed() {
 		return boxed;
 	}
-	
+
 	public String toString() {
-		return boxed.toString();
+		return "BoxedPrimitive{" + boxed.toString() + "}";
 	}
 
 	/**
@@ -178,7 +178,5 @@ public final class BoxedPrimitive implements Serializable {
 	public int hashCode() {
 		return boxed.hashCode();
 	}
-	
-	
 
 }

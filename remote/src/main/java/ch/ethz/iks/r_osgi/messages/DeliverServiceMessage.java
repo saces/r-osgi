@@ -134,7 +134,7 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 		// interface names
 		serviceInterfaceNames = readStringArray(input);
 		// smart proxy name, if defined.
-		String p = input.readUTF();
+		final String p = input.readUTF();
 		smartProxyName = "".equals(p) ? null : p;
 		// process all class injections
 		final short blocks = input.readShort();
@@ -213,7 +213,7 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 	 *            the interface class names.
 	 */
 	public void setInterfaceNames(final String[] interfaceNames) {
-		this.serviceInterfaceNames = interfaceNames;
+		serviceInterfaceNames = interfaceNames;
 	}
 
 	/**
@@ -313,7 +313,7 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		StringBuffer buffer = new StringBuffer();
+		final StringBuffer buffer = new StringBuffer();
 		buffer.append("[DELIVER_SERVICE] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
 		buffer.append(", serviceID: "); //$NON-NLS-1$

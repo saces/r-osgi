@@ -91,7 +91,7 @@ public final class RemoteServiceEvent extends EventObject {
 	 * @return the remote service reference.
 	 */
 	public RemoteServiceReference getRemoteReference() {
-		return (RemoteServiceReference) this.getSource();
+		return (RemoteServiceReference) getSource();
 	}
 
 }

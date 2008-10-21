@@ -102,31 +102,33 @@ public final class StreamRequestMessage extends RemoteOSGiMessage {
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *      |                lenOrVal (ctd.)                |       b       \
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 * </pre>.
+	 * </pre>
+	 * 
+	 * .
 	 * 
 	 * @param input
-	 *            an <code>ObjectInputStream</code> that provides the body of
-	 *            a R-OSGi network packet.
+	 *            an <code>ObjectInputStream</code> that provides the body of a
+	 *            R-OSGi network packet.
 	 * @throws IOException
 	 *             in case of IO failures.
 	 */
 	StreamRequestMessage(final ObjectInputStream input) throws IOException {
 		super(STREAM_REQUEST);
-		this.streamID = input.readShort();
-		this.op = input.readByte();
+		streamID = input.readShort();
+		op = input.readByte();
 		switch (op) {
 		case READ:
-			this.lenOrVal = 1;
-			this.b = null;
+			lenOrVal = 1;
+			b = null;
 			break;
 		case READ_ARRAY:
 		case WRITE:
-			this.lenOrVal = input.readInt();
-			this.b = null;
+			lenOrVal = input.readInt();
+			b = null;
 			break;
 		case WRITE_ARRAY:
-			this.lenOrVal = input.readInt();
-			this.b = new byte[lenOrVal];
+			lenOrVal = input.readInt();
+			b = new byte[lenOrVal];
 			int rem = lenOrVal;
 			int read;
 			while ((rem > 0)
@@ -246,7 +248,7 @@ public final class StreamRequestMessage extends RemoteOSGiMessage {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		StringBuffer buffer = new StringBuffer();
+		final StringBuffer buffer = new StringBuffer();
 		buffer.append("[STREAM_REQUEST] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
 		buffer.append(", streamID: "); //$NON-NLS-1$

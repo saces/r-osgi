@@ -43,12 +43,12 @@ public class InputStreamProxy extends InputStream {
 	/**
 	 * the stream id.
 	 */
-	private short streamID;
+	private final short streamID;
 
 	/**
 	 * the channel endpoint.
 	 */
-	private ChannelEndpointImpl endpoint;
+	private final ChannelEndpointImpl endpoint;
 
 	/**
 	 * Create a new input stream proxy.

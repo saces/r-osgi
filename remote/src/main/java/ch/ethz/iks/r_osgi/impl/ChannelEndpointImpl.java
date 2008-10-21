@@ -199,7 +199,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	ChannelEndpointImpl(final NetworkChannelFactory factory,
 			final URI endpointAddress) throws RemoteOSGiException, IOException {
-		this.networkChannel = factory.getConnection(this, endpointAddress);
+		networkChannel = factory.getConnection(this, endpointAddress);
 		if (RemoteOSGiServiceImpl.DEBUG) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"opening new channel " + getRemoteAddress());
@@ -214,7 +214,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 *            the network channel of the incoming connection.
 	 */
 	ChannelEndpointImpl(final NetworkChannel channel) {
-		this.networkChannel = channel;
+		networkChannel = channel;
 		channel.bind(this);
 		RemoteOSGiServiceImpl.registerChannelEndpoint(this);
 	}
@@ -246,10 +246,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						if (reply != null) {
 							try {
 								networkChannel.sendMessage(reply);
-							} catch (NotSerializableException nse) {
+							} catch (final NotSerializableException nse) {
 								throw new RemoteOSGiException("Error sending "
 										+ reply, nse);
-							} catch (IOException e) {
+							} catch (final IOException e) {
 								dispose();
 							}
 						}
@@ -311,7 +311,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				resultObj = getOutputStreamProxy((OutputStreamHandle) resultObj);
 			}
 			return resultObj;
-		} catch (RemoteOSGiException e) {
+		} catch (final RemoteOSGiException e) {
 			throw new RemoteOSGiException("Method invocation of "
 					+ service + " " + methodSignature + " failed.", e);
 		}
@@ -341,7 +341,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	public Dictionary getPresentationProperties(final String serviceID) {
 		final Dictionary attribs = new Hashtable();
-		attribs.put(RemoteOSGiServiceImpl.SERVICE_URI, serviceID);
+		attribs.put(RemoteOSGiService.SERVICE_URI, serviceID);
 		attribs.put(RemoteOSGiService.PRESENTATION, getRemoteReference(
 				serviceID).getProperty(RemoteOSGiService.PRESENTATION));
 		return attribs;
@@ -415,7 +415,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"DISPOSING ENDPOINT " + getRemoteAddress());
 		}
-		
+
 		RemoteOSGiServiceImpl.unregisterChannelEndpoint(getRemoteAddress()
 				.toString());
 		if (handlerReg != null) {
@@ -427,13 +427,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		try {
 			oldchannel.close();
-		} catch (IOException ioe) {
+		} catch (final IOException ioe) {
 			ioe.printStackTrace();
 		}
 
 		if (!hasRedundantLinks) {
 			// inform all listeners about all services
-			RemoteServiceReference[] refs = (RemoteServiceReference[]) remoteServices
+			final RemoteServiceReference[] refs = (RemoteServiceReference[]) remoteServices
 					.values().toArray(
 							new RemoteServiceReference[remoteServices.size()]);
 			for (int i = 0; i < refs.length; i++) {
@@ -451,7 +451,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					if (proxies[i].getState() != Bundle.UNINSTALLED) {
 						proxies[i].uninstall();
 					}
-				} catch (Throwable t) {
+				} catch (final Throwable t) {
 
 				}
 			}
@@ -688,8 +688,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					"#" + deliv.getServiceID());
 
 			// generate a proxy bundle for the service
-			final InputStream in = new ProxyGenerator().generateProxyBundle(service,
-					deliv);
+			final InputStream in = new ProxyGenerator().generateProxyBundle(
+					service, deliv);
 
 			final Bundle bundle = RemoteOSGiActivator.context.installBundle(
 					service.toString(), in);
@@ -700,7 +700,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			// start the bundle
 			bundle.start();
 
-		} catch (BundleException e) {
+		} catch (final BundleException e) {
 			final Throwable nested = e.getNestedException() == null ? e : e
 					.getNestedException();
 			nested.printStackTrace();
@@ -757,7 +757,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	void ungetRemoteService(final URI uri) {
 		try {
 			((Bundle) proxyBundles.remove(uri.getFragment())).uninstall();
-		} catch (BundleException be) {
+		} catch (final BundleException be) {
 
 		}
 	}
@@ -781,7 +781,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			try {
 				networkChannel.sendMessage(msg);
 				return;
-			} catch (IOException ioe) {
+			} catch (final IOException ioe) {
 				// TimeOffsetMessages have to be handled differently
 				// must send a new message with a new timestamp and XID
 				// instead
@@ -794,9 +794,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					networkChannel.sendMessage(msg);
 				}
 			}
-		} catch (NotSerializableException nse) {
+		} catch (final NotSerializableException nse) {
 			throw new RemoteOSGiException("Error sending " + msg, nse);
-		} catch (IOException ioe) {
+		} catch (final IOException ioe) {
 			// failed to reconnect...
 			dispose();
 			throw new RemoteOSGiException("Network error", ioe);
@@ -842,7 +842,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				} else {
 					return (RemoteOSGiMessage) reply;
 				}
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -935,7 +935,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				throw result.getException();
 			}
 			return result;
-		} catch (RemoteOSGiException e) {
+		} catch (final RemoteOSGiException e) {
 			throw new RemoteOSGiException("Invocation of operation "
 					+ requestMsg.getOp() + " on stream "
 					+ requestMsg.getStreamID() + " failed.", e);
@@ -981,9 +981,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			} else {
 				// update topics
 				final Dictionary properties = new Hashtable();
-				properties.put(EventConstants.EVENT_TOPIC,
-						(String[]) remoteTopics.toArray(new String[remoteTopics
-								.size()]));
+				properties.put(EventConstants.EVENT_TOPIC, remoteTopics
+						.toArray(new String[remoteTopics.size()]));
 				properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
 				properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
 						Boolean.TRUE);
@@ -1032,7 +1031,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			return m;
 		}
 		case RemoteOSGiMessage.LEASE_UPDATE: {
-			LeaseUpdateMessage suMsg = (LeaseUpdateMessage) msg;
+			final LeaseUpdateMessage suMsg = (LeaseUpdateMessage) msg;
 
 			final String serviceID = suMsg.getServiceID();
 			final short stateUpdate = suMsg.getType();
@@ -1090,7 +1089,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				if (bundle != null) {
 					try {
 						bundle.uninstall();
-					} catch (BundleException be) {
+					} catch (final BundleException be) {
 						be.printStackTrace();
 					}
 					proxiedServices.remove(serviceID);
@@ -1134,6 +1133,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 				// invoke method
 				try {
+					// TODO: debug output
+					System.out.println("calling " + serv.getServiceObject());
+					System.out.println("method " + invMsg.getMethodSignature());
+					System.out.println("args " + Arrays.asList(arguments));
+
 					Object result = method.invoke(serv.getServiceObject(),
 							arguments);
 					// check if result is an instance of a stream
@@ -1146,11 +1150,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					m.setXID(invMsg.getXID());
 					m.setResult(result);
 					return m;
-				} catch (InvocationTargetException t) {
+				} catch (final InvocationTargetException t) {
 					t.printStackTrace();
 					throw t.getTargetException();
 				}
-			} catch (Throwable t) {
+			} catch (final Throwable t) {
 				// TODO: send to log
 				t.printStackTrace();
 				final MethodResultMessage m = new MethodResultMessage();
@@ -1240,7 +1244,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					throw new RemoteOSGiException(
 							"Unimplemented op code for stream request " + msg);
 				}
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				final StreamResultMessage m = new StreamResultMessage();
 				m.setXID(reqMsg.getXID());
 				m.setResult(StreamResultMessage.RESULT_EXCEPTION);
@@ -1262,7 +1266,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @return the placeholder object that is sent to the actual client
 	 */
 	private InputStreamHandle getInputStreamPlaceholder(final InputStream origIS) {
-		InputStreamHandle sp = new InputStreamHandle(nextStreamID());
+		final InputStreamHandle sp = new InputStreamHandle(nextStreamID());
 		streams.put(new Integer(sp.getStreamID()), origIS);
 		return sp;
 	}
@@ -1274,7 +1278,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 *            the placeholder for the remote input stream
 	 * @return the proxy for the input stream
 	 */
-	private InputStream getInputStreamProxy(InputStreamHandle placeholder) {
+	private InputStream getInputStreamProxy(final InputStreamHandle placeholder) {
 		return new InputStreamProxy(placeholder.getStreamID(), this);
 	}
 
@@ -1288,7 +1292,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	private OutputStreamHandle getOutputStreamPlaceholder(
 			final OutputStream origOS) {
-		OutputStreamHandle sp = new OutputStreamHandle(nextStreamID());
+		final OutputStreamHandle sp = new OutputStreamHandle(nextStreamID());
 		streams.put(new Integer(sp.getStreamID()), origOS);
 		return sp;
 	}
@@ -1301,7 +1305,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 *            the placeholder for the remote output stream
 	 * @return the proxy for the output stream
 	 */
-	private OutputStream getOutputStreamProxy(OutputStreamHandle placeholder) {
+	private OutputStream getOutputStreamProxy(
+			final OutputStreamHandle placeholder) {
 		return new OutputStreamProxy(placeholder.getStreamID(), this);
 	}
 
@@ -1321,7 +1326,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * closes all streams that are still open.
 	 */
 	private void closeStreams() {
-		Object[] s = streams.values().toArray();
+		final Object[] s = streams.values().toArray();
 		try {
 			for (int i = 0; i < s.length; i++) {
 				if (s[i] instanceof InputStream) {
@@ -1334,7 +1339,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 									"Object in input streams map was not an instance of a stream.");
 				}
 			}
-		} catch (IOException e) {
+		} catch (final IOException e) {
 		}
 	}
 
@@ -1371,7 +1376,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 							"Forwarding Event " + event);
 				}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		}

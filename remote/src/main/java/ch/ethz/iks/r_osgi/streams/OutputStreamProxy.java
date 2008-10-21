@@ -43,12 +43,12 @@ public class OutputStreamProxy extends OutputStream {
 	/**
 	 * the stream ID.
 	 */
-	private short streamID;
+	private final short streamID;
 
 	/**
 	 * the channel endpoint.
 	 */
-	private ChannelEndpointImpl endpoint;
+	private final ChannelEndpointImpl endpoint;
 
 	/**
 	 * create a new output stream proxy.
@@ -72,7 +72,7 @@ public class OutputStreamProxy extends OutputStream {
 	 * @throws IOException
 	 *             in case of IO failures.
 	 */
-	public void write(int b) throws IOException {
+	public void write(final int b) throws IOException {
 		endpoint.writeStream(streamID, b);
 	}
 
@@ -86,7 +86,8 @@ public class OutputStreamProxy extends OutputStream {
 	 * @param len
 	 *            the length.
 	 */
-	public void write(byte[] b, int off, int len) throws IOException {
+	public void write(final byte[] b, final int off, final int len)
+			throws IOException {
 		endpoint.writeStream(streamID, b, off, len);
 	}
 

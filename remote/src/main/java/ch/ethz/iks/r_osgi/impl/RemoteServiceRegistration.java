@@ -82,8 +82,8 @@ final class RemoteServiceRegistration {
 	 * creates a new RemoteService object.
 	 * 
 	 * @param ref
-	 *            the <code>ServiceReference</code> under which the service
-	 *            was registered. Can be a surrogate.
+	 *            the <code>ServiceReference</code> under which the service was
+	 *            registered. Can be a surrogate.
 	 * @param service
 	 *            the <code>ServiceReference</code>
 	 * @throws ClassNotFoundException
@@ -93,14 +93,13 @@ final class RemoteServiceRegistration {
 	RemoteServiceRegistration(final ServiceReference ref,
 			final ServiceReference service) throws ClassNotFoundException {
 
-		this.reference = service;
-		this.serviceID = ((Long) service.getProperty(Constants.SERVICE_ID))
+		reference = service;
+		serviceID = ((Long) service.getProperty(Constants.SERVICE_ID))
 				.longValue();
-		this.interfaceNames = (String[]) service
-				.getProperty(Constants.OBJECTCLASS);
+		interfaceNames = (String[]) service.getProperty(Constants.OBJECTCLASS);
 
 		// get the service object
-		this.serviceObject = RemoteOSGiActivator.context.getService(service);
+		serviceObject = RemoteOSGiActivator.context.getService(service);
 		if (serviceObject == null) {
 			throw new IllegalStateException("Service is not present."); //$NON-NLS-1$
 		}
@@ -131,11 +130,10 @@ final class RemoteServiceRegistration {
 			deliverServiceMessage = analyzer.analyze(interfaceNames,
 					(String) ref.getProperty(RemoteOSGiService.SMART_PROXY),
 					(String[]) ref.getProperty(RemoteOSGiService.INJECTIONS),
-					(String) ref
-							.getProperty(RemoteOSGiServiceImpl.PRESENTATION));
+					(String) ref.getProperty(RemoteOSGiService.PRESENTATION));
 			deliverServiceMessage.setServiceID(((Long) ref
 					.getProperty(Constants.SERVICE_ID)).toString());
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			if (RemoteOSGiServiceImpl.log != null) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_ERROR,
 						"Error during remote service registration", e);
@@ -235,7 +233,7 @@ final class RemoteServiceRegistration {
 	DeliverServiceMessage getDeliverServiceMessage() {
 		return deliverServiceMessage;
 	}
-	
+
 	public String toString() {
 		return "RemoteServiceRegistration{" + reference.toString() + "}";
 	}

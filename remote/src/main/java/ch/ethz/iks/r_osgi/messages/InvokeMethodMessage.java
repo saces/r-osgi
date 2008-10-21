@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -28,14 +28,10 @@
  */
 package ch.ethz.iks.r_osgi.messages;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
-
-import ch.ethz.iks.util.SmartSerializer;
-
-// import ch.ethz.iks.util.SmartSerializer;
 
 /**
  * <p>
@@ -84,15 +80,19 @@ public final class InvokeMethodMessage extends RemoteOSGiMessage {
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *      |   number of param blocks      |     Param blocks (if any)     \
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 * </pre>.
+	 * </pre>
+	 * 
+	 * .
 	 * 
 	 * @param input
-	 *            an <code>ObjectInputStream</code> that provides the body of
-	 *            a R-OSGi network packet.
+	 *            an <code>ObjectInputStream</code> that provides the body of a
+	 *            R-OSGi network packet.
 	 * @throws IOException
 	 *             in case of IO failures.
+	 * @throws ClassNotFoundException
 	 */
-	InvokeMethodMessage(final ObjectInputStream input) throws IOException {
+	InvokeMethodMessage(final ObjectInputStream input) throws IOException,
+			ClassNotFoundException {
 		super(INVOKE_METHOD);
 
 		serviceID = input.readUTF();
@@ -100,7 +100,7 @@ public final class InvokeMethodMessage extends RemoteOSGiMessage {
 		final short argLength = input.readShort();
 		arguments = new Object[argLength];
 		for (short i = 0; i < argLength; i++) {
-			arguments[i] = SmartSerializer.deserialize(input);
+			arguments[i] = input.readObject();
 		}
 	}
 
@@ -118,7 +118,7 @@ public final class InvokeMethodMessage extends RemoteOSGiMessage {
 		out.writeUTF(methodSignature);
 		out.writeShort(arguments.length);
 		for (short i = 0; i < arguments.length; i++) {
-			SmartSerializer.serialize(arguments[i], out);
+			out.writeObject(arguments[i]);
 		}
 	}
 
@@ -186,7 +186,7 @@ public final class InvokeMethodMessage extends RemoteOSGiMessage {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		StringBuffer buffer = new StringBuffer();
+		final StringBuffer buffer = new StringBuffer();
 		buffer.append("[INVOKE_METHOD] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
 		buffer.append(", serviceID: "); //$NON-NLS-1$
@@ -195,7 +195,7 @@ public final class InvokeMethodMessage extends RemoteOSGiMessage {
 		buffer.append(methodSignature);
 		buffer.append(", params: "); //$NON-NLS-1$
 		buffer.append(arguments == null ? "" : Arrays.asList(arguments)
-				.toString()); //$NON-NLS-1$
+				.toString());
 		return buffer.toString();
 	}
 }

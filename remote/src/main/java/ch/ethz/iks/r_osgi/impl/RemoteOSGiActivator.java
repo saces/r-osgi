@@ -35,6 +35,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
+
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
@@ -82,7 +83,7 @@ public final class RemoteOSGiActivator implements BundleActivator {
 		context.registerService(new String[] {
 				RemoteOSGiService.class.getName(), Remoting.class.getName() },
 				remoting, null);
-		
+
 		// register the default tcp channel
 		if (!"false"
 				.equals(context

@@ -31,18 +31,20 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 import org.osgi.service.log.LogService;
-import ch.ethz.iks.r_osgi.URI;
+
 import ch.ethz.iks.r_osgi.Remoting;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
+import ch.ethz.iks.util.SmartObjectInputStream;
+import ch.ethz.iks.util.SmartObjectOutputStream;
 
 /**
  * channel factory for (persistent) TCP transport. This is the default protocol.
@@ -107,7 +109,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		/**
 		 * the remote endpoint address.
 		 */
-		private URI remoteEndpointAddress;
+		private final URI remoteEndpointAddress;
 
 		/**
 		 * the local endpoint address.
@@ -117,12 +119,12 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		/**
 		 * the input stream.
 		 */
-		private ObjectInputStream input;
+		private SmartObjectInputStream input;
 
 		/**
 		 * the output stream.
 		 */
-		private ObjectOutputStream output;
+		private SmartObjectOutputStream output;
 
 		/**
 		 * the channel endpoint.
@@ -151,7 +153,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 				port = 9278;
 			}
 			this.endpoint = endpoint;
-			this.remoteEndpointAddress = endpointAddress;
+			remoteEndpointAddress = endpointAddress;
 			open(new Socket(endpointAddress.getHost(), port));
 			new ReceiverThread().start();
 		}
@@ -165,7 +167,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 *             in case of IO errors.
 		 */
 		public TCPChannel(final Socket socket) throws IOException {
-			this.remoteEndpointAddress = URI.create(getProtocol() + "://"
+			remoteEndpointAddress = URI.create(getProtocol() + "://"
 					+ socket.getInetAddress().getHostName() + ":"
 					+ socket.getPort());
 			open(socket);
@@ -179,7 +181,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * 
 		 * @see ch.ethz.iks.r_osgi.channels.NetworkChannel#bind(ch.ethz.iks.r_osgi.channels.ChannelEndpoint)
 		 */
-		public void bind(ChannelEndpoint endpoint) {
+		public void bind(final ChannelEndpoint endpoint) {
 			this.endpoint = endpoint;
 			new ReceiverThread().start();
 		}
@@ -194,19 +196,19 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		private void open(final Socket socket) throws IOException {
 			this.socket = socket;
-			this.localEndpointAddress = URI.create(getProtocol() + "://"
+			localEndpointAddress = URI.create(getProtocol() + "://"
 					+ socket.getLocalAddress().getHostName() + ":"
 					+ socket.getLocalPort());
 			try {
 				this.socket.setKeepAlive(true);
-			} catch (Throwable t) {
+			} catch (final Throwable t) {
 				// for 1.2 VMs that do not support the setKeepAlive
 			}
 			this.socket.setTcpNoDelay(true);
-			this.output = new ObjectOutputStream(new BufferedOutputStream(
+			output = new SmartObjectOutputStream(new BufferedOutputStream(
 					socket.getOutputStream()));
 			output.flush();
-			input = new ObjectInputStream(new BufferedInputStream(socket
+			input = new SmartObjectInputStream(new BufferedInputStream(socket
 					.getInputStream()));
 		}
 
@@ -284,8 +286,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		private class ReceiverThread extends Thread {
 			private ReceiverThread() {
-				this.setName("TCPChannel:ReceiverThread:" + getRemoteAddress());
-				this.setDaemon(true);
+				setName("TCPChannel:ReceiverThread:" + getRemoteAddress());
+				setDaemon(true);
 			}
 
 			public void run() {
@@ -299,17 +301,17 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 						}
 
 						endpoint.receivedMessage(msg);
-					} catch (IOException ioe) {
+					} catch (final IOException ioe) {
 						// TODO: debug output
 						ioe.printStackTrace();
 						connected = false;
 						try {
 							socket.close();
-						} catch (IOException e1) {
+						} catch (final IOException e1) {
 						}
 						endpoint.receivedMessage(null);
 						return;
-					} catch (Throwable t) {
+					} catch (final Throwable t) {
 						t.printStackTrace();
 					}
 				}
@@ -346,7 +348,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 										+ (RemoteOSGiServiceImpl.R_OSGI_PORT + e));
 					}
 					return;
-				} catch (BindException b) {
+				} catch (final BindException b) {
 					e++;
 				}
 			}
@@ -363,7 +365,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 					// accept incoming connections and build channel endpoints
 					// for them
 					remoting.createEndpoint(new TCPChannel(socket.accept()));
-				} catch (IOException ioe) {
+				} catch (final IOException ioe) {
 					ioe.printStackTrace();
 				}
 			}

@@ -59,8 +59,8 @@ public interface RemoteServiceReference {
 	 * 
 	 * @param key
 	 *            the key.
-	 * @return the property belonging to the given key, or <code>null</code>
-	 *         if there is no such property set.
+	 * @return the property belonging to the given key, or <code>null</code> if
+	 *         there is no such property set.
 	 */
 	Object getProperty(String key);
 

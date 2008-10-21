@@ -29,6 +29,7 @@
 package ch.ethz.iks.r_osgi.channels;
 
 import java.io.IOException;
+
 import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
 

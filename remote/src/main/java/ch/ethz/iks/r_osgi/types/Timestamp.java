@@ -58,7 +58,7 @@ public final class Timestamp implements Comparable {
 	/**
 	 * the actual timestamp, stored as <code>long</code>.
 	 */
-	private long timestamp;
+	private final long timestamp;
 
 	/**
 	 * creates an new Timestamp object with the current time.
@@ -78,8 +78,7 @@ public final class Timestamp implements Comparable {
 	 * hidden constructor.
 	 * 
 	 * @param ts
-	 *            a <code>String</code> representation of an existing
-	 *            timestamp.
+	 *            a <code>String</code> representation of an existing timestamp.
 	 */
 	private Timestamp(final String ts) {
 		timestamp = new Long(ts).longValue();
@@ -105,7 +104,7 @@ public final class Timestamp implements Comparable {
 	 */
 	public int compareTo(final Object o) {
 		if (o instanceof Timestamp) {
-			long val = ((Timestamp) o).getValue();
+			final long val = ((Timestamp) o).getValue();
 			if (timestamp < val) {
 				return -1;
 			}

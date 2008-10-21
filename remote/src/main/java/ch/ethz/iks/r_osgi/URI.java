@@ -38,9 +38,9 @@ import java.net.UnknownHostException;
 /**
  * <p>
  * URI is, well, an URI, as described in RFC 2396. Since
- * <code>java.net.URI</code> exists only since version 1.4, R-OSGi uses its
- * own URI class. This is a lightweight implementation, it does only as much as
- * is needed for R-OSGi. Furthermore, certain protocol schemes do address
+ * <code>java.net.URI</code> exists only since version 1.4, R-OSGi uses its own
+ * URI class. This is a lightweight implementation, it does only as much as is
+ * needed for R-OSGi. Furthermore, certain protocol schemes do address
  * resolution to avoid URI schizophrenia.
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
@@ -95,7 +95,7 @@ public final class URI implements Serializable {
 	public static URI create(final String uriString) {
 		try {
 			return new URI(uriString);
-		} catch (Throwable t) {
+		} catch (final Throwable t) {
 			return null;
 		}
 	}
@@ -117,10 +117,11 @@ public final class URI implements Serializable {
 	 * 
 	 * URI btUri = new URI("btspp://0010DCE96CB8:1"); System.out.println(btUri);
 	 * System.out.println(); URI uri4 = new URI("r-osgi://192.168.1.1:9000");
-	 * System.out.println(uri4); System.out.println(); System.out.println(uri4); }
+	 * System.out.println(uri4); System.out.println(); System.out.println(uri4);
+	 * }
 	 */
 
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		System.out.println(URI.create("r-osgi://localhost"));
 	}
 
@@ -160,11 +161,11 @@ public final class URI implements Serializable {
 			if (scheme.startsWith("r-osgi") || scheme.startsWith("http")) {
 				try {
 					host = InetAddress.getByName(hostString);
-				} catch (UnknownHostException uhe) {
+				} catch (final UnknownHostException uhe) {
 					host = null;
 				}
 			}
-		} catch (IndexOutOfBoundsException i) {
+		} catch (final IndexOutOfBoundsException i) {
 			throw new IllegalArgumentException(uriString + " caused "
 					+ i.getMessage());
 		}
@@ -213,7 +214,7 @@ public final class URI implements Serializable {
 	 *            the fragment.
 	 * @return
 	 */
-	public URI resolve(String add) {
+	public URI resolve(final String add) {
 		return URI.create(toString() + add);
 	}
 

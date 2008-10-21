@@ -249,7 +249,7 @@ final class CodeAnalyzer implements ClassVisitor {
 		message.setInjections((HashMap) injections.clone());
 		message.setImports(importDeclaration.toString());
 		message.setExports(exportDeclaration.toString());
-		
+
 		visited.clear();
 		injections.clear();
 		closure.clear();
@@ -271,7 +271,7 @@ final class CodeAnalyzer implements ClassVisitor {
 		final String classFile = currentClass + ".class";
 
 		final String pkg = packageOf(className);
-		
+
 		if (importsMap.containsKey(pkg) || exportsMap.containsKey(pkg)) {
 			proxyExports.add(pkg);
 		}
@@ -285,7 +285,7 @@ final class CodeAnalyzer implements ClassVisitor {
 			}
 			reader.accept(this, ClassReader.SKIP_DEBUG + ClassReader.SKIP_CODE
 					+ ClassReader.SKIP_FRAMES);
-		} catch (IOException ioe) {
+		} catch (final IOException ioe) {
 			throw new ClassNotFoundException(className);
 		}
 	}
@@ -702,8 +702,8 @@ final class CodeAnalyzer implements ClassVisitor {
 		 * @see org.objectweb.asm.MethodVisitor#visitFrame(int, int,
 		 *      java.lang.Object[], int, java.lang.Object[])
 		 */
-		public void visitFrame(int arg0, int arg1, Object[] arg2, int arg3,
-				Object[] arg4) {
+		public void visitFrame(final int arg0, final int arg1,
+				final Object[] arg2, final int arg3, final Object[] arg4) {
 
 		}
 

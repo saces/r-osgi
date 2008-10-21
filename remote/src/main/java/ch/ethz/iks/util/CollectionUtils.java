@@ -81,7 +81,7 @@ public final class CollectionUtils {
 	public static boolean addAllUnique(final Collection collection,
 			final Collection values) {
 		boolean changed = false;
-		for (Iterator iter = values.iterator(); iter.hasNext();) {
+		for (final Iterator iter = values.iterator(); iter.hasNext();) {
 			changed = addUnique(collection, iter.next());
 		}
 		return changed;
@@ -110,7 +110,7 @@ public final class CollectionUtils {
 	}
 
 	public static Collection union(final Collection c1, final Collection c2) {
-		List list = new ArrayList();
+		final List list = new ArrayList();
 		addAllUnique(list, c1);
 		addAllUnique(list, c2);
 		return list;
@@ -118,7 +118,7 @@ public final class CollectionUtils {
 
 	public static Collection rightDifference(final Collection c1,
 			final Collection c2) {
-		List result = new ArrayList();
+		final List result = new ArrayList();
 		final Object[] members_c1 = c1.toArray();
 		for (int i = 0; i < members_c1.length; i++) {
 			if (!c2.contains(members_c1[i])) {

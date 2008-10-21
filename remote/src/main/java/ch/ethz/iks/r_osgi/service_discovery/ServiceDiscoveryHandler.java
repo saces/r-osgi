@@ -1,9 +1,10 @@
 package ch.ethz.iks.r_osgi.service_discovery;
 
-import ch.ethz.iks.r_osgi.URI;
 import java.util.Dictionary;
 
 import org.osgi.framework.ServiceReference;
+
+import ch.ethz.iks.r_osgi.URI;
 
 public interface ServiceDiscoveryHandler {
 

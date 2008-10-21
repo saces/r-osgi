@@ -35,9 +35,9 @@ import java.util.Enumeration;
 
 import org.osgi.framework.Constants;
 
-import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
+import ch.ethz.iks.r_osgi.URI;
 
 /**
  * Service reference to remote services.
@@ -55,7 +55,7 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 	/**
 	 * the service interfaces.
 	 */
-	private String[] serviceInterfaces;
+	private final String[] serviceInterfaces;
 
 	/**
 	 * the service properties.
@@ -65,12 +65,12 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 	/**
 	 * the URI of the remote service.
 	 */
-	private URI uri;
+	private final URI uri;
 
 	/**
 	 * the channel endpoint.
 	 */
-	private ChannelEndpointImpl channel;
+	private final ChannelEndpointImpl channel;
 
 	/**
 	 * create a new remote service reference.
@@ -88,10 +88,10 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 			final String serviceID, final Dictionary properties,
 			final ChannelEndpointImpl channel) {
 		this.serviceInterfaces = serviceInterfaces;
-		this.uri = channel.getRemoteAddress().resolve("#" + serviceID);
+		uri = channel.getRemoteAddress().resolve("#" + serviceID);
 		this.properties = properties;
 		// adjust the properties
-		this.properties.put(RemoteOSGiServiceImpl.SERVICE_URI, uri.toString());
+		this.properties.put(RemoteOSGiService.SERVICE_URI, uri.toString());
 		// remove the service PID, if set
 		this.properties.remove(Constants.SERVICE_PID);
 		// remove the R-OSGi registration property
@@ -119,8 +119,8 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 	 */
 	public String[] getPropertyKeys() {
 		final ArrayList result = new ArrayList(properties.size());
-		for (Enumeration e = properties.keys(); e.hasMoreElements(); result
-				.add((String) e.nextElement())) {
+		for (final Enumeration e = properties.keys(); e.hasMoreElements(); result
+				.add(e.nextElement())) {
 		}
 
 		return (String[]) result.toArray(new String[properties.size()]);

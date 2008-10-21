@@ -55,9 +55,9 @@ public final class StringUtils {
 	 * @since 0.2
 	 */
 	public static String[] stringToArray(final String data, final String delim) {
-		StringTokenizer tokenizer = new StringTokenizer(data, delim);
-		String[] tokens = new String[tokenizer.countTokens()];
-		int tokenCount = tokenizer.countTokens();
+		final StringTokenizer tokenizer = new StringTokenizer(data, delim);
+		final String[] tokens = new String[tokenizer.countTokens()];
+		final int tokenCount = tokenizer.countTokens();
 		for (int i = 0; i < tokenCount; i++) {
 			tokens[i] = tokenizer.nextToken().trim();
 		}

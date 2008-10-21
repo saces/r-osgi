@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -28,10 +28,11 @@
  */
 package ch.ethz.iks.r_osgi.messages;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.IOException;
 import java.net.SocketException;
+
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 
 /**
@@ -135,7 +136,7 @@ public abstract class RemoteOSGiMessage {
 	 * @param xid
 	 *            set the xid.
 	 */
-	public void setXID(short xid) {
+	public void setXID(final short xid) {
 		this.xid = xid;
 	}
 
@@ -169,14 +170,15 @@ public abstract class RemoteOSGiMessage {
 	 * @param input
 	 *            the DataInput providing the network packet.
 	 * @return the RemoteOSGiMessage.
+	 * @throws ClassNotFoundException
 	 * @throws SocketException
 	 *             if something goes wrong.
 	 */
 	public static RemoteOSGiMessage parse(final ObjectInputStream input)
-			throws IOException {
+			throws IOException, ClassNotFoundException {
 		input.readByte(); // version, currently unused
-		short funcID = input.readByte();
-		short xid = input.readShort();
+		final short funcID = input.readByte();
+		final short xid = input.readShort();
 		RemoteOSGiMessage msg;
 		switch (funcID) {
 		case LEASE:
@@ -211,7 +213,7 @@ public abstract class RemoteOSGiMessage {
 			break;
 		default:
 			throw new RemoteOSGiException("funcID " + funcID
-					+ " not supported."); //$NON-NLS-1$ //$NON-NLS-2$
+					+ " not supported."); //$NON-NLS-1$ 
 		}
 		msg.funcID = funcID;
 		msg.xid = xid;
@@ -231,7 +233,7 @@ public abstract class RemoteOSGiMessage {
 			out.write(1);
 			out.write(funcID);
 			out.writeShort(xid);
-			writeBody(out);			
+			writeBody(out);
 			out.reset();
 			out.flush();
 		}
@@ -259,8 +261,8 @@ public abstract class RemoteOSGiMessage {
 	 */
 	protected static byte[] readBytes(final ObjectInputStream input)
 			throws IOException {
-		int length = input.readInt();
-		byte[] buffer = new byte[length];
+		final int length = input.readInt();
+		final byte[] buffer = new byte[length];
 		input.readFully(buffer);
 		return buffer;
 	}

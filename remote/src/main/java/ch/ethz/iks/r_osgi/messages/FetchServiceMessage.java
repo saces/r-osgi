@@ -28,9 +28,9 @@
  */
 package ch.ethz.iks.r_osgi.messages;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.IOException;
 
 /**
  * <p>
@@ -70,8 +70,8 @@ public final class FetchServiceMessage extends RemoteOSGiMessage {
 	 * </pre>
 	 * 
 	 * @param input
-	 *            an <code>ObjectInputStream</code> that provides the body of
-	 *            a R-OSGi network packet.
+	 *            an <code>ObjectInputStream</code> that provides the body of a
+	 *            R-OSGi network packet.
 	 * @throws IOException
 	 *             if something goes wrong.
 	 */
@@ -119,7 +119,7 @@ public final class FetchServiceMessage extends RemoteOSGiMessage {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		StringBuffer buffer = new StringBuffer();
+		final StringBuffer buffer = new StringBuffer();
 		buffer.append("[FETCH_MESSAGE]"); //$NON-NLS-1$
 		buffer.append("- XID: "); //$NON-NLS-1$
 		buffer.append(xid);

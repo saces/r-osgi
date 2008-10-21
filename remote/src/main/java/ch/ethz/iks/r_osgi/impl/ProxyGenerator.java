@@ -28,8 +28,8 @@
  */
 package ch.ethz.iks.r_osgi.impl;
 
-import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -43,12 +43,13 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.CRC32;
+
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodAdapter;
@@ -56,9 +57,10 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.osgi.service.log.LogService;
-import ch.ethz.iks.r_osgi.URI;
+
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.Remoting;
+import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
 import ch.ethz.iks.r_osgi.types.ServiceUIComponent;
@@ -111,12 +113,12 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 * a list of super interfaces describing the whole interface hierarchy of
 	 * the service interface.
 	 */
-	private List superInterfaces = new ArrayList();
+	private final List superInterfaces = new ArrayList();
 
 	/**
 	 * the set of visited interfaces to avoid loops
 	 */
-	private Set visitedInterfaces = new HashSet();
+	private final Set visitedInterfaces = new HashSet();
 
 	/**
 	 * smart proxy class name.
@@ -199,7 +201,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	protected InputStream generateProxyBundle(final URI service,
 			final DeliverServiceMessage deliv) throws IOException {
 
-		this.uri = service.toString();
+		uri = service.toString();
 		sourceID = generateSourceID(uri);
 		implemented = new HashSet();
 		injections = deliv.getInjections();
@@ -211,10 +213,10 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 		final String className = implName.replace('/', '.');
 		JarEntry jarEntry;
-		
+
 		// generate Jar
 		final Manifest mf = new Manifest();
-		Attributes attr = mf.getMainAttributes();
+		final Attributes attr = mf.getMainAttributes();
 		attr.putValue("Manifest-Version", "1.0");
 		attr.putValue("Created-By", "R-OSGi Proxy Generator");
 		attr.putValue("Bundle-Activator", className);
@@ -354,7 +356,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		visitedInterfaces.add(smartProxyClassNameDashed);
 		recurseInterfaceHierarchy();
 		serviceInterfaceNames = null;
-		byte[] bytes = writer.toByteArray();
+		final byte[] bytes = writer.toByteArray();
 		return bytes;
 	}
 
@@ -373,7 +375,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 									superIface.replace('/', '.'))
 									.getClassLoader().getResourceAsStream(
 											superIface + ".class"));
-						} catch (IOException ioe) {
+						} catch (final IOException ioe) {
 							throw new IOException("While processing "
 									+ superIface.replace('/', '.') + ": "
 									+ ioe.getMessage());
@@ -386,7 +388,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 					reader.accept(this, 0);
 				}
 			}
-		} catch (ClassNotFoundException e) {
+		} catch (final ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
@@ -568,7 +570,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitTypeInsn(CHECKCAST, "java/lang/String");
 				method.visitVarInsn(ASTORE, 3);
 				method.visitVarInsn(ALOAD, 3);
-				Label l0 = new Label();
+				final Label l0 = new Label();
 				method.visitJumpInsn(IFNULL, l0);
 				method.visitVarInsn(ALOAD, 3);
 				method.visitMethodInsn(INVOKESTATIC, "java/lang/Class",
@@ -770,8 +772,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			boolean needsBoxing = false;
 
 			methodAccess = (methodAccess ^ ACC_ABSTRACT);
-			MethodVisitor method = writer.visitMethod(methodAccess, name, desc,
-					signature, exceptions);
+			final MethodVisitor method = writer.visitMethod(methodAccess, name,
+					desc, signature, exceptions);
 
 			method.visitVarInsn(ALOAD, 0);
 			method.visitFieldInsn(GETFIELD, implName, "endpoint", "L"
@@ -895,7 +897,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 		} else {
 			// proxy method, contains code so just rewrite the code ...
-			MethodVisitor method = writer.visitMethod(access, name, desc,
+			final MethodVisitor method = writer.visitMethod(access, name, desc,
 					signature, exceptions);
 			implemented.add(name + desc);
 			return new MethodRewriter(method);
@@ -915,7 +917,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		/**
 		 * 
 		 */
-		private ClassRewriter(ClassWriter writer) {
+		private ClassRewriter(final ClassWriter writer) {
 			super(writer);
 		}
 
@@ -955,12 +957,12 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		 *            internal name of the enclosing class of the class.
 		 * @param name
 		 *            the name of the method that contains the class, or
-		 *            <tt>null</tt> if the class is not enclosed in a method
-		 *            of its enclosing class.
+		 *            <tt>null</tt> if the class is not enclosed in a method of
+		 *            its enclosing class.
 		 * @param desc
 		 *            the descriptor of the method that contains the class, or
-		 *            <tt>null</tt> if the class is not enclosed in a method
-		 *            of its enclosing class.
+		 *            <tt>null</tt> if the class is not enclosed in a method of
+		 *            its enclosing class.
 		 */
 		public void visitOuterClass(final String owner, final String name,
 				final String desc) {
@@ -1020,7 +1022,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		 * @see org.objectweb.asm.MethodVisitor#visitTypeInsn(int,
 		 *      java.lang.String)
 		 */
-		public void visitTypeInsn(final int opcode, String desc) {
+		public void visitTypeInsn(final int opcode, final String desc) {
 			super.mv.visitTypeInsn(opcode, checkRewrite(desc));
 		}
 
@@ -1126,9 +1128,9 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 	 */
 	private static String generateSourceID(final String id) {
 		final int pos1 = id.indexOf("://");
-		char[] chars = id.substring(pos1 + 3).replace('/', '_').replace(':',
-				'_').replace('-', '_').toCharArray();
-		StringBuffer buffer = new StringBuffer();
+		final char[] chars = id.substring(pos1 + 3).replace('/', '_').replace(
+				':', '_').replace('-', '_').toCharArray();
+		final StringBuffer buffer = new StringBuffer();
 		for (int i = 0; i < chars.length; i++) {
 			if (chars[i] == '.') {
 				buffer.append('o');
@@ -1146,7 +1148,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		return buffer.toString();
 	}
 
-	private String checkRewrite(String clazzName) {
+	private String checkRewrite(final String clazzName) {
 		if (smartProxyClassNameDashed == null) {
 			return clazzName;
 		}
@@ -1173,13 +1175,13 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		String result = desc;
 		int i = result.indexOf(smartProxyClassNameDashed + ";");
 		while (i > 0) {
-			int j = i + smartProxyClassNameDashed.length();
+			final int j = i + smartProxyClassNameDashed.length();
 			result = result.substring(0, i) + implName + result.substring(j);
 			i = result.indexOf(smartProxyClassNameDashed, j);
 		}
 		i = result.indexOf(smartProxyClassNameDashed + "$");
 		while (i > 0) {
-			int j = i + smartProxyClassNameDashed.length();
+			final int j = i + smartProxyClassNameDashed.length();
 			result = result.substring(0, i) + implName + result.substring(j);
 			i = result.indexOf(smartProxyClassNameDashed, j);
 		}

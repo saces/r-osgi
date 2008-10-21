@@ -46,23 +46,23 @@ public final class Scheduler {
 	 * the expiration queue. All scheduled objects are places in ascending order
 	 * of their timestamp.
 	 */
-	private SortedMap expirationQueue = new TreeMap();
+	private final SortedMap expirationQueue = new TreeMap();
 
 	/**
 	 * data index of the expiration queue to lookup for which timestamp an
 	 * object is scheduled.
 	 */
-	private Map expirationDataIndex = new HashMap(0);
+	private final Map expirationDataIndex = new HashMap(0);
 
 	/**
 	 * the listener that is called whenever a scheduled object has become due.
 	 */
-	private ScheduleListener listener;
+	private final ScheduleListener listener;
 
 	/**
 	 * the schedule thread.
 	 */
-	private ScheduleThread thread;
+	private final ScheduleThread thread;
 
 	/**
 	 * the thread variable.
@@ -78,7 +78,7 @@ public final class Scheduler {
 	 */
 	public Scheduler(final ScheduleListener listener) {
 		this.listener = listener;
-		this.thread = new ScheduleThread();
+		thread = new ScheduleThread();
 		start();
 	}
 
@@ -111,7 +111,7 @@ public final class Scheduler {
 	 */
 	public boolean isScheduled(final Object object) {
 		synchronized (expirationQueue) {
-			Long scheduled = (Long) expirationDataIndex.get(object);
+			final Long scheduled = (Long) expirationDataIndex.get(object);
 			return (scheduled != null);
 		}
 	}
@@ -132,9 +132,9 @@ public final class Scheduler {
 		synchronized (expirationQueue) {
 			if (isScheduled(object)) {
 				throw new IllegalStateException("Object " + object
-						+ " is already scheduled."); //$NON-NLS-1$ //$NON-NLS-2$
+						+ " is already scheduled."); //$NON-NLS-1$ 
 			}
-			Long ts = new Long(timestamp);
+			final Long ts = new Long(timestamp);
 			expirationQueue.put(ts, object);
 			expirationDataIndex.put(object, ts);
 			expirationQueue.notifyAll();
@@ -164,7 +164,7 @@ public final class Scheduler {
 	 */
 	public void unschedule(final Object object) {
 		synchronized (expirationQueue) {
-			Long scheduled = (Long) expirationDataIndex.remove(object);
+			final Long scheduled = (Long) expirationDataIndex.remove(object);
 			expirationQueue.remove(scheduled);
 		}
 	}
@@ -214,7 +214,7 @@ public final class Scheduler {
 								/*
 								 * there are some activities in the future,
 								 * sleep until the first activity becomes due
-								 */								
+								 */
 								if (next > 0) {
 									expirationQueue.wait(next);
 								}
@@ -222,7 +222,7 @@ public final class Scheduler {
 						}
 					}
 				}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		}
