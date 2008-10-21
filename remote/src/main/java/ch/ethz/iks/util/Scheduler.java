@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -46,7 +46,7 @@ public final class Scheduler {
 	 * the expiration queue. All scheduled objects are places in ascending order
 	 * of their timestamp.
 	 */
-	private final SortedMap expirationQueue = new TreeMap();
+	final SortedMap expirationQueue = new TreeMap();
 
 	/**
 	 * data index of the expiration queue to lookup for which timestamp an
@@ -57,7 +57,7 @@ public final class Scheduler {
 	/**
 	 * the listener that is called whenever a scheduled object has become due.
 	 */
-	private final ScheduleListener listener;
+	final ScheduleListener listener;
 
 	/**
 	 * the schedule thread.
@@ -67,7 +67,7 @@ public final class Scheduler {
 	/**
 	 * the thread variable.
 	 */
-	private boolean running;
+	boolean running;
 
 	/**
 	 * create a new scheduler.
@@ -131,7 +131,7 @@ public final class Scheduler {
 			throws IllegalStateException {
 		synchronized (expirationQueue) {
 			if (isScheduled(object)) {
-				throw new IllegalStateException("Object " + object
+				throw new IllegalStateException("Object " + object //$NON-NLS-1$
 						+ " is already scheduled."); //$NON-NLS-1$ 
 			}
 			final Long ts = new Long(timestamp);

@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -48,7 +48,7 @@ public interface RemoteServiceListener extends EventListener {
 	 * 
 	 * @since 0.6
 	 */
-	String SERVICE_INTERFACES = "listener.service_interfaces";
+	String SERVICE_INTERFACES = "listener.service_interfaces"; //$NON-NLS-1$
 
 	/**
 	 * Name of the property which denotes the filter for the listener. Only
@@ -58,7 +58,7 @@ public interface RemoteServiceListener extends EventListener {
 	 * 
 	 * @since 0.6
 	 */
-	String FILTER = "listener.filter";
+	String FILTER = "listener.filter"; //$NON-NLS-1$
 
 	/**
 	 * <p>

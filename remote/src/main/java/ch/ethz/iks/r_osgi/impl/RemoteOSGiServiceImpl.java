@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -83,7 +83,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	static boolean IS_5 = false;
 
 	static {
-		final String verString = System.getProperty("java.class.version");
+		final String verString = System.getProperty("java.class.version"); //$NON-NLS-1$
 		if (verString != null) {
 			if (Float.parseFloat(verString) >= 49) {
 				IS_5 = true;
@@ -151,7 +151,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	/**
 	 * service reference -> remote service registration.
 	 */
-	private static Map serviceRegistrations = new HashMap(1);
+	static Map serviceRegistrations = new HashMap(1);
 
 	/**
 	 * next transaction id.
@@ -216,8 +216,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			MY_ADDRESS = InetAddress.getAllByName(InetAddress.getLocalHost()
 					.getHostName())[0].getHostAddress();
 		} catch (final Throwable t) {
-			MY_ADDRESS = System.getProperty("ch.ethz.iks.r_osgi.ip",
-					"127.0.0.1");
+			MY_ADDRESS = System.getProperty("ch.ethz.iks.r_osgi.ip", //$NON-NLS-1$
+					"127.0.0.1"); //$NON-NLS-1$
 		}
 
 		// set the debug switches
@@ -232,18 +232,18 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 		if (log != null) {
 			if (PROXY_DEBUG) {
-				log.log(LogService.LOG_INFO, "PROXY DEBUG OUTPUTS ENABLED");
+				log.log(LogService.LOG_INFO, "PROXY DEBUG OUTPUTS ENABLED"); //$NON-NLS-1$
 			}
 			if (MSG_DEBUG) {
-				log.log(LogService.LOG_INFO, "MESSAGE DEBUG OUTPUTS ENABLED");
+				log.log(LogService.LOG_INFO, "MESSAGE DEBUG OUTPUTS ENABLED"); //$NON-NLS-1$
 			}
 			if (DEBUG) {
-				log.log(LogService.LOG_INFO, "INTERNAL DEBUG OUTPUTS ENABLED");
+				log.log(LogService.LOG_INFO, "INTERNAL DEBUG OUTPUTS ENABLED"); //$NON-NLS-1$
 			}
 		} else {
 			if (PROXY_DEBUG || MSG_DEBUG || DEBUG) {
 				System.err
-						.println("NO LOG SERVICE PRESENT, DEBUG PROPERTIES HAVE NO EFFECT ...");
+						.println("NO LOG SERVICE PRESENT, DEBUG PROPERTIES HAVE NO EFFECT ..."); //$NON-NLS-1$
 				PROXY_DEBUG = false;
 				MSG_DEBUG = false;
 				DEBUG = false;
@@ -269,15 +269,15 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		if (eventAdminTracker.getTrackingCount() == 0 && log != null) {
 			log
 					.log(LogService.LOG_WARNING,
-							"NO EVENT ADMIN FOUND. REMOTE EVENT DELIVERY TEMPORARILY DISABLED.");
+							"NO EVENT ADMIN FOUND. REMOTE EVENT DELIVERY TEMPORARILY DISABLED."); //$NON-NLS-1$
 		}
 
 		try {
 			eventHandlerTracker = new ServiceTracker(
 					RemoteOSGiActivator.context, RemoteOSGiActivator.context
-							.createFilter("(&(" + Constants.OBJECTCLASS + "="
-									+ EventHandler.class.getName() + ")(!("
-									+ R_OSGi_INTERNAL + "=*)))"),
+							.createFilter("(&(" + Constants.OBJECTCLASS + "=" //$NON-NLS-1$ //$NON-NLS-2$
+									+ EventHandler.class.getName() + ")(!(" //$NON-NLS-1$
+									+ R_OSGi_INTERNAL + "=*)))"), //$NON-NLS-1$
 					new ServiceTrackerCustomizer() {
 
 						public Object addingService(
@@ -286,7 +286,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 									.getProperty(EventConstants.EVENT_TOPIC);
 							final LeaseUpdateMessage lu = new LeaseUpdateMessage();
 							lu.setType(LeaseUpdateMessage.TOPIC_UPDATE);
-							lu.setServiceID("");
+							lu.setServiceID(""); //$NON-NLS-1$
 							lu.setPayload(new Object[] { theTopics, null });
 							updateLeases(lu);
 
@@ -313,7 +313,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							oldTopicList.addAll(added);
 							final LeaseUpdateMessage lu = new LeaseUpdateMessage();
 							lu.setType(LeaseUpdateMessage.TOPIC_UPDATE);
-							lu.setServiceID("");
+							lu.setServiceID(""); //$NON-NLS-1$
 							lu.setPayload(new Object[] { addedTopics,
 									removedTopics });
 							updateLeases(lu);
@@ -327,7 +327,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 									.toArray(new String[oldTopicsList.size()]);
 							final LeaseUpdateMessage lu = new LeaseUpdateMessage();
 							lu.setType(LeaseUpdateMessage.TOPIC_UPDATE);
-							lu.setServiceID("");
+							lu.setServiceID(""); //$NON-NLS-1$
 							lu.setPayload(new Object[] { null, removedTopics });
 							updateLeases(lu);
 						}
@@ -335,7 +335,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			eventHandlerTracker.open();
 
 			if (DEBUG) {
-				log.log(LogService.LOG_DEBUG, "Local topic space "
+				log.log(LogService.LOG_DEBUG, "Local topic space " //$NON-NLS-1$
 						+ Arrays.asList(getTopics()));
 			}
 
@@ -366,11 +366,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 												regs[i].getReference(),
 												regs[i].getProperties(),
 												URI
-														.create("r-osgi://"
+														.create("r-osgi://" //$NON-NLS-1$
 																+ RemoteOSGiServiceImpl.MY_ADDRESS
-																+ ":"
+																+ ":" //$NON-NLS-1$
 																+ RemoteOSGiServiceImpl.R_OSGI_PORT
-																+ "#"
+																+ "#" //$NON-NLS-1$
 																+ regs[i]
 																		.getServiceID()));
 							}
@@ -394,9 +394,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 			remoteServiceTracker = new ServiceTracker(
 					RemoteOSGiActivator.context, RemoteOSGiActivator.context
-							.createFilter("("
+							.createFilter("(" //$NON-NLS-1$
 									+ RemoteOSGiService.R_OSGi_REGISTRATION
-									+ "=*)"), new ServiceTrackerCustomizer() {
+									+ "=*)"), new ServiceTrackerCustomizer() { //$NON-NLS-1$
 
 						public Object addingService(
 								final ServiceReference reference) {
@@ -418,9 +418,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 										reference, service);
 
 								if (log != null) {
-									log.log(LogService.LOG_INFO, "REGISTERING "
+									log.log(LogService.LOG_INFO, "REGISTERING " //$NON-NLS-1$
 											+ reference
-											+ " AS PROXIED SERVICES");
+											+ " AS PROXIED SERVICES"); //$NON-NLS-1$
 								}
 
 								serviceRegistrations.put(service, reg);
@@ -439,7 +439,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							} catch (final ClassNotFoundException e) {
 								e.printStackTrace();
 								throw new RemoteOSGiException(
-										"Cannot find class " + service, e);
+										"Cannot find class " + service, e); //$NON-NLS-1$
 							}
 						}
 
@@ -494,9 +494,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 			networkChannelFactoryTracker = new ServiceTracker(
 					RemoteOSGiActivator.context, RemoteOSGiActivator.context
-							.createFilter("(" + Constants.OBJECTCLASS + "="
+							.createFilter("(" + Constants.OBJECTCLASS + "=" //$NON-NLS-1$ //$NON-NLS-2$
 									+ NetworkChannelFactory.class.getName()
-									+ ")"), new ServiceTrackerCustomizer() {
+									+ ")"), new ServiceTrackerCustomizer() { //$NON-NLS-1$
 
 						public Object addingService(
 								final ServiceReference reference) {
@@ -560,9 +560,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			final ChannelEndpointImpl channel;
 			final String protocol = endpoint.getScheme();
 
-			final Filter filter = RemoteOSGiActivator.context.createFilter("("
-					+ NetworkChannelFactory.PROTOCOL_PROPERTY + "=" + protocol
-					+ ")");
+			final Filter filter = RemoteOSGiActivator.context.createFilter("(" //$NON-NLS-1$
+					+ NetworkChannelFactory.PROTOCOL_PROPERTY + "=" + protocol //$NON-NLS-1$
+					+ ")"); //$NON-NLS-1$
 			final ServiceReference[] refs = networkChannelFactoryTracker
 					.getServiceReferences();
 			if (refs != null) {
@@ -575,8 +575,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 					}
 				}
 			}
-			throw new RemoteOSGiException("No NetworkChannelFactory for "
-					+ protocol + " found.");
+			throw new RemoteOSGiException("No NetworkChannelFactory for " //$NON-NLS-1$
+					+ protocol + " found."); //$NON-NLS-1$
 		} catch (final InvalidSyntaxException e) {
 			// does not happen
 			e.printStackTrace();
@@ -614,7 +614,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 				connect(serviceURI);
 				channel = (ChannelEndpointImpl) channels.get(uri);
 			} catch (final IOException ioe) {
-				throw new RemoteOSGiException("Cannot connect to " + uri);
+				throw new RemoteOSGiException("Cannot connect to " + uri); //$NON-NLS-1$
 			}
 		}
 		return channel.getRemoteReference(serviceURI.toString());
@@ -634,7 +634,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 				connect(service);
 				channel = (ChannelEndpointImpl) channels.get(uri);
 			} catch (final IOException ioe) {
-				throw new RemoteOSGiException("Cannot connect to " + uri);
+				throw new RemoteOSGiException("Cannot connect to " + uri); //$NON-NLS-1$
 			}
 		}
 		if (clazz == null) {
@@ -642,9 +642,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 		try {
 			return channel.getAllRemoteReferences(RemoteOSGiActivator.context
-					.createFilter(filter != null ? "(&" + filter + "("
-							+ Constants.OBJECTCLASS + "=" + clazz + "))" : "("
-							+ Constants.OBJECTCLASS + "=" + clazz + ")"));
+					.createFilter(filter != null ? "(&" + filter + "(" //$NON-NLS-1$ //$NON-NLS-2$
+							+ Constants.OBJECTCLASS + "=" + clazz + "))" : "(" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+							+ Constants.OBJECTCLASS + "=" + clazz + ")")); //$NON-NLS-1$ //$NON-NLS-2$
 		} catch (final InvalidSyntaxException ise) {
 			ise.printStackTrace();
 			return null;
@@ -663,7 +663,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 */
 	public Object getRemoteService(final RemoteServiceReference ref) {
 		if (ref == null) {
-			throw new IllegalArgumentException("Remote Reference is null.");
+			throw new IllegalArgumentException("Remote Reference is null."); //$NON-NLS-1$
 		}
 		ServiceReference sref = getFetchedServiceReference(ref);
 		if (sref == null) {
@@ -688,8 +688,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			final RemoteServiceReference ref) {
 		try {
 			final ServiceReference[] refs = RemoteOSGiActivator.context
-					.getServiceReferences(ref.getServiceInterfaces()[0], "("
-							+ SERVICE_URI + "=" + ref.getURI() + ")");
+					.getServiceReferences(ref.getServiceInterfaces()[0], "(" //$NON-NLS-1$
+							+ SERVICE_URI + "=" + ref.getURI() + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (refs != null) {
 				return refs[0];
 			}
@@ -720,9 +720,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			channel.fetchService(ref);
 		} catch (final UnknownHostException e) {
 			throw new RemoteOSGiException(
-					"Cannot resolve host " + ref.getURI(), e);
+					"Cannot resolve host " + ref.getURI(), e); //$NON-NLS-1$
 		} catch (final IOException ioe) {
-			throw new RemoteOSGiException("Proxy generation error", ioe);
+			throw new RemoteOSGiException("Proxy generation error", ioe); //$NON-NLS-1$
 		}
 	}
 
@@ -773,7 +773,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 */
 	private static String getChannelURI(final URI serviceURI) {
 		return URI.create(
-				serviceURI.getScheme() + "://" + serviceURI.getHost() + ":"
+				serviceURI.getScheme() + "://" + serviceURI.getHost() + ":" //$NON-NLS-1$ //$NON-NLS-2$
 						+ serviceURI.getPort()).toString();
 	}
 
@@ -825,15 +825,15 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	static RemoteServiceRegistration getServiceRegistration(
 			final String serviceID) {
 
-		final String filter = "".equals(serviceID) ? null : '('
-				+ Constants.SERVICE_ID + "=" + serviceID + ")";
+		final String filter = "".equals(serviceID) ? null : '(' //$NON-NLS-1$
+				+ Constants.SERVICE_ID + "=" + serviceID + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 
 		try {
 			final ServiceReference[] refs = RemoteOSGiActivator.context
 					.getServiceReferences(null, filter);
 			if (refs == null) {
 				if (log != null) {
-					log.log(LogService.LOG_WARNING, "COULD NOT FIND " + filter);
+					log.log(LogService.LOG_WARNING, "COULD NOT FIND " + filter); //$NON-NLS-1$
 				}
 				return null;
 			}
@@ -955,8 +955,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	/**
 	 * register a service with the remote service discovery layer.
 	 */
-	private void registerWithServiceDiscovery(
-			final RemoteServiceRegistration reg) {
+	void registerWithServiceDiscovery(final RemoteServiceRegistration reg) {
 		// register the service with all service
 		// discovery
 		// handler
@@ -966,9 +965,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		if (handler != null) {
 			for (int i = 0; i < handler.length; i++) {
 				((ServiceDiscoveryHandler) handler[i]).registerService(reg
-						.getReference(), props, URI.create("r-osgi://"
-						+ RemoteOSGiServiceImpl.MY_ADDRESS + ":"
-						+ RemoteOSGiServiceImpl.R_OSGI_PORT + "#"
+						.getReference(), props, URI.create("r-osgi://" //$NON-NLS-1$
+						+ RemoteOSGiServiceImpl.MY_ADDRESS + ":" //$NON-NLS-1$
+						+ RemoteOSGiServiceImpl.R_OSGI_PORT + "#" //$NON-NLS-1$
 						+ reg.getServiceID()));
 			}
 		}
@@ -981,8 +980,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * @param reg
 	 *            the remote service registration.
 	 */
-	private void unregisterFromServiceDiscovery(
-			final RemoteServiceRegistration reg) {
+	void unregisterFromServiceDiscovery(final RemoteServiceRegistration reg) {
 		final Object[] handler = serviceDiscoveryHandlerTracker.getServices();
 		if (handler != null) {
 			for (int i = 0; i < handler.length; i++) {

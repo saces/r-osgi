@@ -121,7 +121,7 @@ public final class StreamResultMessage extends RemoteOSGiMessage {
 					rem = rem - read;
 				}
 				if (rem > 0) {
-					throw new IOException("Premature end of input stream.");
+					throw new IOException("Premature end of input stream."); //$NON-NLS-1$
 				}
 			}
 			break;

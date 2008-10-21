@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -48,7 +48,7 @@ public interface NetworkChannelFactory {
 	 * set to this property is matched with the protocol argument that client
 	 * bundles requesting for connections. Can also be a <code>String[]</code>.
 	 */
-	String PROTOCOL_PROPERTY = "protocol";
+	String PROTOCOL_PROPERTY = "protocol"; //$NON-NLS-1$
 
 	/**
 	 * get a new connection to a remote OSGi framework.

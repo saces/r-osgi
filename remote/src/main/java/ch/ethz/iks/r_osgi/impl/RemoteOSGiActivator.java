@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -69,7 +69,7 @@ public final class RemoteOSGiActivator implements BundleActivator {
 
 		// get the log service, if present
 		final ServiceReference logRef = context
-				.getServiceReference("org.osgi.service.log.LogService");
+				.getServiceReference("org.osgi.service.log.LogService"); //$NON-NLS-1$
 		if (logRef != null) {
 			RemoteOSGiServiceImpl.log = (LogService) context.getService(logRef);
 		}
@@ -85,7 +85,7 @@ public final class RemoteOSGiActivator implements BundleActivator {
 				remoting, null);
 
 		// register the default tcp channel
-		if (!"false"
+		if (!"false" //$NON-NLS-1$
 				.equals(context
 						.getProperty(RemoteOSGiServiceImpl.REGISTER_DEFAULT_TCP_CHANNEL))) {
 			final Dictionary properties = new Hashtable();

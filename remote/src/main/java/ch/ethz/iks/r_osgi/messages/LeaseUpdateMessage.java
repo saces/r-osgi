@@ -199,19 +199,19 @@ public final class LeaseUpdateMessage extends RemoteOSGiMessage {
 		buffer.append("[STATE_UPDATE] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
 		buffer.append(", service "); //$NON-NLS-1$
-		buffer.append("#" + serviceID);
+		buffer.append("#" + serviceID); //$NON-NLS-1$
 		buffer.append(", type "); //$NON-NLS-1$
 		buffer.append(type);
 		if (type == TOPIC_UPDATE) {
 			buffer.append(", topics added: "); //$NON-NLS-1$
-			buffer.append(payload[0] == null ? "" : Arrays.asList(
+			buffer.append(payload[0] == null ? "" : Arrays.asList( //$NON-NLS-1$
 					(String[]) payload[0]).toString());
 			buffer.append(", topics removed: "); //$NON-NLS-1$
-			buffer.append(payload[1] == null ? "" : Arrays.asList(
+			buffer.append(payload[1] == null ? "" : Arrays.asList( //$NON-NLS-1$
 					(String[]) payload[1]).toString());
 		} else {
 			buffer.append(", service interfaces: "); //$NON-NLS-1$
-			buffer.append(payload[0] == null ? "" : Arrays.asList(
+			buffer.append(payload[0] == null ? "" : Arrays.asList( //$NON-NLS-1$
 					(String[]) payload[0]).toString());
 			buffer.append(", properties: "); //$NON-NLS-1$
 			buffer.append(payload[1]);

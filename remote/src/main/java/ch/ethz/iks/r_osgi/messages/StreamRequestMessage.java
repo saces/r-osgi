@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Michael Duller
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -136,7 +136,7 @@ public final class StreamRequestMessage extends RemoteOSGiMessage {
 				rem = rem - read;
 			}
 			if (rem > 0) {
-				throw new IOException("Premature end of input stream.");
+				throw new IOException("Premature end of input stream."); //$NON-NLS-1$
 			}
 			break;
 		default:

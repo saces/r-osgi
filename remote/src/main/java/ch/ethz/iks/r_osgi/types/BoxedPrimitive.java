@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -156,7 +156,7 @@ public final class BoxedPrimitive implements Serializable {
 	}
 
 	public String toString() {
-		return "BoxedPrimitive{" + boxed.toString() + "}";
+		return "BoxedPrimitive{" + boxed.toString() + "}"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**

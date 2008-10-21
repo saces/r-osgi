@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -88,7 +88,7 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 			final String serviceID, final Dictionary properties,
 			final ChannelEndpointImpl channel) {
 		this.serviceInterfaces = serviceInterfaces;
-		uri = channel.getRemoteAddress().resolve("#" + serviceID);
+		uri = channel.getRemoteAddress().resolve("#" + serviceID); //$NON-NLS-1$
 		this.properties = properties;
 		// adjust the properties
 		this.properties.put(RemoteOSGiService.SERVICE_URI, uri.toString());
@@ -97,7 +97,7 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 		// remove the R-OSGi registration property
 		this.properties.remove(RemoteOSGiService.R_OSGi_REGISTRATION);
 		// also remote the ECF registration property
-		this.properties.remove("org.eclipse.ecf.serviceRegistrationRemote");
+		this.properties.remove("org.eclipse.ecf.serviceRegistrationRemote"); //$NON-NLS-1$
 		this.channel = channel;
 	}
 
@@ -185,8 +185,8 @@ final class RemoteServiceReferenceImpl implements RemoteServiceReference {
 	 * @return a string representation.
 	 */
 	public String toString() {
-		return "RemoteServiceReference{" + uri + "-"
-				+ Arrays.asList(serviceInterfaces) + "}";
+		return "RemoteServiceReference{" + uri + "-" //$NON-NLS-1$ //$NON-NLS-2$
+				+ Arrays.asList(serviceInterfaces) + "}"; //$NON-NLS-1$
 	}
 
 }

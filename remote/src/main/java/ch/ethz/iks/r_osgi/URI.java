@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -100,31 +100,6 @@ public final class URI implements Serializable {
 		}
 	}
 
-	/*
-	 * public static void main(String[] args) throws Exception { URI uri1 = new
-	 * URI("http://localhost:8080"); URI uri2 = new
-	 * URI("r-osgi://flowsgi.inf.ethz.ch:9278#32"); System.out.println();
-	 * System.out.println(uri1); System.out.println(uri1.getScheme());
-	 * System.out.println(uri1.getHost()); System.out.println(uri1.getPort());
-	 * System.out.println(uri1.getFragment()); System.out.println();
-	 * System.out.println(uri2); System.out.println(uri2.getScheme());
-	 * System.out.println(uri2.getHost()); System.out.println(uri2.getPort());
-	 * System.out.println(uri2.getFragment()); System.out.println();
-	 * System.out.println(uri1.resolve("#55")); System.out.println();
-	 * System.out.println(uri1.equals("http://127.0.0.1:8080")); URI uri3 = new
-	 * URI("http://127.0.0.1:8080"); System.out.println(uri3.equals(uri1));
-	 * System.out.println(uri3.hashCode()); System.out.println(uri1.hashCode());
-	 * 
-	 * URI btUri = new URI("btspp://0010DCE96CB8:1"); System.out.println(btUri);
-	 * System.out.println(); URI uri4 = new URI("r-osgi://192.168.1.1:9000");
-	 * System.out.println(uri4); System.out.println(); System.out.println(uri4);
-	 * }
-	 */
-
-	public static void main(final String[] args) {
-		System.out.println(URI.create("r-osgi://localhost"));
-	}
-
 	/**
 	 * parse an URI.
 	 */
@@ -132,33 +107,35 @@ public final class URI implements Serializable {
 		try {
 			int cs = 0;
 			int ce = uriString.length();
-			final int p1 = uriString.indexOf("://");
+			final int p1 = uriString.indexOf("://"); //$NON-NLS-1$
 			if (p1 > -1) {
 				scheme = uriString.substring(0, p1);
 				cs = p1 + 3;
 			} else {
-				scheme = "r-osgi";
+				scheme = "r-osgi"; //$NON-NLS-1$
 			}
-			final int p2 = uriString.lastIndexOf("#");
+			final int p2 = uriString.lastIndexOf("#"); //$NON-NLS-1$
 			if (p2 > -1) {
 				fragment = uriString.substring(p2 + 1);
 				ce = p2;
 			}
-			final int p3 = uriString.indexOf(":", cs);
+			final int p3 = uriString.indexOf(":", cs); //$NON-NLS-1$
 			if (p3 > -1) {
 				port = Integer.parseInt(uriString.substring(p3 + 1, ce));
 				ce = p3;
 			} else {
-				if ("r-osgi".equals(scheme)) {
+				if ("r-osgi".equals(scheme)) { //$NON-NLS-1$
+					// FIXME: this should be the actual port of this instance
+					// !?!
 					port = 9278;
-				} else if ("http".equals(scheme)) {
+				} else if ("http".equals(scheme)) { //$NON-NLS-1$
 					port = 80;
-				} else if ("https".equals(scheme)) {
+				} else if ("https".equals(scheme)) { //$NON-NLS-1$
 					port = 443;
 				}
 			}
 			hostString = uriString.substring(cs, ce);
-			if (scheme.startsWith("r-osgi") || scheme.startsWith("http")) {
+			if (scheme.startsWith("r-osgi") || scheme.startsWith("http")) { //$NON-NLS-1$ //$NON-NLS-2$
 				try {
 					host = InetAddress.getByName(hostString);
 				} catch (final UnknownHostException uhe) {
@@ -166,7 +143,7 @@ public final class URI implements Serializable {
 				}
 			}
 		} catch (final IndexOutOfBoundsException i) {
-			throw new IllegalArgumentException(uriString + " caused "
+			throw new IllegalArgumentException(uriString + " caused " //$NON-NLS-1$
 					+ i.getMessage());
 		}
 	}
@@ -233,8 +210,8 @@ public final class URI implements Serializable {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		return scheme + "://" + getHost() + ":" + port
-				+ (fragment == null ? "" : "#" + fragment);
+		return scheme + "://" + getHost() + ":" + port //$NON-NLS-1$ //$NON-NLS-2$
+				+ (fragment == null ? "" : "#" + fragment); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**

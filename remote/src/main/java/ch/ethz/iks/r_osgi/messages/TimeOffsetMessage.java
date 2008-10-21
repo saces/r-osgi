@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -156,13 +156,13 @@ public final class TimeOffsetMessage extends RemoteOSGiMessage {
 		for (int i = 0; i < timeSeries.length; i++) {
 			buffer.append(timeSeries[i]);
 			if (i < timeSeries.length - 1) {
-				buffer.append(", ");
+				buffer.append(", "); //$NON-NLS-1$
 			}
 		}
 		buffer.append("]"); //$NON-NLS-1$
 		for (int i = 0; i < timeSeries.length; i++) {
 			buffer.append(timeSeries[i]);
-			buffer.append(", ");
+			buffer.append(", "); //$NON-NLS-1$
 		}
 		return buffer.toString();
 	}

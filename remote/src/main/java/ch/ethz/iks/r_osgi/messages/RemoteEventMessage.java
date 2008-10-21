@@ -47,7 +47,7 @@ public final class RemoteEventMessage extends RemoteOSGiMessage {
 	/**
 	 * the event property contains the sender's uri.
 	 */
-	public static final String EVENT_SENDER_URI = "sender.uri";
+	public static final String EVENT_SENDER_URI = "sender.uri"; //$NON-NLS-1$
 
 	/**
 	 * 

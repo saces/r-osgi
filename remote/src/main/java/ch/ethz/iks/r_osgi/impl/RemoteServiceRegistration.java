@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Institute for Pervasive Computing, ETH Zurich.
  * All rights reserved.
  *
@@ -136,7 +136,7 @@ final class RemoteServiceRegistration {
 		} catch (final Exception e) {
 			if (RemoteOSGiServiceImpl.log != null) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_ERROR,
-						"Error during remote service registration", e);
+						"Error during remote service registration", e); //$NON-NLS-1$
 			}
 		}
 	}
@@ -235,6 +235,6 @@ final class RemoteServiceRegistration {
 	}
 
 	public String toString() {
-		return "RemoteServiceRegistration{" + reference.toString() + "}";
+		return "RemoteServiceRegistration{" + reference.toString() + "}"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 }

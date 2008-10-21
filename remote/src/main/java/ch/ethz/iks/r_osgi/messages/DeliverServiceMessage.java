@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Institute for Pervasive Computing, ETH Zurich.
  * All rights reserved.
  *
@@ -135,7 +135,7 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 		serviceInterfaceNames = readStringArray(input);
 		// smart proxy name, if defined.
 		final String p = input.readUTF();
-		smartProxyName = "".equals(p) ? null : p;
+		smartProxyName = "".equals(p) ? null : p; //$NON-NLS-1$
 		// process all class injections
 		final short blocks = input.readShort();
 		injections = new HashMap(blocks);
@@ -256,7 +256,7 @@ public final class DeliverServiceMessage extends RemoteOSGiMessage {
 			return null;
 		}
 		return (byte[]) injections.get(smartProxyName.replace('.', '/')
-				+ ".class");
+				+ ".class"); //$NON-NLS-1$
 	}
 
 	/**

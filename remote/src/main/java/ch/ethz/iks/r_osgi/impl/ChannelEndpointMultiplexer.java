@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -56,7 +56,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	/**
 	 * the primary channel.
 	 */
-	private ChannelEndpointImpl primary;
+	ChannelEndpointImpl primary;
 
 	/**
 	 * the policies.
@@ -82,7 +82,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	ChannelEndpointMultiplexer(final ChannelEndpointImpl primary) {
 		if (primary == null) {
 			throw new IllegalArgumentException(
-					"Multiplexer must not be constructed from NULL primary endpoint");
+					"Multiplexer must not be constructed from NULL primary endpoint"); //$NON-NLS-1$
 		}
 		this.primary = primary;
 	}
@@ -149,7 +149,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 							if (RemoteOSGiServiceImpl.DEBUG) {
 								RemoteOSGiServiceImpl.log.log(
 										LogService.LOG_INFO,
-										"DOING FAILOVER TO "
+										"DOING FAILOVER TO " //$NON-NLS-1$
 												+ primary.getRemoteAddress());
 							}
 							return primary.invokeMethod(mapping
@@ -161,7 +161,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 				} else {
 					try {
 						if (!primary.isConnected()) {
-							throw new RemoteOSGiException("channel went down");
+							throw new RemoteOSGiException("channel went down"); //$NON-NLS-1$
 						}
 						return primary.invokeMethod(mapping.getMapped(primary),
 								methodSignature, args);
@@ -177,7 +177,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 									RemoteOSGiServiceImpl.log
 											.log(
 													LogService.LOG_INFO,
-													"DOING FAILOVER TO "
+													"DOING FAILOVER TO " //$NON-NLS-1$
 															+ primary
 																	.getRemoteAddress());
 								}
@@ -200,7 +200,7 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	 */
 	public void receivedMessage(final RemoteOSGiMessage msg) {
 		throw new IllegalArgumentException(
-				"Not supported through endpoint multiplexer");
+				"Not supported through endpoint multiplexer"); //$NON-NLS-1$
 	}
 
 	/**
@@ -209,9 +209,9 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	 *      org.osgi.framework.ServiceRegistration)
 	 */
 	public void trackRegistration(final String service,
-			final ServiceRegistration reg) {
-		this.reg = reg;
-		primary.trackRegistration(service, reg);
+			final ServiceRegistration sreg) {
+		reg = sreg;
+		primary.trackRegistration(service, sreg);
 	}
 
 	/**
@@ -240,34 +240,34 @@ class ChannelEndpointMultiplexer implements ChannelEndpoint,
 		private final List redundant = new ArrayList(0);
 		private final Map uriMapping = new HashMap(0);
 
-		private Mapping(final String serviceURI) {
+		Mapping(final String serviceURI) {
 			uriMapping.put(primary, serviceURI);
 		}
 
-		private void addRedundant(final String redundantServiceURI,
+		void addRedundant(final String redundantServiceURI,
 				final ChannelEndpoint endpoint) {
 			redundant.add(endpoint);
 			uriMapping.put(endpoint, redundantServiceURI);
 		}
 
-		private void removeRedundant(final ChannelEndpoint endpoint) {
+		void removeRedundant(final ChannelEndpoint endpoint) {
 			redundant.remove(endpoint);
 			uriMapping.remove(endpoint);
 		}
 
-		private String getMapped(final ChannelEndpoint endpoint) {
+		String getMapped(final ChannelEndpoint endpoint) {
 			return (String) uriMapping.get(endpoint);
 		}
 
-		private ChannelEndpointImpl getNext() {
+		ChannelEndpointImpl getNext() {
 			return (ChannelEndpointImpl) redundant.remove(0);
 		}
 
-		private boolean isEmpty() {
+		boolean isEmpty() {
 			return redundant.size() == 0;
 		}
 
-		private ChannelEndpoint getAny() {
+		ChannelEndpoint getAny() {
 			final int ran = random.nextInt(redundant.size() + 1);
 			if (ran == 0) {
 				return primary;

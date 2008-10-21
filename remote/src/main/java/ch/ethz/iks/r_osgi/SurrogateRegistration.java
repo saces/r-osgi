@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2008 Jan S. Rellermeyer
- * Information and Communication Systems Research Group (IKS),
+ * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
  *
@@ -42,6 +42,6 @@ package ch.ethz.iks.r_osgi;
  */
 public interface SurrogateRegistration {
 
-	static final String SERVICE_REFERENCE = "legacy.service.reference";
+	static final String SERVICE_REFERENCE = "legacy.service.reference"; //$NON-NLS-1$
 
 }

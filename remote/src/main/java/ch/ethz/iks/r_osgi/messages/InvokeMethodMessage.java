@@ -194,7 +194,7 @@ public final class InvokeMethodMessage extends RemoteOSGiMessage {
 		buffer.append(", methodName: "); //$NON-NLS-1$
 		buffer.append(methodSignature);
 		buffer.append(", params: "); //$NON-NLS-1$
-		buffer.append(arguments == null ? "" : Arrays.asList(arguments)
+		buffer.append(arguments == null ? "" : Arrays.asList(arguments) //$NON-NLS-1$
 				.toString());
 		return buffer.toString();
 	}

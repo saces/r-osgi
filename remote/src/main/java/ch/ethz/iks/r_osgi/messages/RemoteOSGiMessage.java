@@ -212,7 +212,7 @@ public abstract class RemoteOSGiMessage {
 			msg = new StreamResultMessage(input);
 			break;
 		default:
-			throw new RemoteOSGiException("funcID " + funcID
+			throw new RemoteOSGiException("funcID " + funcID //$NON-NLS-1$
 					+ " not supported."); //$NON-NLS-1$ 
 		}
 		msg.funcID = funcID;
