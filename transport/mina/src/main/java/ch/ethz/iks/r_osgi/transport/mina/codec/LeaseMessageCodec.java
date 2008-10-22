@@ -47,7 +47,7 @@ public class LeaseMessageCodec extends RemoteOSGiMessageCodec {
 	public MessageDecoderResult decodeBody(IoSession session, ByteBuffer in,
 			ProtocolDecoderOutput out) throws Exception {
 		final LeaseMessage msg = new LeaseMessage();
-		msg.setXID(((Short) session.getAttribute("xid")).shortValue());
+		msg.setXID(((Integer) session.getAttribute("xid")).intValue());
 
 		final short blocks = in.getShort();
 		final String[] serviceIDs = new String[blocks];

@@ -47,7 +47,7 @@ public class RemoteEventMessageCodec extends RemoteOSGiMessageCodec {
 	public MessageDecoderResult decodeBody(IoSession session, ByteBuffer in,
 			ProtocolDecoderOutput out) throws Exception {
 		final RemoteEventMessage msg = new RemoteEventMessage();
-		msg.setXID(((Short) session.getAttribute("xid")).shortValue());
+		msg.setXID(((Integer) session.getAttribute("xid")).intValue());
 		msg.setTopic(decodeString(in));
 		msg.setProperties((Dictionary) in.getObject());
 		out.write(msg);

@@ -43,7 +43,7 @@ public class MethodResultMessageCodec extends RemoteOSGiMessageCodec {
 	public MessageDecoderResult decodeBody(IoSession session, ByteBuffer in,
 			ProtocolDecoderOutput out) throws Exception {
 		final MethodResultMessage msg = new MethodResultMessage();
-		msg.setXID(((Short) session.getAttribute("xid")).shortValue());
+		msg.setXID(((Integer) session.getAttribute("xid")).intValue());
 		if (in.get() == 0) {
 			msg.setResult(in.getObject());
 		} else {

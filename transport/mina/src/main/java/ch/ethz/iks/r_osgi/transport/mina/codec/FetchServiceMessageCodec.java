@@ -44,7 +44,7 @@ public class FetchServiceMessageCodec extends RemoteOSGiMessageCodec {
 	public MessageDecoderResult decodeBody(IoSession session, ByteBuffer in,
 			ProtocolDecoderOutput out) throws Exception {
 		final FetchServiceMessage msg = new FetchServiceMessage();
-		msg.setXID(((Short) session.getAttribute("xid")).shortValue());
+		msg.setXID(((Integer) session.getAttribute("xid")).intValue());
 		msg.setServiceID(decodeString(in));
 		out.write(msg);
 		return MessageDecoderResult.OK;

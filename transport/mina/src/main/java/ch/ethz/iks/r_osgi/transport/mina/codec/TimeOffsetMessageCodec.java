@@ -43,7 +43,7 @@ public class TimeOffsetMessageCodec extends RemoteOSGiMessageCodec {
 	public MessageDecoderResult decodeBody(IoSession session, ByteBuffer in,
 			ProtocolDecoderOutput out) throws Exception {
 		final TimeOffsetMessage msg = new TimeOffsetMessage();
-		msg.setXID(((Short) session.getAttribute("xid")).shortValue());
+		msg.setXID(((Integer) session.getAttribute("xid")).intValue());
 		msg.setTimeSeries((long[]) in.getObject());
 		out.write(msg);
 		return MessageDecoderResult.OK;

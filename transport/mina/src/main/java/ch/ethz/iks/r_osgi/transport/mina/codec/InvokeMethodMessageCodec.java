@@ -49,7 +49,7 @@ public class InvokeMethodMessageCodec extends RemoteOSGiMessageCodec {
 	public MessageDecoderResult decodeBody(IoSession session, ByteBuffer in,
 			ProtocolDecoderOutput out) throws Exception {
 		final InvokeMethodMessage msg = new InvokeMethodMessage();
-		msg.setXID(((Short) session.getAttribute("xid")).shortValue());
+		msg.setXID(((Integer) session.getAttribute("xid")).intValue());
 		msg.setServiceID(decodeString(in));
 		msg.setMethodSignature(decodeString(in));
 

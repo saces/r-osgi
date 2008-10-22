@@ -56,7 +56,7 @@ public class DeliverServiceMessageCodec extends RemoteOSGiMessageCodec {
 	public MessageDecoderResult decodeBody(IoSession session, ByteBuffer in,
 			ProtocolDecoderOutput out) throws Exception {
 		final DeliverServiceMessage msg = new DeliverServiceMessage();
-		msg.setXID(((Short) session.getAttribute("xid")).shortValue());
+		msg.setXID(((Integer) session.getAttribute("xid")).intValue());
 		msg.setServiceID(decodeString(in));
 		msg.setImports(decodeString(in));
 		msg.setExports(decodeString(in));
