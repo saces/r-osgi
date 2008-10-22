@@ -110,7 +110,7 @@ public abstract class RemoteOSGiMessage {
 	/**
 	 * the transaction id.
 	 */
-	protected short xid;
+	protected int xid;
 
 	/**
 	 * hides the default constructor.
@@ -126,7 +126,7 @@ public abstract class RemoteOSGiMessage {
 	 * @see ch.ethz.iks.r_osgi.RemoteOSGiMessage#getXID()
 	 * @since 0.6
 	 */
-	public final short getXID() {
+	public final int getXID() {
 		return xid;
 	}
 
@@ -136,7 +136,7 @@ public abstract class RemoteOSGiMessage {
 	 * @param xid
 	 *            set the xid.
 	 */
-	public void setXID(final short xid) {
+	public void setXID(final int xid) {
 		this.xid = xid;
 	}
 
@@ -178,7 +178,7 @@ public abstract class RemoteOSGiMessage {
 			throws IOException, ClassNotFoundException {
 		input.readByte(); // version, currently unused
 		final short funcID = input.readByte();
-		final short xid = input.readShort();
+		final int xid = input.readInt();
 		RemoteOSGiMessage msg;
 		switch (funcID) {
 		case LEASE:
@@ -232,7 +232,7 @@ public abstract class RemoteOSGiMessage {
 		synchronized (out) {
 			out.write(1);
 			out.write(funcID);
-			out.writeShort(xid);
+			out.writeInt(xid);
 			writeBody(out);
 			out.reset();
 			out.flush();

@@ -36,7 +36,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-public class SmartObjectInputStream extends ObjectInputStream {
+public final class SmartObjectInputStream extends ObjectInputStream {
 
 	private final ObjectInputStream in;
 
@@ -44,7 +44,7 @@ public class SmartObjectInputStream extends ObjectInputStream {
 		this.in = new ObjectInputStream(in);
 	}
 
-	protected Object readObjectOverride() throws IOException,
+	protected final Object readObjectOverride() throws IOException,
 			ClassNotFoundException {
 		final int cat = in.read();
 		switch (cat) {
@@ -108,84 +108,84 @@ public class SmartObjectInputStream extends ObjectInputStream {
 		}
 	}
 
-	public int read() throws IOException {
+	public final int read() throws IOException {
 		return in.read();
 	}
 
-	public int read(final byte[] buf, final int off, final int len)
+	public final int read(final byte[] buf, final int off, final int len)
 			throws IOException {
 		return in.read(buf, off, len);
 	}
 
-	public int available() throws IOException {
+	public final int available() throws IOException {
 		return in.available();
 	}
 
-	public void close() throws IOException {
+	public final void close() throws IOException {
 		in.close();
 	}
 
-	public boolean readBoolean() throws IOException {
+	public final boolean readBoolean() throws IOException {
 		return in.readBoolean();
 	}
 
-	public byte readByte() throws IOException {
+	public final byte readByte() throws IOException {
 		return in.readByte();
 	}
 
-	public int readUnsignedByte() throws IOException {
+	public final int readUnsignedByte() throws IOException {
 		return in.readUnsignedByte();
 	}
 
-	public char readChar() throws IOException {
+	public final char readChar() throws IOException {
 		return in.readChar();
 	}
 
-	public short readShort() throws IOException {
+	public final short readShort() throws IOException {
 		return in.readShort();
 	}
 
-	public int readUnsignedShort() throws IOException {
+	public final int readUnsignedShort() throws IOException {
 		return in.readUnsignedShort();
 	}
 
-	public int readInt() throws IOException {
+	public final int readInt() throws IOException {
 		return in.readInt();
 	}
 
-	public long readLong() throws IOException {
+	public final long readLong() throws IOException {
 		return in.readLong();
 	}
 
-	public float readFloat() throws IOException {
+	public final float readFloat() throws IOException {
 		return in.readFloat();
 	}
 
-	public double readDouble() throws IOException {
+	public final double readDouble() throws IOException {
 		return in.readDouble();
 	}
 
-	public void readFully(final byte[] buf) throws IOException {
+	public final void readFully(final byte[] buf) throws IOException {
 		in.readFully(buf, 0, buf.length);
 	}
 
-	public void readFully(final byte[] buf, final int off, final int len)
+	public final void readFully(final byte[] buf, final int off, final int len)
 			throws IOException {
 		in.readFully(buf, off, len);
 	}
 
-	public int skipBytes(final int len) throws IOException {
+	public final int skipBytes(final int len) throws IOException {
 		return in.skipBytes(len);
 	}
 
 	/**
 	 * @deprecated
 	 */
-	public String readLine() throws IOException {
+	public final String readLine() throws IOException {
 		return in.readLine();
 	}
 
-	public String readUTF() throws IOException {
+	public final String readUTF() throws IOException {
 		return in.readUTF();
 	}
 

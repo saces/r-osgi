@@ -233,4 +233,7 @@ public interface RemoteOSGiService {
 	 */
 	ChannelEndpointManager getEndpointManager(final URI remoteEndpointAddress);
 
+	void asyncRemoteCall(final URI service, final String methodSignature,
+			final Object[] args, final AsyncRemoteCallCallback callback);
+
 }

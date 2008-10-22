@@ -52,6 +52,7 @@ import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
+import ch.ethz.iks.r_osgi.AsyncRemoteCallCallback;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceEvent;
@@ -156,7 +157,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	/**
 	 * next transaction id.
 	 */
-	private static short nextXid;
+	private static int nextXid;
 
 	/**
 	 * OSGi log service instance.
@@ -726,8 +727,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 	}
 
-	static ChannelEndpoint getChannel(final URI uri) {
-		return (ChannelEndpoint) channels.get(getChannelURI(uri));
+	static ChannelEndpointImpl getChannel(final URI uri) {
+		return (ChannelEndpointImpl) channels.get(getChannelURI(uri));
 	}
 
 	/**
@@ -866,7 +867,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * 
 	 * @return the next xid.
 	 */
-	static synchronized short nextXid() {
+	static synchronized int nextXid() {
 		if (nextXid == -1) {
 			nextXid = 0;
 		}
@@ -1010,6 +1011,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		((RemoteServiceReferenceImpl) remoteServiceReference).getChannel()
 				.ungetRemoteService(remoteServiceReference.getURI());
 
+	}
+
+	public void asyncRemoteCall(URI service, String methodSignature,
+			Object[] args, AsyncRemoteCallCallback callback) {
+		final ChannelEndpointImpl endpoint = getChannel(service);
+		endpoint.asyncRemoteCall(service.getFragment(), methodSignature, args, callback);
 	}
 
 }

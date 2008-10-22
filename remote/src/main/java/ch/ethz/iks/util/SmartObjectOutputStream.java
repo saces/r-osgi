@@ -40,7 +40,7 @@ import java.lang.reflect.Modifier;
 
 import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
 
-public class SmartObjectOutputStream extends ObjectOutputStream {
+public final class SmartObjectOutputStream extends ObjectOutputStream {
 
 	private final ObjectOutputStream out;
 
@@ -48,7 +48,7 @@ public class SmartObjectOutputStream extends ObjectOutputStream {
 		this.out = new ObjectOutputStream(out);
 	}
 
-	protected void writeObjectOverride(final Object o) throws IOException {
+	protected final void writeObjectOverride(final Object o) throws IOException {
 		if (o == null) {
 			out.write(0);
 			return;
@@ -121,72 +121,72 @@ public class SmartObjectOutputStream extends ObjectOutputStream {
 		}
 	}
 
-	public void write(final int val) throws IOException {
+	public final void write(final int val) throws IOException {
 		out.write(val);
 	}
 
-	public void write(final byte[] buf) throws IOException {
+	public final void write(final byte[] buf) throws IOException {
 		out.write(buf, 0, buf.length);
 	}
 
-	public void write(final byte[] buf, final int off, final int len)
+	public final void write(final byte[] buf, final int off, final int len)
 			throws IOException {
 		out.write(buf, off, len);
 	}
 
-	public void flush() throws IOException {
+	public final void flush() throws IOException {
 		out.flush();
 	}
 
-	public void reset() throws IOException {
+	public final void reset() throws IOException {
 		out.reset();
 	}
 
-	public void close() throws IOException {
+	public final void close() throws IOException {
 		out.close();
 	}
 
-	public void writeBoolean(final boolean val) throws IOException {
+	public final void writeBoolean(final boolean val) throws IOException {
 		out.writeBoolean(val);
 	}
 
-	public void writeByte(final int val) throws IOException {
+	public final void writeByte(final int val) throws IOException {
 		out.writeByte(val);
 	}
 
-	public void writeShort(final int val) throws IOException {
+	public final void writeShort(final int val) throws IOException {
 		out.writeShort(val);
 	}
 
-	public void writeChar(final int val) throws IOException {
+	public final void writeChar(final int val) throws IOException {
 		out.writeChar(val);
 	}
 
-	public void writeInt(final int val) throws IOException {
+	public final void writeInt(final int val) throws IOException {
 		out.writeInt(val);
 	}
 
-	public void writeLong(final long val) throws IOException {
+	public final void writeLong(final long val) throws IOException {
 		out.writeLong(val);
 	}
 
-	public void writeFloat(final float val) throws IOException {
+	public final void writeFloat(final float val) throws IOException {
 		out.writeFloat(val);
 	}
 
-	public void writeDouble(final double val) throws IOException {
+	public final void writeDouble(final double val) throws IOException {
 		out.writeDouble(val);
 	}
 
-	public void writeBytes(final String str) throws IOException {
+	public final void writeBytes(final String str) throws IOException {
 		out.writeBytes(str);
 	}
 
-	public void writeChars(final String str) throws IOException {
+	public final void writeChars(final String str) throws IOException {
 		out.writeChars(str);
 	}
 
-	public void writeUTF(final String str) throws IOException {
+	public final void writeUTF(final String str) throws IOException {
 		out.writeUTF(str);
 	}
 

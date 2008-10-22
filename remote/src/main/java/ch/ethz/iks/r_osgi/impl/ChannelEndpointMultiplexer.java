@@ -50,7 +50,7 @@ import ch.ethz.iks.r_osgi.types.Timestamp;
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
  */
-class ChannelEndpointMultiplexer implements ChannelEndpoint,
+final class ChannelEndpointMultiplexer implements ChannelEndpoint,
 		ChannelEndpointManager {
 
 	/**

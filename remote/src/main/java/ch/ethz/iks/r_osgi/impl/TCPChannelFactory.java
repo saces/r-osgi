@@ -299,7 +299,6 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 							RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 									"{TCP Channel} received " + msg); //$NON-NLS-1$
 						}
-
 						endpoint.receivedMessage(msg);
 					} catch (final IOException ioe) {
 						// TODO: debug output

@@ -52,6 +52,7 @@ import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.log.LogService;
 
+import ch.ethz.iks.r_osgi.AsyncRemoteCallCallback;
 import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceEvent;
@@ -136,9 +137,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private static final int TIMEOUT = 120000;
 
 	/**
-	 * the receiver queue.
+	 * the callback register
 	 */
-	private final Map receiveQueue = new HashMap(0);
+	final Map callbacks = new HashMap(0);
 
 	/**
 	 * map of service uri -> RemoteServiceRegistration.
@@ -169,12 +170,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * the handler registration, if the remote topic space is not empty.
 	 */
 	private ServiceRegistration handlerReg = null;
-
-	/**
-	 * dummy object used for blocking method calls until the result message has
-	 * arrived.
-	 */
-	private static final Object WAITING = new Object();
 
 	/**
 	 * filter for events to prevent loops in the remote delivery if the peers
@@ -233,29 +228,30 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			return;
 		}
 		final Integer xid = new Integer(msg.getXID());
-		synchronized (receiveQueue) {
-			final Object state = receiveQueue.get(xid);
-			if (state == WAITING) {
-				receiveQueue.put(xid, msg);
-				receiveQueue.notifyAll();
-				return;
-			} else {
-				new Thread() {
-					public void run() {
-						final RemoteOSGiMessage reply = handleMessage(msg);
-						if (reply != null) {
-							try {
-								networkChannel.sendMessage(reply);
-							} catch (final NotSerializableException nse) {
-								throw new RemoteOSGiException("Error sending " //$NON-NLS-1$
-										+ reply, nse);
-							} catch (final IOException e) {
-								dispose();
-							}
+		final BlockingCallback callback;
+		synchronized (callbacks) {
+			callback = (BlockingCallback) callbacks.remove(xid);
+		}
+		if (callback != null) {
+			callback.result(msg);
+			return;
+		} else {
+			new Thread() {
+				public void run() {
+					final RemoteOSGiMessage reply = handleMessage(msg);
+					if (reply != null) {
+
+						try {
+							networkChannel.sendMessage(reply);
+						} catch (final NotSerializableException nse) {
+							throw new RemoteOSGiException("Error sending " //$NON-NLS-1$
+									+ reply, nse);
+						} catch (final IOException e) {
+							dispose();
 						}
 					}
-				}.start();
-			}
+				}
+			}.start();
 		}
 	}
 
@@ -283,13 +279,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			throw new RemoteOSGiException("Channel is closed"); //$NON-NLS-1$
 		}
 		// check arguments for streams and replace with placeholder
-		for (int i = 0; i < args.length; i++) {
-			if (args[i] instanceof InputStream) {
-				args[i] = getInputStreamPlaceholder((InputStream) args[i]);
-			} else if (args[i] instanceof OutputStream) {
-				args[i] = getOutputStreamPlaceholder((OutputStream) args[i]);
-			}
-		}
+		replaceStreams(args);
 
 		final InvokeMethodMessage invokeMsg = new InvokeMethodMessage();
 		invokeMsg.setServiceID(URI.create(service).getFragment());
@@ -298,23 +288,39 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		try {
 			// send the message and get a MethodResultMessage in return
-			final MethodResultMessage result = (MethodResultMessage) sendMessage(invokeMsg);
+			final MethodResultMessage result = (MethodResultMessage) sendAndWait(invokeMsg);
 			if (result.causedException()) {
+				// TODO: debug output
 				result.getException().printStackTrace();
 				throw result.getException();
 			}
-			Object resultObj = result.getResult();
-			if (resultObj instanceof InputStreamHandle) {
-				resultObj = getInputStreamProxy((InputStreamHandle) resultObj);
-			}
-			if (resultObj instanceof OutputStreamHandle) {
-				resultObj = getOutputStreamProxy((OutputStreamHandle) resultObj);
-			}
-			return resultObj;
+			return replaceStream(result.getResult());
 		} catch (final RemoteOSGiException e) {
 			throw new RemoteOSGiException("Method invocation of " //$NON-NLS-1$
 					+ service + " " + methodSignature + " failed.", e); //$NON-NLS-1$ //$NON-NLS-2$
 		}
+	}
+
+	// TODO: to smart serialization
+	private final void replaceStreams(final Object[] args) {
+		for (int i = 0; i < args.length; i++) {
+			if (args[i] instanceof InputStream) {
+				args[i] = getInputStreamPlaceholder((InputStream) args[i]);
+			} else if (args[i] instanceof OutputStream) {
+				args[i] = getOutputStreamPlaceholder((OutputStream) args[i]);
+			}
+		}
+	}
+
+	// TODO: to smart serialization
+	final Object replaceStream(final Object obj) {
+		if (obj instanceof InputStreamHandle) {
+			return getInputStreamProxy((InputStreamHandle) obj);
+		}
+		if (obj instanceof OutputStreamHandle) {
+			return getOutputStreamProxy((OutputStreamHandle) obj);
+		}
+		return obj;
 	}
 
 	/**
@@ -386,7 +392,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			TimeOffsetMessage timeMsg = new TimeOffsetMessage();
 			for (int i = 0; i < 4; i++) {
 				timeMsg.timestamp();
-				timeMsg = (TimeOffsetMessage) sendMessage(timeMsg);
+				timeMsg = (TimeOffsetMessage) sendAndWait(timeMsg);
 			}
 			timeOffset = new TimeOffset(timeMsg.getTimeSeries());
 		} else if (timeOffset.isExpired()) {
@@ -394,7 +400,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			TimeOffsetMessage timeMsg = new TimeOffsetMessage();
 			for (int i = 0; i < timeOffset.seriesLength(); i += 2) {
 				timeMsg.timestamp();
-				timeMsg = (TimeOffsetMessage) sendMessage(timeMsg);
+				timeMsg = (TimeOffsetMessage) sendAndWait(timeMsg);
 			}
 			timeOffset.update(timeMsg.getTimeSeries());
 		}
@@ -460,14 +466,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		remoteServices = null;
 		remoteTopics = null;
 		timeOffset = null;
-		receiveQueue.clear();
+		callbacks.clear();
 		localServices.clear();
 		proxiedServices.clear();
 		closeStreams();
 		streams.clear();
 		handlerReg = null;
-		synchronized (receiveQueue) {
-			receiveQueue.notifyAll();
+		synchronized (callbacks) {
+			callbacks.notifyAll();
 		}
 	}
 
@@ -635,7 +641,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final String[] myTopics) {
 		final LeaseMessage l = new LeaseMessage();
 		populateLease(l, myServices, myTopics);
-		final LeaseMessage lease = (LeaseMessage) sendMessage(l);
+		final LeaseMessage lease = (LeaseMessage) sendAndWait(l);
 		return processLease(lease);
 	}
 
@@ -680,7 +686,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		// send the FetchServiceMessage and get a DeliverServiceMessage in
 		// return
-		final RemoteOSGiMessage msg = sendMessage(fetchReq);
+		final RemoteOSGiMessage msg = sendAndWait(fetchReq);
 
 		try {
 			final DeliverServiceMessage deliv = (DeliverServiceMessage) msg;
@@ -905,6 +911,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				return null;
 			}
 			}
+			return null;
 		}
 		case RemoteOSGiMessage.INVOKE_METHOD: {
 			final InvokeMethodMessage invMsg = (InvokeMethodMessage) msg;
@@ -1064,43 +1071,43 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 *            the message.
 	 * @return the result message.
 	 */
-	private RemoteOSGiMessage sendMessage(final RemoteOSGiMessage msg) {
+	private RemoteOSGiMessage sendAndWait(final RemoteOSGiMessage msg) {
 		if (msg.getXID() == 0) {
 			msg.setXID(RemoteOSGiServiceImpl.nextXid());
 		}
 		final Integer xid = new Integer(msg.getXID());
-		synchronized (receiveQueue) {
-			receiveQueue.put(xid, WAITING);
+		final BlockingCallback blocking = new BlockingCallback();
+
+		synchronized (callbacks) {
+			callbacks.put(xid, blocking);
 		}
 
 		send(msg);
 
 		// wait for the reply
-		Object reply;
-		synchronized (receiveQueue) {
-			reply = receiveQueue.get(xid);
+		synchronized (blocking) {
 			final long timeout = System.currentTimeMillis() + TIMEOUT;
 			try {
-				while (networkChannel != null && reply == WAITING
+				while (networkChannel != null
 						&& System.currentTimeMillis() < timeout) {
-					receiveQueue.wait(TIMEOUT);
-					reply = receiveQueue.get(xid);
+					blocking.wait(TIMEOUT);
+					final RemoteOSGiMessage result = blocking.getResult();
+					if (result != null) {
+						return result;
+					}
 				}
-				receiveQueue.remove(xid);
-
-				if (networkChannel == null) {
-					throw new RemoteOSGiException("Channel is closed"); //$NON-NLS-1$
-				} else if (reply == WAITING) {
-					throw new RemoteOSGiException(
-							"Method Invocation failed, timeout exceeded."); //$NON-NLS-1$
-				} else {
-					return (RemoteOSGiMessage) reply;
-				}
-			} catch (final InterruptedException e) {
-				e.printStackTrace();
-				return null;
+			} catch (InterruptedException ie) {
+				throw new RemoteOSGiException(
+						"Interrupted while waiting for callback", ie); //$NON-NLS-1$
+			}
+			if (networkChannel == null) {
+				throw new RemoteOSGiException("Channel is closed"); //$NON-NLS-1$
+			} else {
+				throw new RemoteOSGiException(
+						"Method Invocation failed, timeout exceeded."); //$NON-NLS-1$
 			}
 		}
+
 	}
 
 	/**
@@ -1184,7 +1191,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			throws IOException {
 		try {
 			// send the message and get a StreamResultMessage in return
-			final StreamResultMessage result = (StreamResultMessage) sendMessage(requestMsg);
+			final StreamResultMessage result = (StreamResultMessage) sendAndWait(requestMsg);
 			if (result.causedException()) {
 				throw result.getException();
 			}
@@ -1375,4 +1382,64 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 		}
 	}
+
+	void asyncRemoteCall(final String fragment, final String methodSignature,
+			final Object[] args, final AsyncRemoteCallCallback callback) {
+		if (networkChannel == null) {
+			throw new RemoteOSGiException("Channel is closed"); //$NON-NLS-1$
+		}
+		// check arguments for streams and replace with placeholder
+		replaceStreams(args);
+
+		final Integer xid = new Integer(RemoteOSGiServiceImpl.nextXid());
+
+		synchronized (callbacks) {
+			callbacks.put(xid, new AsyncCallback() {
+				public void result(RemoteOSGiMessage msg) {
+					final MethodResultMessage result = (MethodResultMessage) msg;
+					if (result.causedException()) {
+						callback.remoteCallResult(false, result.getException());
+					}
+					callback.remoteCallResult(true, replaceStream(result
+							.getResult()));
+				}
+			});
+		}
+
+		final InvokeMethodMessage invokeMsg = new InvokeMethodMessage();
+		invokeMsg.setServiceID(fragment);
+		invokeMsg.setMethodSignature(methodSignature);
+		invokeMsg.setArgs(args);
+		invokeMsg.setXID(xid.shortValue());
+
+		try {
+			send(invokeMsg);
+		} catch (final RemoteOSGiException e) {
+			callbacks.remove(xid);
+			callback
+					.remoteCallResult(
+							false,
+							new RemoteOSGiException(
+									"Method invocation of " //$NON-NLS-1$
+											+ getRemoteAddress()
+											+ "#" + fragment + " " + methodSignature + " failed.", e)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		}
+
+	}
+
+	class BlockingCallback implements AsyncCallback {
+
+		private RemoteOSGiMessage result;
+
+		public synchronized void result(RemoteOSGiMessage msg) {
+			result = msg;
+			this.notifyAll();
+		}
+
+		synchronized RemoteOSGiMessage getResult() {
+			return result;
+		}
+
+	}
+
 }
