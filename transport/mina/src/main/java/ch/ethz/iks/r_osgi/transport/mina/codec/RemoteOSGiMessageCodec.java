@@ -60,7 +60,7 @@ public abstract class RemoteOSGiMessageCodec implements MessageEncoder,
 		if (funcID != type) {
 			return MessageDecoderResult.NOT_OK;
 		}
-		final Short xid = new Short(in.getShort());
+		final Integer xid = new Integer(in.getInt());
 		session.setAttribute("xid", xid);
 
 		final int length = in.getInt();
@@ -103,7 +103,7 @@ public abstract class RemoteOSGiMessageCodec implements MessageEncoder,
 
 		buf.put((byte) 1); // version
 		buf.putShort(type); // funcID
-		buf.putShort(msg.getXID()); // xid
+		buf.putInt(msg.getXID()); // xid
 
 		buf.skip(4); // skip length
 
