@@ -294,33 +294,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				result.getException().printStackTrace();
 				throw result.getException();
 			}
-			return replaceStream(result.getResult());
+			return replaceStreamHandle(result.getResult());
 		} catch (final RemoteOSGiException e) {
 			throw new RemoteOSGiException("Method invocation of " //$NON-NLS-1$
 					+ service + " " + methodSignature + " failed.", e); //$NON-NLS-1$ //$NON-NLS-2$
 		}
-	}
-
-	// TODO: to smart serialization
-	private final void replaceStreams(final Object[] args) {
-		for (int i = 0; i < args.length; i++) {
-			if (args[i] instanceof InputStream) {
-				args[i] = getInputStreamPlaceholder((InputStream) args[i]);
-			} else if (args[i] instanceof OutputStream) {
-				args[i] = getOutputStreamPlaceholder((OutputStream) args[i]);
-			}
-		}
-	}
-
-	// TODO: to smart serialization
-	final Object replaceStream(final Object obj) {
-		if (obj instanceof InputStreamHandle) {
-			return getInputStreamProxy((InputStreamHandle) obj);
-		}
-		if (obj instanceof OutputStreamHandle) {
-			return getOutputStreamProxy((OutputStreamHandle) obj);
-		}
-		return obj;
 	}
 
 	/**
@@ -932,14 +910,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 				// get the invocation arguments and the local method
 				final Object[] arguments = invMsg.getArgs();
-				// check args for stream placeholders and replace with proxies
-				for (int i = 0; i < arguments.length; i++) {
-					if (arguments[i] instanceof InputStreamHandle) {
-						arguments[i] = getInputStreamProxy((InputStreamHandle) arguments[i]);
-					} else if (arguments[i] instanceof OutputStreamHandle) {
-						arguments[i] = getOutputStreamProxy((OutputStreamHandle) arguments[i]);
-					}
-				}
+				replaceStreamHandles(arguments);
 
 				final Method method = serv.getMethod(invMsg
 						.getMethodSignature());
@@ -948,15 +919,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				try {
 					Object result = method.invoke(serv.getServiceObject(),
 							arguments);
-					// check if result is an instance of a stream
-					if (result instanceof InputStream) {
-						result = getInputStreamPlaceholder((InputStream) result);
-					} else if (result instanceof OutputStream) {
-						result = getOutputStreamPlaceholder((OutputStream) result);
-					}
 					final MethodResultMessage m = new MethodResultMessage();
 					m.setXID(invMsg.getXID());
-					m.setResult(result);
+					m.setResult(replaceStream(result));
 					return m;
 				} catch (final InvocationTargetException t) {
 					t.printStackTrace();
@@ -1311,6 +1276,50 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		return new OutputStreamProxy(placeholder.getStreamID(), this);
 	}
 
+	// TODO: to smart serialization
+	private final void replaceStreams(final Object[] args) {
+		for (int i = 0; i < args.length; i++) {
+			if (args[i] instanceof InputStream) {
+				args[i] = getInputStreamPlaceholder((InputStream) args[i]);
+			} else if (args[i] instanceof OutputStream) {
+				args[i] = getOutputStreamPlaceholder((OutputStream) args[i]);
+			}
+		}
+	}
+
+	// TODO: to smart serialization
+	private final void replaceStreamHandles(final Object[] args) {
+		// check args for stream placeholders and replace with proxies
+		for (int i = 0; i < args.length; i++) {
+			if (args[i] instanceof InputStreamHandle) {
+				args[i] = getInputStreamProxy((InputStreamHandle) args[i]);
+			} else if (args[i] instanceof OutputStreamHandle) {
+				args[i] = getOutputStreamProxy((OutputStreamHandle) args[i]);
+			}
+		}
+	}
+
+	// TODO: to smart serialization
+	final Object replaceStreamHandle(final Object obj) {
+		if (obj instanceof InputStreamHandle) {
+			return getInputStreamProxy((InputStreamHandle) obj);
+		}
+		if (obj instanceof OutputStreamHandle) {
+			return getOutputStreamProxy((OutputStreamHandle) obj);
+		}
+		return obj;
+	}
+
+	// TODO: to smart serialization
+	private final Object replaceStream(final Object obj) {
+		if (obj instanceof InputStream) {
+			return getInputStreamPlaceholder((InputStream) obj);
+		} else if (obj instanceof OutputStream) {
+			return getOutputStreamPlaceholder((OutputStream) obj);
+		}
+		return obj;
+	}
+
 	/**
 	 * get the next stream wrapper id.
 	 * 
@@ -1400,7 +1409,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					if (result.causedException()) {
 						callback.remoteCallResult(false, result.getException());
 					}
-					callback.remoteCallResult(true, replaceStream(result
+					callback.remoteCallResult(true, replaceStreamHandle(result
 							.getResult()));
 				}
 			});
