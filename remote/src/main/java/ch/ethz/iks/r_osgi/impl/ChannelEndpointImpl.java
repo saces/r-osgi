@@ -675,8 +675,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final InputStream in = new ProxyGenerator().generateProxyBundle(
 					service, deliv);
 
-			final Bundle bundle = RemoteOSGiActivator.context.installBundle(
-					service.toString(), in);
+			final Bundle bundle = RemoteOSGiActivator.getActivator()
+					.getContext().installBundle(service.toString(), in);
 
 			// store the bundle for state updates and cleanup
 			proxyBundles.put(service.getFragment(), bundle);
@@ -1024,6 +1024,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				return m;
 			}
 		}
+		case RemoteOSGiMessage.REQUEST_DEPENDENCIES:
+
+			return null;
+		case RemoteOSGiMessage.DELIVER_DEPENDENCIES:
+
+			return null;
 		default:
 			throw new RemoteOSGiException("Unimplemented message " + msg); //$NON-NLS-1$
 		}
@@ -1187,9 +1193,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
 				properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
 						Boolean.TRUE);
-				handlerReg = RemoteOSGiActivator.context.registerService(
-						EventHandler.class.getName(), new EventForwarder(),
-						properties);
+				handlerReg = RemoteOSGiActivator.getActivator().getContext()
+						.registerService(EventHandler.class.getName(),
+								new EventForwarder(), properties);
 				remoteTopics.addAll(Arrays.asList(topicsAdded));
 			}
 		} else {

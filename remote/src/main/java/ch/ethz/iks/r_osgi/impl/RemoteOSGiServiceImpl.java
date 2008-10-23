@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
@@ -222,13 +223,14 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 
 		// set the debug switches
-		String prop = RemoteOSGiActivator.context
-				.getProperty(PROXY_DEBUG_PROPERTY);
+		final BundleContext context = RemoteOSGiActivator.getActivator()
+				.getContext();
+		String prop = context.getProperty(PROXY_DEBUG_PROPERTY);
 		PROXY_DEBUG = prop != null ? Boolean.valueOf(prop).booleanValue()
 				: false;
-		prop = RemoteOSGiActivator.context.getProperty(MSG_DEBUG_PROPERTY);
+		prop = context.getProperty(MSG_DEBUG_PROPERTY);
 		MSG_DEBUG = prop != null ? Boolean.valueOf(prop).booleanValue() : false;
-		prop = RemoteOSGiActivator.context.getProperty(DEBUG_PROPERTY);
+		prop = context.getProperty(DEBUG_PROPERTY);
 		DEBUG = prop != null ? Boolean.valueOf(prop).booleanValue() : false;
 
 		if (log != null) {
@@ -252,20 +254,20 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 
 		// set port
-		prop = RemoteOSGiActivator.context.getProperty(R_OSGi_PORT_PROPERTY);
+		prop = context.getProperty(R_OSGi_PORT_PROPERTY);
 		R_OSGI_PORT = prop != null ? Integer.parseInt(prop) : 9278;
 
 		// initialize the transactionID with a random value
 		nextXid = (short) Math.round(Math.random() * Short.MAX_VALUE);
 
-		setupTrackers();
+		setupTrackers(context);
 	}
 
-	private void setupTrackers() throws IOException {
+	private void setupTrackers(final BundleContext context) throws IOException {
 
 		// initialize service trackers
-		eventAdminTracker = new ServiceTracker(RemoteOSGiActivator.context,
-				EventAdmin.class.getName(), null);
+		eventAdminTracker = new ServiceTracker(context, EventAdmin.class
+				.getName(), null);
 		eventAdminTracker.open();
 		if (eventAdminTracker.getTrackingCount() == 0 && log != null) {
 			log
@@ -274,11 +276,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 
 		try {
-			eventHandlerTracker = new ServiceTracker(
-					RemoteOSGiActivator.context, RemoteOSGiActivator.context
-							.createFilter("(&(" + Constants.OBJECTCLASS + "=" //$NON-NLS-1$ //$NON-NLS-2$
-									+ EventHandler.class.getName() + ")(!(" //$NON-NLS-1$
-									+ R_OSGi_INTERNAL + "=*)))"), //$NON-NLS-1$
+			eventHandlerTracker = new ServiceTracker(context, context
+					.createFilter("(&(" + Constants.OBJECTCLASS + "=" //$NON-NLS-1$ //$NON-NLS-2$
+							+ EventHandler.class.getName() + ")(!(" //$NON-NLS-1$
+							+ R_OSGi_INTERNAL + "=*)))"), //$NON-NLS-1$
 					new ServiceTrackerCustomizer() {
 
 						public Object addingService(
@@ -340,19 +341,18 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 						+ Arrays.asList(getTopics()));
 			}
 
-			remoteServiceListenerTracker = new ServiceTracker(
-					RemoteOSGiActivator.context, RemoteServiceListener.class
-							.getName(), null);
+			remoteServiceListenerTracker = new ServiceTracker(context,
+					RemoteServiceListener.class.getName(), null);
 			remoteServiceListenerTracker.open();
 
-			serviceDiscoveryHandlerTracker = new ServiceTracker(
-					RemoteOSGiActivator.context, ServiceDiscoveryHandler.class
-							.getName(), new ServiceTrackerCustomizer() {
+			serviceDiscoveryHandlerTracker = new ServiceTracker(context,
+					ServiceDiscoveryHandler.class.getName(),
+					new ServiceTrackerCustomizer() {
 
 						public Object addingService(
 								final ServiceReference reference) {
 							// register all known services for discovery
-							final ServiceDiscoveryHandler handler = (ServiceDiscoveryHandler) RemoteOSGiActivator.context
+							final ServiceDiscoveryHandler handler = (ServiceDiscoveryHandler) context
 									.getService(reference);
 
 							final RemoteServiceRegistration[] regs = (RemoteServiceRegistration[]) serviceRegistrations
@@ -394,10 +394,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			serviceDiscoveryHandlerTracker.open();
 
 			remoteServiceTracker = new ServiceTracker(
-					RemoteOSGiActivator.context, RemoteOSGiActivator.context
-							.createFilter("(" //$NON-NLS-1$
-									+ RemoteOSGiService.R_OSGi_REGISTRATION
-									+ "=*)"), new ServiceTrackerCustomizer() { //$NON-NLS-1$
+					context,
+					context.createFilter("(" //$NON-NLS-1$
+							+ RemoteOSGiService.R_OSGi_REGISTRATION + "=*)"), new ServiceTrackerCustomizer() { //$NON-NLS-1$
 
 						public Object addingService(
 								final ServiceReference reference) {
@@ -494,14 +493,13 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			remoteServiceTracker.open();
 
 			networkChannelFactoryTracker = new ServiceTracker(
-					RemoteOSGiActivator.context, RemoteOSGiActivator.context
-							.createFilter("(" + Constants.OBJECTCLASS + "=" //$NON-NLS-1$ //$NON-NLS-2$
-									+ NetworkChannelFactory.class.getName()
-									+ ")"), new ServiceTrackerCustomizer() { //$NON-NLS-1$
+					context,
+					context.createFilter("(" + Constants.OBJECTCLASS + "=" //$NON-NLS-1$ //$NON-NLS-2$
+							+ NetworkChannelFactory.class.getName() + ")"), new ServiceTrackerCustomizer() { //$NON-NLS-1$
 
 						public Object addingService(
 								final ServiceReference reference) {
-							final NetworkChannelFactory factory = (NetworkChannelFactory) RemoteOSGiActivator.context
+							final NetworkChannelFactory factory = (NetworkChannelFactory) context
 									.getService(reference);
 							try {
 								factory.activate(RemoteOSGiServiceImpl.this);
@@ -561,9 +559,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			final ChannelEndpointImpl channel;
 			final String protocol = endpoint.getScheme();
 
-			final Filter filter = RemoteOSGiActivator.context.createFilter("(" //$NON-NLS-1$
-					+ NetworkChannelFactory.PROTOCOL_PROPERTY + "=" + protocol //$NON-NLS-1$
-					+ ")"); //$NON-NLS-1$
+			final Filter filter = RemoteOSGiActivator.getActivator()
+					.getContext().createFilter(
+							"(" //$NON-NLS-1$
+									+ NetworkChannelFactory.PROTOCOL_PROPERTY
+									+ "=" + protocol //$NON-NLS-1$
+									+ ")"); //$NON-NLS-1$
 			final ServiceReference[] refs = networkChannelFactoryTracker
 					.getServiceReferences();
 			if (refs != null) {
@@ -642,7 +643,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			return channel.getAllRemoteReferences(null);
 		}
 		try {
-			return channel.getAllRemoteReferences(RemoteOSGiActivator.context
+			return channel.getAllRemoteReferences(RemoteOSGiActivator
+					.getActivator().getContext()
 					.createFilter(filter != null ? "(&" + filter + "(" //$NON-NLS-1$ //$NON-NLS-2$
 							+ Constants.OBJECTCLASS + "=" + clazz + "))" : "(" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 							+ Constants.OBJECTCLASS + "=" + clazz + ")")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -671,8 +673,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			fetchService(ref);
 			sref = getFetchedServiceReference(ref);
 		}
-		return sref == null ? null : RemoteOSGiActivator.context
-				.getService(sref);
+		return sref == null ? null : RemoteOSGiActivator.getActivator()
+				.getContext().getService(sref);
 	}
 
 	/**
@@ -688,9 +690,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	private ServiceReference getFetchedServiceReference(
 			final RemoteServiceReference ref) {
 		try {
-			final ServiceReference[] refs = RemoteOSGiActivator.context
-					.getServiceReferences(ref.getServiceInterfaces()[0], "(" //$NON-NLS-1$
-							+ SERVICE_URI + "=" + ref.getURI() + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+			final ServiceReference[] refs = RemoteOSGiActivator.getActivator()
+					.getContext().getServiceReferences(
+							ref.getServiceInterfaces()[0], "(" //$NON-NLS-1$
+									+ SERVICE_URI + "=" + ref.getURI() + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (refs != null) {
 				return refs[0];
 			}
@@ -830,8 +833,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 				+ Constants.SERVICE_ID + "=" + serviceID + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 
 		try {
-			final ServiceReference[] refs = RemoteOSGiActivator.context
-					.getServiceReferences(null, filter);
+			final ServiceReference[] refs = RemoteOSGiActivator.getActivator()
+					.getContext().getServiceReferences(null, filter);
 			if (refs == null) {
 				if (log != null) {
 					log.log(LogService.LOG_WARNING, "COULD NOT FIND " + filter); //$NON-NLS-1$
@@ -1016,7 +1019,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	public void asyncRemoteCall(URI service, String methodSignature,
 			Object[] args, AsyncRemoteCallCallback callback) {
 		final ChannelEndpointImpl endpoint = getChannel(service);
-		endpoint.asyncRemoteCall(service.getFragment(), methodSignature, args, callback);
+		endpoint.asyncRemoteCall(service.getFragment(), methodSignature, args,
+				callback);
 	}
 
 }

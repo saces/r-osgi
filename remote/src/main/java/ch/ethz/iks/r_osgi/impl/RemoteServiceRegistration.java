@@ -99,7 +99,7 @@ final class RemoteServiceRegistration {
 		interfaceNames = (String[]) service.getProperty(Constants.OBJECTCLASS);
 
 		// get the service object
-		serviceObject = RemoteOSGiActivator.context.getService(service);
+		serviceObject = RemoteOSGiActivator.getActivator().getContext().getService(service);
 		if (serviceObject == null) {
 			throw new IllegalStateException("Service is not present."); //$NON-NLS-1$
 		}
