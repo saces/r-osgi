@@ -179,7 +179,7 @@ public final class RemoteCallResultMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		final StringBuffer buffer = new StringBuffer();
-		buffer.append("[METHOD_RESULT] - XID: "); //$NON-NLS-1$
+		buffer.append("[REMOTE_CALL_RESULT] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
 		buffer.append(", errorFlag: "); //$NON-NLS-1$
 		buffer.append(errorFlag);

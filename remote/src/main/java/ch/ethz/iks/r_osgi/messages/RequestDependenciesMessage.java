@@ -8,13 +8,12 @@ import java.util.Arrays;
 public class RequestDependenciesMessage extends RemoteOSGiMessage {
 
 	private String[] packages;
-
+	
 	public RequestDependenciesMessage() {
-		super(RemoteOSGiMessage.REQUEST_DEPENDENCIES);
+		super(RemoteOSGiMessage.REQUEST_DEPENDENCIES);		
 	}
 
-	public RequestDependenciesMessage(ObjectInputStream input)
-			throws IOException {
+	public RequestDependenciesMessage(ObjectInputStream input) throws IOException {
 		super(RemoteOSGiMessage.REQUEST_DEPENDENCIES);
 		packages = readStringArray(input);
 	}
@@ -22,15 +21,15 @@ public class RequestDependenciesMessage extends RemoteOSGiMessage {
 	public void writeBody(ObjectOutputStream output) throws IOException {
 		writeStringArray(output, packages);
 	}
-
+	
 	public String[] getPackages() {
 		return packages;
 	}
-
+	
 	public void setPackages(final String[] packages) {
 		this.packages = packages;
 	}
-
+	
 	/**
 	 * String representation for debug outputs.
 	 * 

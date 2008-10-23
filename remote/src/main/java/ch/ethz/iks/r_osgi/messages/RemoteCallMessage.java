@@ -187,7 +187,7 @@ public final class RemoteCallMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		final StringBuffer buffer = new StringBuffer();
-		buffer.append("[INVOKE_METHOD] - XID: "); //$NON-NLS-1$
+		buffer.append("[REMOTE_CALL] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
 		buffer.append(", serviceID: "); //$NON-NLS-1$
 		buffer.append(serviceID);

@@ -30,4 +30,19 @@ public class DeliverDependenciesMessage extends RemoteOSGiMessage {
 		}
 	}
 
+	/**
+	 * String representation for debug outputs.
+	 * 
+	 * @return a string representation.
+	 * @see java.lang.Object#toString()
+	 */
+	public String toString() {
+		final StringBuffer buffer = new StringBuffer();
+		buffer.append("[DELIVER_DEPENDENCIES]"); //$NON-NLS-1$
+		buffer.append("- XID: "); //$NON-NLS-1$
+		buffer.append(xid);
+		buffer.append(", ... "); //$NON-NLS-1$
+		return buffer.toString();
+	}
+
 }

@@ -101,17 +101,17 @@ public abstract class RemoteOSGiMessage {
 	 * type code for stream result messages.
 	 */
 	public static final short STREAM_RESULT = 11;
-	
+
 	/**
 	 * type code for request dependency message.
 	 */
 	public static final short REQUEST_DEPENDENCIES = 12;
-	
+
 	/**
 	 * type code for deliver dependency message
 	 */
 	public static final short DELIVER_DEPENDENCIES = 13;
-	
+
 	/**
 	 * the type code or functionID in SLP notation.
 	 */
@@ -223,8 +223,10 @@ public abstract class RemoteOSGiMessage {
 			break;
 		case REQUEST_DEPENDENCIES:
 			msg = new RequestDependenciesMessage(input);
+			break;
 		case DELIVER_DEPENDENCIES:
 			msg = new DeliverDependenciesMessage(input);
+			break;
 		default:
 			throw new RemoteOSGiException("funcID " + funcID //$NON-NLS-1$
 					+ " not supported."); //$NON-NLS-1$ 

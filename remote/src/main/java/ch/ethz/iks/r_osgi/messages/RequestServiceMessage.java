@@ -120,7 +120,7 @@ public final class RequestServiceMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		final StringBuffer buffer = new StringBuffer();
-		buffer.append("[FETCH_MESSAGE]"); //$NON-NLS-1$
+		buffer.append("[REQUEST_SERVICE]"); //$NON-NLS-1$
 		buffer.append("- XID: "); //$NON-NLS-1$
 		buffer.append(xid);
 		buffer.append(", serviceID: "); //$NON-NLS-1$
