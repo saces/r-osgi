@@ -62,11 +62,11 @@ import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
-import ch.ethz.iks.r_osgi.messages.FetchServiceMessage;
-import ch.ethz.iks.r_osgi.messages.InvokeMethodMessage;
+import ch.ethz.iks.r_osgi.messages.RequestServiceMessage;
+import ch.ethz.iks.r_osgi.messages.RemoteCallMessage;
 import ch.ethz.iks.r_osgi.messages.LeaseMessage;
 import ch.ethz.iks.r_osgi.messages.LeaseUpdateMessage;
-import ch.ethz.iks.r_osgi.messages.MethodResultMessage;
+import ch.ethz.iks.r_osgi.messages.RemoteCallResultMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteEventMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.messages.StreamRequestMessage;
@@ -281,14 +281,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		// check arguments for streams and replace with placeholder
 		replaceStreams(args);
 
-		final InvokeMethodMessage invokeMsg = new InvokeMethodMessage();
+		final RemoteCallMessage invokeMsg = new RemoteCallMessage();
 		invokeMsg.setServiceID(URI.create(service).getFragment());
 		invokeMsg.setMethodSignature(methodSignature);
 		invokeMsg.setArgs(args);
 
 		try {
 			// send the message and get a MethodResultMessage in return
-			final MethodResultMessage result = (MethodResultMessage) sendAndWait(invokeMsg);
+			final RemoteCallResultMessage result = (RemoteCallResultMessage) sendAndWait(invokeMsg);
 			if (result.causedException()) {
 				// TODO: debug output
 				result.getException().printStackTrace();
@@ -659,7 +659,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 
 		// build the FetchServiceMessage
-		final FetchServiceMessage fetchReq = new FetchServiceMessage();
+		final RequestServiceMessage fetchReq = new RequestServiceMessage();
 		fetchReq.setServiceID(ref.getURI().getFragment());
 
 		// send the FetchServiceMessage and get a DeliverServiceMessage in
@@ -809,8 +809,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					RemoteOSGiServiceImpl.getTopics());
 			return lease;
 		}
-		case RemoteOSGiMessage.FETCH_SERVICE: {
-			final FetchServiceMessage fetchReq = (FetchServiceMessage) msg;
+		case RemoteOSGiMessage.REQUEST_SERVICE: {
+			final RequestServiceMessage fetchReq = (RequestServiceMessage) msg;
 			final String serviceID = fetchReq.getServiceID();
 
 			final RemoteServiceRegistration reg = getServiceRegistration(serviceID);
@@ -891,8 +891,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 			return null;
 		}
-		case RemoteOSGiMessage.INVOKE_METHOD: {
-			final InvokeMethodMessage invMsg = (InvokeMethodMessage) msg;
+		case RemoteOSGiMessage.REMOTE_CALL: {
+			final RemoteCallMessage invMsg = (RemoteCallMessage) msg;
 			try {
 				RemoteServiceRegistration serv = (RemoteServiceRegistration) localServices
 						.get(invMsg.getServiceID());
@@ -919,7 +919,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				try {
 					Object result = method.invoke(serv.getServiceObject(),
 							arguments);
-					final MethodResultMessage m = new MethodResultMessage();
+					final RemoteCallResultMessage m = new RemoteCallResultMessage();
 					m.setXID(invMsg.getXID());
 					m.setResult(replaceStream(result));
 					return m;
@@ -930,7 +930,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			} catch (final Throwable t) {
 				// TODO: send to log
 				t.printStackTrace();
-				final MethodResultMessage m = new MethodResultMessage();
+				final RemoteCallResultMessage m = new RemoteCallResultMessage();
 				m.setXID(invMsg.getXID());
 				m.setException(t);
 				return m;
@@ -1405,7 +1405,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		synchronized (callbacks) {
 			callbacks.put(xid, new AsyncCallback() {
 				public void result(RemoteOSGiMessage msg) {
-					final MethodResultMessage result = (MethodResultMessage) msg;
+					final RemoteCallResultMessage result = (RemoteCallResultMessage) msg;
 					if (result.causedException()) {
 						callback.remoteCallResult(false, result.getException());
 					}
@@ -1415,7 +1415,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			});
 		}
 
-		final InvokeMethodMessage invokeMsg = new InvokeMethodMessage();
+		final RemoteCallMessage invokeMsg = new RemoteCallMessage();
 		invokeMsg.setServiceID(fragment);
 		invokeMsg.setMethodSignature(methodSignature);
 		invokeMsg.setArgs(args);

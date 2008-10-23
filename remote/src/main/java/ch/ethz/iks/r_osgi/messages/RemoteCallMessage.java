@@ -31,51 +31,54 @@ package ch.ethz.iks.r_osgi.messages;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 
 /**
  * <p>
- * MethodResultMessage is used to return the result of a method invocation to
- * the invoking remote peer.
+ * InvokeMethodMessage is used to invoke a method of a remote service.
  * </p>
  * 
  * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.1
  */
-public final class MethodResultMessage extends RemoteOSGiMessage {
+public final class RemoteCallMessage extends RemoteOSGiMessage {
 
 	/**
-	 * the error flag.
+	 * the service ID.
 	 */
-	private byte errorFlag;
+	private String serviceID;
 
 	/**
-	 * the return value.
+	 * the signature of the method that is requested to be invoked.
 	 */
-	private Object result;
+	private String methodSignature;
 
 	/**
-	 * the exception.
+	 * the argument array of the method call.
 	 */
-	private Throwable exception;
+	private Object[] arguments;
 
 	/**
-	 * creates a new MethodResultMessage from InvokeMethodMessage and set the
-	 * exception.
+	 * creates a new InvokeMethodMessage.
 	 */
-	public MethodResultMessage() {
-		super(METHOD_RESULT);
+	public RemoteCallMessage() {
+		super(REMOTE_CALL);
 	}
 
 	/**
-	 * creates a new MethodResultMessage from network packet:
+	 * creates a new InvokeMethodMessage from network packet:
 	 * 
 	 * <pre>
 	 *       0                   1                   2                   3
 	 *       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |       R-OSGi header (function = Service = 2)                  |
+	 *      |       R-OSGi header (function = InvokeMsg = 3)                |
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *      |  error flag   | result or Exception                           \
+	 *      |   length of &lt;serviceID&gt;     |    &lt;serviceID&gt; String       \
+	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *      |    length of &lt;MethodSignature&gt;     |     &lt;MethodSignature&gt; String       \
+	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *      |   number of param blocks      |     Param blocks (if any)     \
 	 *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 * </pre>
 	 * 
@@ -88,16 +91,16 @@ public final class MethodResultMessage extends RemoteOSGiMessage {
 	 *             in case of IO failures.
 	 * @throws ClassNotFoundException
 	 */
-	MethodResultMessage(final ObjectInputStream input) throws IOException,
+	RemoteCallMessage(final ObjectInputStream input) throws IOException,
 			ClassNotFoundException {
-		super(METHOD_RESULT);
-		errorFlag = input.readByte();
-		if (errorFlag == 0) {
-			result = input.readObject();
-			exception = null;
-		} else {
-			exception = (Throwable) input.readObject();
-			result = null;
+		super(REMOTE_CALL);
+
+		serviceID = input.readUTF();
+		methodSignature = input.readUTF();
+		final short argLength = input.readShort();
+		arguments = new Object[argLength];
+		for (short i = 0; i < argLength; i++) {
+			arguments[i] = input.readObject();
 		}
 	}
 
@@ -111,64 +114,69 @@ public final class MethodResultMessage extends RemoteOSGiMessage {
 	 * @see ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage#getBody()
 	 */
 	public void writeBody(final ObjectOutputStream out) throws IOException {
-		if (exception == null) {
-			out.writeByte(0);
-			out.writeObject(result);
-		} else {
-			out.writeByte(1);
-			out.writeObject(exception);
+		out.writeUTF(serviceID);
+		out.writeUTF(methodSignature);
+		out.writeShort(arguments.length);
+		for (short i = 0; i < arguments.length; i++) {
+			out.writeObject(arguments[i]);
 		}
 	}
 
 	/**
-	 * did the method invocation cause an exception ?
+	 * get the service ID.
 	 * 
-	 * @return <code>true</code>, if an exception has been thrown on the remote
-	 *         side. In this case, the exception can be retrieved through the
-	 *         <code>getException</code> method.
+	 * @return the service ID.
 	 */
-	public boolean causedException() {
-		return (errorFlag == 1);
+	public String getServiceID() {
+		return serviceID;
 	}
 
 	/**
-	 * get the result object.
+	 * set the service ID.
 	 * 
-	 * @return the return value of the invoked message.
+	 * @param serviceID
+	 *            the service ID.
 	 */
-	public Object getResult() {
-		return result;
+	public void setServiceID(final String serviceID) {
+		this.serviceID = serviceID;
 	}
 
 	/**
-	 * set the result.
+	 * get the arguments for the invoked method.
 	 * 
-	 * @param result
-	 *            the result.
+	 * @return the arguments.
 	 */
-	public void setResult(final Object result) {
-		this.result = result;
-		errorFlag = 0;
+	public Object[] getArgs() {
+		return arguments;
 	}
 
 	/**
-	 * get the exception.
+	 * set the arguments.
 	 * 
-	 * @return the exception or <code>null</code> if non was thrown.
+	 * @param arguments
+	 *            the arguments.
 	 */
-	public Throwable getException() {
-		return exception;
+	public void setArgs(final Object[] arguments) {
+		this.arguments = arguments;
 	}
 
 	/**
-	 * set the exception.
+	 * get the method signature.
 	 * 
-	 * @param t
-	 *            the exception.
+	 * @return the method signature.
 	 */
-	public void setException(final Throwable t) {
-		exception = t;
-		errorFlag = 1;
+	public String getMethodSignature() {
+		return methodSignature;
+	}
+
+	/**
+	 * set the method signature.
+	 * 
+	 * @param methodSignature
+	 *            the method signature.
+	 */
+	public void setMethodSignature(final String methodSignature) {
+		this.methodSignature = methodSignature;
 	}
 
 	/**
@@ -179,17 +187,15 @@ public final class MethodResultMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		final StringBuffer buffer = new StringBuffer();
-		buffer.append("[METHOD_RESULT] - XID: "); //$NON-NLS-1$
+		buffer.append("[INVOKE_METHOD] - XID: "); //$NON-NLS-1$
 		buffer.append(xid);
-		buffer.append(", errorFlag: "); //$NON-NLS-1$
-		buffer.append(errorFlag);
-		if (causedException()) {
-			buffer.append(", exception: "); //$NON-NLS-1$
-			buffer.append(exception.getMessage());
-		} else {
-			buffer.append(", result: "); //$NON-NLS-1$
-			buffer.append(result);
-		}
+		buffer.append(", serviceID: "); //$NON-NLS-1$
+		buffer.append(serviceID);
+		buffer.append(", methodName: "); //$NON-NLS-1$
+		buffer.append(methodSignature);
+		buffer.append(", params: "); //$NON-NLS-1$
+		buffer.append(arguments == null ? "" : Arrays.asList(arguments) //$NON-NLS-1$
+				.toString());
 		return buffer.toString();
 	}
 }

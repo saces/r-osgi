@@ -41,7 +41,7 @@ import java.io.ObjectOutputStream;
  * @author Jan S. Rellermeyer, ETH Zurich
  * @since 0.1
  */
-public final class FetchServiceMessage extends RemoteOSGiMessage {
+public final class RequestServiceMessage extends RemoteOSGiMessage {
 
 	/**
 	 * the service ID.
@@ -52,8 +52,8 @@ public final class FetchServiceMessage extends RemoteOSGiMessage {
 	 * creates a new FetchServiceMessage from <code>ServiceURL</code>.
 	 * 
 	 */
-	public FetchServiceMessage() {
-		super(FETCH_SERVICE);
+	public RequestServiceMessage() {
+		super(REQUEST_SERVICE);
 	}
 
 	/**
@@ -75,8 +75,8 @@ public final class FetchServiceMessage extends RemoteOSGiMessage {
 	 * @throws IOException
 	 *             if something goes wrong.
 	 */
-	FetchServiceMessage(final ObjectInputStream input) throws IOException {
-		super(FETCH_SERVICE);
+	RequestServiceMessage(final ObjectInputStream input) throws IOException {
+		super(REQUEST_SERVICE);
 		serviceID = input.readUTF();
 	}
 

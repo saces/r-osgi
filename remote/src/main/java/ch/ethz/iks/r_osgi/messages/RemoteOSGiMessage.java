@@ -53,7 +53,7 @@ public abstract class RemoteOSGiMessage {
 	/**
 	 * type code for fetch service messages.
 	 */
-	public static final short FETCH_SERVICE = 2;
+	public static final short REQUEST_SERVICE = 2;
 
 	/**
 	 * type code for deliver service messages.
@@ -70,12 +70,12 @@ public abstract class RemoteOSGiMessage {
 	/**
 	 * type code for invoke method messages.
 	 */
-	public static final short INVOKE_METHOD = 5;
+	public static final short REMOTE_CALL = 5;
 
 	/**
 	 * type code for method result messages.
 	 */
-	public static final short METHOD_RESULT = 6;
+	public static final short REMOTE_CALL_RESULT = 6;
 
 	/**
 	 * type code for remote event messages.
@@ -101,7 +101,17 @@ public abstract class RemoteOSGiMessage {
 	 * type code for stream result messages.
 	 */
 	public static final short STREAM_RESULT = 11;
-
+	
+	/**
+	 * type code for request dependency message.
+	 */
+	public static final short REQUEST_DEPENDENCIES = 12;
+	
+	/**
+	 * type code for deliver dependency message
+	 */
+	public static final short DELIVER_DEPENDENCIES = 13;
+	
 	/**
 	 * the type code or functionID in SLP notation.
 	 */
@@ -184,17 +194,17 @@ public abstract class RemoteOSGiMessage {
 		case LEASE:
 			msg = new LeaseMessage(input);
 			break;
-		case FETCH_SERVICE:
-			msg = new FetchServiceMessage(input);
+		case REQUEST_SERVICE:
+			msg = new RequestServiceMessage(input);
 			break;
 		case DELIVER_SERVICE:
 			msg = new DeliverServiceMessage(input);
 			break;
-		case INVOKE_METHOD:
-			msg = new InvokeMethodMessage(input);
+		case REMOTE_CALL:
+			msg = new RemoteCallMessage(input);
 			break;
-		case METHOD_RESULT:
-			msg = new MethodResultMessage(input);
+		case REMOTE_CALL_RESULT:
+			msg = new RemoteCallResultMessage(input);
 			break;
 		case REMOTE_EVENT:
 			msg = new RemoteEventMessage(input);
@@ -211,6 +221,10 @@ public abstract class RemoteOSGiMessage {
 		case STREAM_RESULT:
 			msg = new StreamResultMessage(input);
 			break;
+		case REQUEST_DEPENDENCIES:
+			msg = new RequestDependenciesMessage(input);
+		case DELIVER_DEPENDENCIES:
+			msg = new DeliverDependenciesMessage(input);
 		default:
 			throw new RemoteOSGiException("funcID " + funcID //$NON-NLS-1$
 					+ " not supported."); //$NON-NLS-1$ 
