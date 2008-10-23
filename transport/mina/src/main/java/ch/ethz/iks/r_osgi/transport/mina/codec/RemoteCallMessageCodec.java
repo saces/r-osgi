@@ -10,8 +10,7 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.apache.mina.filter.codec.demux.MessageDecoderResult;
-
-import ch.ethz.iks.r_osgi.messages.InvokeMethodMessage;
+import ch.ethz.iks.r_osgi.messages.RemoteCallMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
 
@@ -20,7 +19,7 @@ import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
  *       0                   1                   2                   3
  *       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *      |       R-OSGi header (function = InvokeMsg = 3)                |
+ *      |       R-OSGi header (function = REMOTE_CALL = 3)              |
  *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *      |   length of &lt;serviceID&gt;     |    &lt;serviceID&gt; String       \
  *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -28,27 +27,29 @@ import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
  *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *      |   number of param blocks      |     Param blocks (if any)     \
  *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * </pre>.
+ * </pre>
  * 
- * @author rjan
+ * .
+ * 
+ * @author Jan S. Rellermeyer, ETH Zurich
  * 
  */
-public class InvokeMethodMessageCodec extends RemoteOSGiMessageCodec {
+public class RemoteCallMessageCodec extends RemoteOSGiMessageCodec {
 
 	private static final Set MESSAGE_TYPE;
 
 	static {
 		MESSAGE_TYPE = Collections.unmodifiableSet(new HashSet(Arrays
-				.asList(new Class[] { InvokeMethodMessage.class })));
+				.asList(new Class[] { RemoteCallMessage.class })));
 	}
 
-	public InvokeMethodMessageCodec() {
-		super(RemoteOSGiMessage.INVOKE_METHOD);
+	public RemoteCallMessageCodec() {
+		super(RemoteOSGiMessage.REMOTE_CALL);
 	}
 
 	public MessageDecoderResult decodeBody(IoSession session, ByteBuffer in,
 			ProtocolDecoderOutput out) throws Exception {
-		final InvokeMethodMessage msg = new InvokeMethodMessage();
+		final RemoteCallMessage msg = new RemoteCallMessage();
 		msg.setXID(((Integer) session.getAttribute("xid")).intValue());
 		msg.setServiceID(decodeString(in));
 		msg.setMethodSignature(decodeString(in));
@@ -65,14 +66,17 @@ public class InvokeMethodMessageCodec extends RemoteOSGiMessageCodec {
 
 	public void encodeBody(IoSession session, RemoteOSGiMessage message,
 			ByteBuffer buf) throws IOException {
-		final InvokeMethodMessage msg = (InvokeMethodMessage) message;
+		final RemoteCallMessage msg = (RemoteCallMessage) message;
 		encodeString(buf, msg.getServiceID());
 		encodeString(buf, msg.getMethodSignature());
 
 		final Object[] arguments = msg.getArgs();
 		buf.putShort((short) arguments.length);
 		for (int i = 0; i < arguments.length; i++) {
-			buf.putObject(arguments[i] instanceof BoxedPrimitive ? ((BoxedPrimitive) arguments[i]).getBoxed() : arguments[i]);
+			buf
+					.putObject(arguments[i] instanceof BoxedPrimitive ? ((BoxedPrimitive) arguments[i])
+							.getBoxed()
+							: arguments[i]);
 		}
 	}
 

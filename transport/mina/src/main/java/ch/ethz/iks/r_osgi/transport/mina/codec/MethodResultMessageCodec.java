@@ -10,7 +10,7 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.apache.mina.filter.codec.demux.MessageDecoderResult;
 
-import ch.ethz.iks.r_osgi.messages.MethodResultMessage;
+import ch.ethz.iks.r_osgi.messages.RemoteCallResultMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
 
 /**
@@ -22,7 +22,9 @@ import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
  *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *      |  error flag   | result or Exception                           \
  *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * </pre>.
+ * </pre>
+ * 
+ * .
  * 
  * @author rjan
  * 
@@ -33,16 +35,16 @@ public class MethodResultMessageCodec extends RemoteOSGiMessageCodec {
 
 	static {
 		MESSAGE_TYPE = Collections.unmodifiableSet(new HashSet(Arrays
-				.asList(new Class[] { MethodResultMessage.class })));
+				.asList(new Class[] { RemoteCallResultMessage.class })));
 	}
 
 	public MethodResultMessageCodec() {
-		super(RemoteOSGiMessage.METHOD_RESULT);
+		super(RemoteOSGiMessage.REMOTE_CALL_RESULT);
 	}
 
 	public MessageDecoderResult decodeBody(IoSession session, ByteBuffer in,
 			ProtocolDecoderOutput out) throws Exception {
-		final MethodResultMessage msg = new MethodResultMessage();
+		final RemoteCallResultMessage msg = new RemoteCallResultMessage();
 		msg.setXID(((Integer) session.getAttribute("xid")).intValue());
 		if (in.get() == 0) {
 			msg.setResult(in.getObject());
@@ -55,7 +57,7 @@ public class MethodResultMessageCodec extends RemoteOSGiMessageCodec {
 
 	public void encodeBody(IoSession session, RemoteOSGiMessage message,
 			ByteBuffer buf) {
-		final MethodResultMessage msg = (MethodResultMessage) message;
+		final RemoteCallResultMessage msg = (RemoteCallResultMessage) message;
 		if (msg.causedException()) {
 			buf.put((byte) 1);
 			buf.putObject(msg.getException());

@@ -1,0 +1,12 @@
+
+- asynchronous API
+- default port problem
+- disconnect problem
+- find the reason for the timing problem in the tests (testInterface fails if executed with the other tests)
+- dependency bundle transfer
+- test / fix service discovery
+- SerialUID equivalent for smart serialization
+- dependency bundle updates
+- test / fix bluetooth discovery
+- re-enable the http(s) transport
+ 

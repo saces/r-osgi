@@ -7,8 +7,8 @@ public class RemoteOSGiProtocolCodecFactory extends
 
 	public RemoteOSGiProtocolCodecFactory() {
 		register(DeliverServiceMessageCodec.class);
-		register(FetchServiceMessageCodec.class);
-		register(InvokeMethodMessageCodec.class);
+		register(RequestServiceMessageCodec.class);
+		register(RemoteCallMessageCodec.class);
 		register(LeaseMessageCodec.class);
 		register(LeaseUpdateMessageCodec.class);
 		register(MethodResultMessageCodec.class);
