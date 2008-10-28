@@ -20,8 +20,8 @@ import org.apache.mina.transport.socket.nio.SocketAcceptor;
 import org.apache.mina.transport.socket.nio.SocketConnector;
 
 import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
-import ch.ethz.iks.r_osgi.messages.FetchServiceMessage;
-import ch.ethz.iks.r_osgi.messages.InvokeMethodMessage;
+import ch.ethz.iks.r_osgi.messages.RequestServiceMessage;
+import ch.ethz.iks.r_osgi.messages.RemoteCallMessage;
 import ch.ethz.iks.r_osgi.messages.LeaseMessage;
 import ch.ethz.iks.r_osgi.messages.LeaseUpdateMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
@@ -125,8 +125,8 @@ public class MinaMessageTestCase extends TestCase implements IoHandler {
 		}
 	}
 
-	public void testFetchServiceMessage() throws InterruptedException {
-		final FetchServiceMessage msg = new FetchServiceMessage();
+	public void testRequestServiceMessage() throws InterruptedException {
+		final RequestServiceMessage msg = new RequestServiceMessage();
 		msg.setXID((short) 100);
 		msg.setServiceID(serviceID);
 		long l = System.nanoTime();
@@ -135,15 +135,15 @@ public class MinaMessageTestCase extends TestCase implements IoHandler {
 		final RemoteOSGiMessage msg2 = waitForMessage();
 		System.out.println("TIME " + (System.nanoTime() - l) / 1000);
 
-		assertTrue(msg2 instanceof FetchServiceMessage);
-		final FetchServiceMessage rcv = (FetchServiceMessage) msg2;
+		assertTrue(msg2 instanceof RequestServiceMessage);
+		final RequestServiceMessage rcv = (RequestServiceMessage) msg2;
 
 		assertEquals(rcv.getXID(), 100);
 		assertEquals(rcv.getServiceID(), msg.getServiceID());
 	}
 
-	public void testInvokeMethodMessage() throws InterruptedException {
-		final InvokeMethodMessage msg = new InvokeMethodMessage();
+	public void testRemoteCallMessage() throws InterruptedException {
+		final RemoteCallMessage msg = new RemoteCallMessage();
 		final Object[] arguments = new Object[] { new Integer(10), "TEST" };
 		final String methodSignature = "call(Ljava/lang/Integer,Ljava/lang/String)V";
 
@@ -158,8 +158,8 @@ public class MinaMessageTestCase extends TestCase implements IoHandler {
 		final RemoteOSGiMessage msg2 = waitForMessage();
 		System.out.println("TIME " + (System.nanoTime() - l) / 1000);
 
-		assertTrue(msg2 instanceof InvokeMethodMessage);
-		final InvokeMethodMessage rcv = (InvokeMethodMessage) msg2;
+		assertTrue(msg2 instanceof RemoteCallMessage);
+		final RemoteCallMessage rcv = (RemoteCallMessage) msg2;
 
 		assertEquals(rcv.getXID(), 100);
 		assertEquals(rcv.getServiceID(), serviceID);
