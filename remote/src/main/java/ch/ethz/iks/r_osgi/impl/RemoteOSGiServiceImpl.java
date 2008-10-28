@@ -576,6 +576,36 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	}
 
+	private NetworkChannelFactory getNetworkChannelFactory(final String protocol)
+			throws RemoteOSGiException {
+		try {
+			final Filter filter = RemoteOSGiActivator.getActivator()
+					.getContext().createFilter(
+							"(" //$NON-NLS-1$
+									+ NetworkChannelFactory.PROTOCOL_PROPERTY
+									+ "=" + protocol //$NON-NLS-1$
+									+ ")"); //$NON-NLS-1$
+			final ServiceReference[] refs = networkChannelFactoryTracker
+					.getServiceReferences();
+
+			if (refs != null) {
+				for (int i = 0; i < refs.length; i++) {
+					if (filter.match(refs[i])) {
+						return (NetworkChannelFactory) networkChannelFactoryTracker
+								.getService(refs[i]);
+					}
+				}
+			}
+			throw new RemoteOSGiException("No NetworkChannelFactory for " //$NON-NLS-1$
+					+ protocol + " found."); //$NON-NLS-1$
+
+		} catch (final InvalidSyntaxException e) {
+			// does not happen
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	/**
 	 * connect to a remote OSGi host.
 	 * 
@@ -601,35 +631,23 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			return test.getAllRemoteReferences(null);
 		}
 
-		try {
-			final ChannelEndpointImpl channel;
-			final String protocol = endpoint.getScheme();
+		final ChannelEndpointImpl channel;
+		final String protocol = endpoint.getScheme();
 
-			final Filter filter = RemoteOSGiActivator.getActivator()
-					.getContext().createFilter(
-							"(" //$NON-NLS-1$
-									+ NetworkChannelFactory.PROTOCOL_PROPERTY
-									+ "=" + protocol //$NON-NLS-1$
-									+ ")"); //$NON-NLS-1$
-			final ServiceReference[] refs = networkChannelFactoryTracker
-					.getServiceReferences();
-			if (refs != null) {
-				for (int i = 0; i < refs.length; i++) {
-					if (filter.match(refs[i])) {
-						final NetworkChannelFactory factory = (NetworkChannelFactory) networkChannelFactoryTracker
-								.getService(refs[i]);
-						channel = new ChannelEndpointImpl(factory, endpoint);
-						return channel.sendLease(getServices(), getTopics());
-					}
-				}
-			}
-			throw new RemoteOSGiException("No NetworkChannelFactory for " //$NON-NLS-1$
-					+ protocol + " found."); //$NON-NLS-1$
-		} catch (final InvalidSyntaxException e) {
-			// does not happen
-			e.printStackTrace();
-			return null;
-		}
+		final NetworkChannelFactory factory = getNetworkChannelFactory(protocol);
+		channel = new ChannelEndpointImpl(factory, endpoint);
+
+		return channel.sendLease(getServices(), getTopics());
+	}
+
+	/**
+	 * 
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getListeningPort(java.lang.String)
+	 * @category RemoteOSGiService
+	 */
+	public int getListeningPort(String protocol) throws RemoteOSGiException {
+		final NetworkChannelFactory factory = getNetworkChannelFactory(protocol);
+		return factory.getListeningPort(protocol);
 	}
 
 	/**

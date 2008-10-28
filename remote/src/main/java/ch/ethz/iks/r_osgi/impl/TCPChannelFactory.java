@@ -56,7 +56,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 
 	static final String PROTOCOL = "r-osgi"; //$NON-NLS-1$
 	Remoting remoting;
-	private TCPThread thread;
+	private TCPAcceptorThread thread;
+	protected int listeningPort;
 
 	/**
 	 * get a new connection.
@@ -80,7 +81,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	 */
 	public void activate(final Remoting r) throws IOException {
 		remoting = r;
-		thread = new TCPThread();
+		thread = new TCPAcceptorThread();
 		thread.start();
 	}
 
@@ -92,6 +93,15 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	public void deactivate(final Remoting r) throws IOException {
 		thread.interrupt();
 		remoting = null;
+	}
+
+	/**
+	 * get the listening port.
+	 * 
+	 * @see ch.ethz.iks.r_osgi.channels.NetworkChannelFactory#getListeningPort(java.lang.String)
+	 */
+	public int getListeningPort(final String protocol) {
+		return listeningPort;
 	}
 
 	/**
@@ -321,7 +331,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	/**
 	 * TCPThread, handles incoming tcp messages.
 	 */
-	protected final class TCPThread extends Thread {
+	protected final class TCPAcceptorThread extends Thread {
 		/**
 		 * the socket.
 		 */
@@ -333,18 +343,22 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 * @throws IOException
 		 *             if the server socket cannot be opened.
 		 */
-		TCPThread() throws IOException {
+		TCPAcceptorThread() throws IOException {
+			setName("TCPAcceptorThread"); //$NON-NLS-1$
+			setDaemon(true);
+			
 			int e = 0;
 			while (true) {
 				try {
-					socket = new ServerSocket(RemoteOSGiServiceImpl.R_OSGI_PORT
-							+ e);
+					listeningPort = RemoteOSGiServiceImpl.R_OSGI_PORT + e;
+					socket = new ServerSocket(listeningPort);
+
 					if (e != 0) {
 						System.err
 								.println("Port " //$NON-NLS-1$
 										+ RemoteOSGiServiceImpl.R_OSGI_PORT
 										+ " already in use. This instance of R-OSGi is running on port " //$NON-NLS-1$
-										+ (RemoteOSGiServiceImpl.R_OSGI_PORT + e));
+										+ listeningPort);
 					}
 					return;
 				} catch (final BindException b) {

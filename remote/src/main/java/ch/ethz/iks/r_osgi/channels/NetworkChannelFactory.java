@@ -81,4 +81,15 @@ public interface NetworkChannelFactory {
 	 */
 	void deactivate(final Remoting remoting) throws IOException;
 
+	/**
+	 * return the port number on which the factory listens for incoming
+	 * connections.
+	 * 
+	 * @param protocol
+	 *            the protocol, important if the factory can create channels for
+	 *            multiple protocols, e.g., "http" and "https".
+	 * @return the port number.
+	 */
+	int getListeningPort(final String protocol);
+
 }

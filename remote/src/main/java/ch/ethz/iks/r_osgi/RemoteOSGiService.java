@@ -233,7 +233,30 @@ public interface RemoteOSGiService {
 	 */
 	ChannelEndpointManager getEndpointManager(final URI remoteEndpointAddress);
 
+	/**
+	 * make an asynchronous remote call to a service
+	 * 
+	 * @param service
+	 *            the URI of the service
+	 * @param methodSignature
+	 *            the signature of the method to call
+	 * @param args
+	 *            the arguments to pass
+	 * @param callback
+	 *            a callback to be called when the result is available
+	 */
 	void asyncRemoteCall(final URI service, final String methodSignature,
 			final Object[] args, final AsyncRemoteCallCallback callback);
+
+	/**
+	 * get the port on which the corresponding NetworkChannelFactory for the
+	 * given protocol listens for incoming connections.
+	 * 
+	 * @param protocol
+	 *            the protocol identifier string. E.g., "r-osgi" for the default
+	 *            TCP-based transport
+	 * @return the port number or -1 if the protocol is not supported.
+	 */
+	int getListeningPort(final String protocol);
 
 }
