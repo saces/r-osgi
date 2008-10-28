@@ -8,9 +8,8 @@ public class DeliverDependenciesMessage extends RemoteOSGiMessage {
 
 	private byte[][] bytes;
 
-	DeliverDependenciesMessage() {
+	public DeliverDependenciesMessage() {
 		super(RemoteOSGiMessage.DELIVER_DEPENDENCIES);
-
 	}
 
 	public DeliverDependenciesMessage(final ObjectInputStream input)
@@ -28,6 +27,14 @@ public class DeliverDependenciesMessage extends RemoteOSGiMessage {
 		for (int i = 0; i < bytes.length; i++) {
 			writeBytes(output, bytes[i]);
 		}
+	}
+
+	public byte[][] getDependencies() {
+		return bytes;
+	}
+
+	public void setDependencies(final byte[][] bytes) {
+		this.bytes = bytes;
 	}
 
 	/**

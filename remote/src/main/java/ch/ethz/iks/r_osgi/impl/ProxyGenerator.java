@@ -440,7 +440,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				ifaces.addAll(Arrays.asList(serviceInterfaces));
 				// V1_1
 				writer.visit(
-						(version >= V1_5 && RemoteOSGiServiceImpl.IS_5) ? V1_5
+						(version >= V1_5 && RemoteOSGiServiceImpl.IS_JAVA5) ? V1_5
 								: V1_2, ACC_PUBLIC + ACC_SUPER, implName, null,
 						superName, (String[]) ifaces.toArray(new String[ifaces
 								.size()]));
@@ -454,7 +454,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 				// we have an interface
 				writer.visit(
-						(version >= V1_5 && RemoteOSGiServiceImpl.IS_5) ? V1_5
+						(version >= V1_5 && RemoteOSGiServiceImpl.IS_JAVA5) ? V1_5
 								: V1_2, ACC_PUBLIC + ACC_SUPER, implName, null,
 						"java/lang/Object", serviceInterfaces); //$NON-NLS-1$
 				if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
@@ -932,7 +932,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 			// rewriting
 
 			super.cv.visit(
-					(version >= V1_5 && RemoteOSGiServiceImpl.IS_5) ? V1_5
+					(version >= V1_5 && RemoteOSGiServiceImpl.IS_JAVA5) ? V1_5
 							: V1_2, access, checkRewrite(name), signature,
 					checkRewrite(superName), interfaces);
 		}

@@ -61,7 +61,9 @@ import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
+import ch.ethz.iks.r_osgi.messages.DeliverDependenciesMessage;
 import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
+import ch.ethz.iks.r_osgi.messages.RequestDependenciesMessage;
 import ch.ethz.iks.r_osgi.messages.RequestServiceMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteCallMessage;
 import ch.ethz.iks.r_osgi.messages.LeaseMessage;
@@ -1025,6 +1027,18 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 		}
 		case RemoteOSGiMessage.REQUEST_DEPENDENCIES:
+			final RequestDependenciesMessage reqDeps = (RequestDependenciesMessage) msg;
+
+			try {
+				final byte[][] bundleBytes = RemoteOSGiServiceImpl
+						.getBundlesForPackages(reqDeps.getPackages());
+				final DeliverDependenciesMessage delDeps = new DeliverDependenciesMessage();
+				delDeps.setXID(reqDeps.getXID());
+				delDeps.setDependencies(bundleBytes);
+				return delDeps;
+			} catch (IOException ioe) {
+				
+			}
 
 			return null;
 		case RemoteOSGiMessage.DELIVER_DEPENDENCIES:

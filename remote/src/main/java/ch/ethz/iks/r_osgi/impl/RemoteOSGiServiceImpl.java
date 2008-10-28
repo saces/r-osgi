@@ -28,19 +28,28 @@
  */
 package ch.ethz.iks.r_osgi.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
+import java.util.zip.CRC32;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
@@ -50,6 +59,7 @@ import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.log.LogService;
+import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
@@ -82,14 +92,19 @@ import ch.ethz.iks.util.CollectionUtils;
  */
 final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
-	static boolean IS_5 = false;
+	static boolean IS_JAVA5 = false;
+
+	static boolean IS_R4 = false;
 
 	static {
 		final String verString = System.getProperty("java.class.version"); //$NON-NLS-1$
-		if (verString != null) {
-			if (Float.parseFloat(verString) >= 49) {
-				IS_5 = true;
-			}
+		if (verString != null && Float.parseFloat(verString) >= 49) {
+			IS_JAVA5 = true;
+		}
+		final String osgiVerString = System
+				.getProperty(Constants.FRAMEWORK_VERSION);
+		if (osgiVerString != null && (!osgiVerString.trim().startsWith("1.3"))) { //$NON-NLS-1$
+			IS_R4 = true;
 		}
 	}
 
@@ -129,6 +144,22 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * contribute to the peer's topic space.
 	 */
 	static final String R_OSGi_INTERNAL = "internal"; //$NON-NLS-1$
+
+	/**
+	 * file name of the manifest
+	 */
+	private static final String MANIFEST_FILE_NAME = "META-INF/MANIFEST.MF"; //$NON-NLS-1$
+
+	/**
+	 * We don't want it platform dependent because the Jars will always use the
+	 * unix variant
+	 */
+	private static final String SEPARATOR_CHAR = "/"; //$NON-NLS-1$
+
+	/**
+	 * the buffer size
+	 */
+	private static final int BUFFER_SIZE = 2048;
 
 	/**
 	 * log proxy generation debug output.
@@ -206,6 +237,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	private static Map multiplexers = new HashMap(0);
 
 	/**
+	 * The package admin
+	 */
+	private static PackageAdmin pkgAdmin;
+
+	/**
 	 * creates a new RemoteOSGiServiceImpl instance.
 	 * 
 	 * @throws IOException
@@ -259,6 +295,16 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 		// initialize the transactionID with a random value
 		nextXid = (short) Math.round(Math.random() * Short.MAX_VALUE);
+
+		// get the package admin
+		final ServiceReference ref = context
+				.getServiceReference(PackageAdmin.class.getName());
+		if (ref == null) {
+			// TODO: handle this more gracefully
+			throw new RuntimeException(
+					"No package admin service available, R-OSGi terminates."); //$NON-NLS-1$
+		}
+		pkgAdmin = (PackageAdmin) context.getService(ref);
 
 		setupTrackers(context);
 	}
@@ -990,6 +1036,94 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			for (int i = 0; i < handler.length; i++) {
 				((ServiceDiscoveryHandler) handler[i]).unregisterService(reg
 						.getReference());
+			}
+		}
+	}
+
+	static byte[][] getBundlesForPackages(final String[] packages)
+			throws IOException {
+		final HashSet visitedBundles = new HashSet(packages.length);
+		final ArrayList bundleBytes = new ArrayList(packages.length);
+
+		// we reuse the buffer and other objects during the iteration over
+		// bundles and entries to improve
+		// the performance on smaller VMs.
+		final byte[] buffer = new byte[BUFFER_SIZE];
+		final CRC32 crc = new CRC32();
+
+		// TODO: for R4, handle multiple versions
+		for (int i = 0; i < packages.length; i++) {
+			final Bundle bundle = pkgAdmin.getExportedPackage(packages[i])
+					.getExportingBundle();
+			if (visitedBundles.contains(bundle)) {
+				continue;
+			}
+			visitedBundles.add(bundle);
+
+			// workaround for Eclipse
+			final String prefix = bundle
+					.getEntry(packages[i].replace('.', '/')) == null ? "/bin" //$NON-NLS-1$
+					: ""; //$NON-NLS-1$
+
+			bundleBytes.add(generateBundle(bundle, prefix, buffer, crc));
+		}
+		return (byte[][]) bundleBytes.toArray(new byte[bundleBytes.size()][]);
+	}
+
+	private static byte[] generateBundle(final Bundle bundle,
+			final String prefix, final byte[] buffer, final CRC32 crc)
+			throws IOException {
+
+		final URL url = bundle.getEntry(SEPARATOR_CHAR + MANIFEST_FILE_NAME);
+		final Manifest mf = new Manifest();
+		mf.read(url.openStream());
+
+		final ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		final JarOutputStream out = new JarOutputStream(bout, mf);
+
+		scan(bundle, prefix, "", out, buffer, crc); //$NON-NLS-1$
+
+		out.flush();
+		out.finish();
+		out.close();
+		return bout.toByteArray();
+	}
+
+	private static void scan(final Bundle bundle, final String prefix,
+			final String path, final JarOutputStream out, final byte[] buffer,
+			final CRC32 crc) throws IOException {
+
+		Enumeration e = bundle.getEntryPaths(prefix + SEPARATOR_CHAR + path);
+		if (e == null) {
+			return;
+		}
+		while (e.hasMoreElements()) {
+			final String entry = ((String) e.nextElement()).substring(prefix
+					.length());
+			if (entry.equals(MANIFEST_FILE_NAME)) {
+				continue;
+			} else if (entry.endsWith(SEPARATOR_CHAR)) {
+				scan(bundle, prefix, entry, out, buffer, crc);
+			} else {
+				final URL url = bundle.getResource(entry);
+				final InputStream in = url.openStream();
+				int read;
+				int totallyRead = 0;
+
+				final JarEntry jarEntry = new JarEntry(entry);
+				out.putNextEntry(jarEntry);
+				crc.reset();
+
+				while ((read = in.read(buffer, 0, 2048)) > -1) {
+					totallyRead += read;
+					out.write(buffer, 0, read);
+					crc.update(buffer, 0, read);
+				}
+
+				jarEntry.setSize(totallyRead);
+				jarEntry.setCrc(crc.getValue());
+				out.flush();
+				out.closeEntry();
 			}
 		}
 	}
