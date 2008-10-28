@@ -47,12 +47,11 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 	public static final String PROTOCOL = "btspp";
 
 	private static final int DISCOVERY_INTERVAL = Integer
-	.parseInt(System
-			.getProperty(
-					"ch.ethz.iks.r_osgi.service_discovery.bluetooth.discovery_interval",
-					"60"));
+			.parseInt(System
+					.getProperty(
+							"ch.ethz.iks.r_osgi.service_discovery.bluetooth.discovery_interval",
+							"60"));
 
-	
 	private URI listeningAddress;
 	private Remoting remoting;
 	private LocalDevice local;
@@ -67,21 +66,24 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 	private ArrayList services = new ArrayList();
 
 	private HashMap remoteServices = new HashMap();
-	
+
 	private ServiceTracker discoveryListenerTracker;
 
 	private boolean hasListeners;
-	
+
 	private HashMap queries = new HashMap();
-	
+
 	private DiscoveryThread discoveryThread;
 
-	BluetoothNetworkChannelFactory(final BundleContext context) throws IOException {
+	private static final int PORT = 9;
+
+	BluetoothNetworkChannelFactory(final BundleContext context)
+			throws IOException {
 		local = LocalDevice.getLocalDevice();
 		local.setDiscoverable(DiscoveryAgent.GIAC);
 		discovery = local.getDiscoveryAgent();
 		service = (StreamConnectionNotifier) Connector.open("btspp://"
-				+ "localhost:9" + ";name=" + local.getFriendlyName());
+				+ "localhost:" + PORT + ";name=" + local.getFriendlyName());
 
 		// TODO: remove debug output
 		System.out.println("BT Listening at: " + local.getBluetoothAddress());
@@ -89,7 +91,7 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 		record = local.getRecord(service);
 		record.setAttributeValue(0x0003, new DataElement(DataElement.UUID,
 				new UUID(9278)));
-		
+
 		if (DISCOVERY_INTERVAL > 0) {
 			discoveryThread = new DiscoveryThread();
 			discoveryThread.start();
@@ -166,6 +168,9 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 		this.remoting = null;
 	}
 
+	public int getListeningPort(String protocol) {
+		return PORT;
+	}
 
 	public NetworkChannel getConnection(ChannelEndpoint endpoint,
 			URI endpointURI) throws IOException {
@@ -191,10 +196,13 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 		private BluetoothNetworkChannel(ChannelEndpoint endpoint,
 				final URI remoteEndpointURI) throws IOException {
 			this.remoteEndpointURI = remoteEndpointURI;
-			System.out.println("##############################TRYING TO CONNECT TO " + remoteEndpointURI);
+			System.out
+					.println("##############################TRYING TO CONNECT TO "
+							+ remoteEndpointURI);
 			this.con = (StreamConnection) Connector.open(remoteEndpointURI
 					.toString());
-			System.out.println("##############################HAVING CON " + con);
+			System.out.println("##############################HAVING CON "
+					+ con);
 			this.endpoint = endpoint;
 			open();
 			new ReceiverThread().start();
@@ -395,9 +403,10 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 			}
 
 			for (int i = 0; i < devices.length; i++) {
-				 discovery.searchServices(new int[] { 0x0003 },
+				discovery.searchServices(new int[] { 0x0003 },
 						new UUID[] { new UUID(9278) }, devices[i], listener);
-//				discovery.searchServices(null, new UUID[] { new UUID(9278) }, devices[i], listener);
+				// discovery.searchServices(null, new UUID[] { new UUID(9278) },
+				// devices[i], listener);
 				synchronized (listener) {
 					listener.wait();
 				}
@@ -469,7 +478,8 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 		public void deviceDiscovered(RemoteDevice btDevice, DeviceClass cod) {
 			try {
 				System.out.println("FOUND DEVICE ... "
-						+ btDevice.getFriendlyName(false) + " - " + btDevice.getBluetoothAddress());
+						+ btDevice.getFriendlyName(false) + " - "
+						+ btDevice.getBluetoothAddress());
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
 			}
@@ -527,4 +537,5 @@ public class BluetoothNetworkChannelFactory implements NetworkChannelFactory,
 	public URI getListeningAddress(String protocol) {
 		return listeningAddress;
 	}
+
 }
