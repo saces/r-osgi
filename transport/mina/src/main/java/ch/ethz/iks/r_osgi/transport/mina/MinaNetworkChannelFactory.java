@@ -32,6 +32,7 @@ public class MinaNetworkChannelFactory implements NetworkChannelFactory {
 		acceptor.getFilterChain().addLast("logger", new LoggingFilter());
 		acceptor.getFilterChain().addLast("protocol",
 				new ProtocolCodecFilter(new RemoteOSGiProtocolCodecFactory()));
+		// TODO: make port dynamic !!!
 		final InetSocketAddress address = new InetSocketAddress(9279);
 		acceptor.bind(address, new IoHandler() {
 
@@ -80,6 +81,10 @@ public class MinaNetworkChannelFactory implements NetworkChannelFactory {
 	public NetworkChannel getConnection(ChannelEndpoint endpoint,
 			URI endpointURI) throws IOException {
 		return new MinaNetworkChannel(endpoint, endpointURI);
+	}
+	
+	public int getListeningPort(String protocol) {
+		return 9279;
 	}
 
 	private class MinaNetworkChannel implements NetworkChannel, IoHandler {
@@ -233,4 +238,6 @@ public class MinaNetworkChannelFactory implements NetworkChannelFactory {
 		}
 
 	}
+
+
 }
