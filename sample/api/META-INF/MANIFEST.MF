@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-Name: R-OSGi Sample API
-Bundle-SymbolicName: ch.ethz.iks.r_osgi.service.api
-Bundle-Version: 1.0.0.RC2
-Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
-Export-Package: ch.ethz.iks.r_osgi.sample.api;version="1.0.0.RC2"
-Bundle-RequiredExecutionEnvironment: CDC-1.0/Foundation-1.0,
- OSGi/Minimum-1.0
