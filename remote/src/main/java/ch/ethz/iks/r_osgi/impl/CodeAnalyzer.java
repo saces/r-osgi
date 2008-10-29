@@ -184,7 +184,8 @@ final class CodeAnalyzer implements ClassVisitor {
 	DeliverServiceMessage analyze(final String[] ifaces,
 			final String smartProxy, final String[] explicitInjections,
 			final String presentation) throws ClassNotFoundException,
-			IOException {
+			IOException {		
+		
 		closure.addAll(Arrays.asList(ifaces));
 
 		if (smartProxy != null) {
@@ -196,10 +197,11 @@ final class CodeAnalyzer implements ClassVisitor {
 		if (explicitInjections != null) {
 			closure.addAll(Arrays.asList(explicitInjections));
 		}
+		
 		while (!closure.isEmpty()) {
 			visit((String) closure.remove(0));
 		}
-
+		
 		for (int i = 0; i < ifaces.length; i++) {
 			proxyImports.add(packageOf(ifaces[i]));
 			proxyExports.add(packageOf(ifaces[i]));
@@ -215,6 +217,7 @@ final class CodeAnalyzer implements ClassVisitor {
 		final StringBuffer exportDeclaration = new StringBuffer();
 		final String[] pi = (String[]) proxyImports
 				.toArray(new String[proxyImports.size()]);
+		
 		for (int i = 0; i < pi.length; i++) {
 			importDeclaration.append(pi[i]);
 			final Object v = importsMap.get(pi[i]);
@@ -281,7 +284,7 @@ final class CodeAnalyzer implements ClassVisitor {
 			if (exportsMap.containsKey(pkg)) {
 				proxyExports.add(pkg);
 			}
-			reader.accept(this, ClassReader.SKIP_DEBUG + ClassReader.SKIP_CODE
+			reader.accept(this, ClassReader.SKIP_DEBUG 
 					+ ClassReader.SKIP_FRAMES);
 		} catch (final IOException ioe) {
 			throw new ClassNotFoundException(className);
@@ -307,7 +310,7 @@ final class CodeAnalyzer implements ClassVisitor {
 	 *            the type.
 	 */
 	void visitType(final Type t) {
-
+		
 		if (t.getSort() < Type.ARRAY) {
 			visited.add(t.getClassName());
 			return;
@@ -358,6 +361,7 @@ final class CodeAnalyzer implements ClassVisitor {
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName,
 			final String[] interfaces) {
+		
 		if (superName != null && !visited.contains(superName)) {
 			visitType(Type.getType('L' + superName + ';'));
 		}
@@ -531,7 +535,7 @@ final class CodeAnalyzer implements ClassVisitor {
 				visitType(Type.getType("L" + owner + ";")); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			if (!visited.contains(desc)) {
-				visitType(Type.getType("L" + desc + ";")); //$NON-NLS-1$ //$NON-NLS-2$
+				visitType(Type.getType(desc)); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		}
 
@@ -625,9 +629,6 @@ final class CodeAnalyzer implements ClassVisitor {
 				final String name, final String desc) {
 			if (!visited.contains(owner)) {
 				visitType(Type.getType("L" + owner + ";")); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			if (!visited.contains(desc)) {
-				visitType(Type.getType("L" + desc + ";")); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		}
 
