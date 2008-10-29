@@ -776,7 +776,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 *            the <code>ServiceURL</code>.
 	 * @throws RemoteOSGiException
 	 *             if the fetching fails.
-	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#fetchService(ch.ethz.iks.slp.ServiceURL)
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getProxyBundle(ch.ethz.iks.slp.ServiceURL)
 	 * @since 0.1
 	 * @category RemoteOSGiService
 	 */
@@ -785,7 +785,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		try {
 			ChannelEndpointImpl channel;
 			channel = ((RemoteServiceReferenceImpl) ref).getChannel();
-			channel.fetchService(ref);
+			channel.getProxyBundle(ref);
 		} catch (final UnknownHostException e) {
 			throw new RemoteOSGiException(
 					"Cannot resolve host " + ref.getURI(), e); //$NON-NLS-1$
@@ -1071,6 +1071,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 		// TODO: for R4, handle multiple versions
 		for (int i = 0; i < packages.length; i++) {
+			// TODO: debug output
+			System.out.println("getting dependency for " + packages[i]);
 			final Bundle bundle = pkgAdmin.getExportedPackage(packages[i])
 					.getExportingBundle();
 			if (visitedBundles.contains(bundle)) {
@@ -1088,6 +1090,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		return (byte[][]) bundleBytes.toArray(new byte[bundleBytes.size()][]);
 	}
 
+	static boolean checkPackageImport(final String pkg) {
+		// TODO: use versions if on R4
+		return pkgAdmin.getExportedPackage(pkg) != null;	
+	}
+	
 	private static byte[] generateBundle(final Bundle bundle,
 			final String prefix, final byte[] buffer, final CRC32 crc)
 			throws IOException {

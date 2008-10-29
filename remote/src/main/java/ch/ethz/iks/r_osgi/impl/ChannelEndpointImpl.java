@@ -28,6 +28,7 @@
  */
 package ch.ethz.iks.r_osgi.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.NotSerializableException;
@@ -41,9 +42,11 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
@@ -654,17 +657,17 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @throws IOException
 	 *             in case of network errors.
 	 */
-	void fetchService(final RemoteServiceReference ref) throws IOException,
+	void getProxyBundle(final RemoteServiceReference ref) throws IOException,
 			RemoteOSGiException {
 		if (networkChannel == null) {
 			throw new RemoteOSGiException("Channel is closed."); //$NON-NLS-1$
 		}
 
-		// build the FetchServiceMessage
+		// build the RequestServiceMessage
 		final RequestServiceMessage fetchReq = new RequestServiceMessage();
 		fetchReq.setServiceID(ref.getURI().getFragment());
 
-		// send the FetchServiceMessage and get a DeliverServiceMessage in
+		// send the RequestServiceMessage and get a DeliverServiceMessage in
 		// return
 		final RemoteOSGiMessage msg = sendAndWait(fetchReq);
 
@@ -680,6 +683,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final Bundle bundle = RemoteOSGiActivator.getActivator()
 					.getContext().installBundle(service.toString(), in);
 
+			checkImports(deliv.getImports());
+
 			// store the bundle for state updates and cleanup
 			proxyBundles.put(service.getFragment(), bundle);
 
@@ -693,6 +698,41 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			throw new RemoteOSGiException(
 					"Could not install the generated bundle " + ref.toString(), //$NON-NLS-1$
 					nested);
+		}
+	}
+
+	private void checkImports(final String importString) {
+		final ArrayList missingImports = new ArrayList();
+		final StringTokenizer tokenizer = new StringTokenizer(importString, ",");
+		while (tokenizer.hasMoreTokens()) {
+			final String token = tokenizer.nextToken();
+			final int pos;
+			// TODO: handle versions for R4!
+			final String pkg = (pos = token.indexOf(";")) > -1 ? token
+					.substring(0, pos).trim() : token.trim();
+			if (!RemoteOSGiServiceImpl.checkPackageImport(pkg)) {
+				missingImports.add(pkg);
+			}
+		}
+
+		final String[] missing = (String[]) missingImports
+				.toArray(new String[missingImports.size()]);
+		if (missing.length > 0) {
+			System.out.println("MISSING DEPENDENCIES " + Arrays.asList(missing));
+			final RequestDependenciesMessage req = new RequestDependenciesMessage();
+			req.setPackages(missing);
+			final DeliverDependenciesMessage deps = (DeliverDependenciesMessage) sendAndWait(req);
+			final byte[][] depBytes = deps.getDependencies();
+			for (int i = 0; i < depBytes.length; i++) {
+				try {
+					final Bundle bundle = RemoteOSGiActivator.getActivator().getContext()
+							.installBundle("r-osgi://dep/" + missing[i],
+									new ByteArrayInputStream(depBytes[i]));
+					bundle.start();
+				} catch (BundleException be) {
+					be.printStackTrace();
+				}
+			}
 		}
 	}
 
@@ -1037,13 +1077,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				delDeps.setDependencies(bundleBytes);
 				return delDeps;
 			} catch (IOException ioe) {
-				
-			}
-
-			return null;
-		case RemoteOSGiMessage.DELIVER_DEPENDENCIES:
-
-			return null;
+				ioe.printStackTrace();
+				return null;
+			}			
 		default:
 			throw new RemoteOSGiException("Unimplemented message " + msg); //$NON-NLS-1$
 		}
