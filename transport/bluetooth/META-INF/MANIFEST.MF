@@ -2,14 +2,14 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ch.ethz.iks.r_osgi.transport.bluetooth
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.transport.bluetooth
-Bundle-Version: 1.0.0.RC2
+Bundle-Version: 1.0.0.RC4
 Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
-Require-Bundle: ch.ethz.iks.r_osgi.remote
+Require-Bundle: ch.ethz.iks.r_osgi.remote;bundle-version="1.0.0.RC4"
 Bundle-Activator: ch.ethz.iks.r_osgi.transport.bluetooth.Activator
 Bundle-ClassPath: .
 Import-Package: javax.bluetooth,
  javax.microedition.io,
  org.osgi.framework
-Eclipse-LazyStart: true
+Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: CDC-1.0/Foundation-1.0,
  OSGi/Minimum-1.0
