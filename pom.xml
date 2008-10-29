@@ -4,7 +4,7 @@
   <artifactId>project</artifactId>
   <packaging>pom</packaging>
   <name>R-OSGi</name>
-  <version>1.0.0.RC3</version>
+  <version>1.0.0.RC4</version>
   <description>R-OSGi Project</description>
   <url>http://r-osgi.sourceforge.net</url>
   <issueManagement>
@@ -17,8 +17,8 @@
       <name>Jan S. Rellermeyer</name>
       <email>rellermeyer_at_inf.ethz.ch</email>
       <url>http://people.inf.ethz.ch/rjan</url>
-      <organization>IKS, ETH Zurich</organization>
-      <organizationUrl>http://www.iks.inf.ethz.ch</organizationUrl>
+      <organization>Systems Group, ETH Zurich</organization>
+      <organizationUrl>http://www.systems.ethz.ch</organizationUrl>
       <roles>
         <role>Project Creator</role>
         <role>OSGi Preacher</role>
@@ -59,10 +59,10 @@
     <url>http://www.iks.inf.ethz.ch</url>
   </organization>
   <modules>
-    <module>remote</module>
-    <module>sample/api</module>
+    <module>remote</module>    
     <module>sample/client</module>
     <module>sample/service</module>
+    <module>sample/dependency</module>
     <module>sample/clockservice</module>
     <module>sample/concierge/shell</module>
     <module>transport/mina</module>
