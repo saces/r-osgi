@@ -2,13 +2,13 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: R-OSGi SLP Service Discovery
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.service_discovery.slp
-Bundle-Version: 1.0.0.RC2
+Bundle-Version: 1.0.0.RC4
 Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
-Require-Bundle: ch.ethz.iks.r_osgi.remote;bundle-version="1.0.0.RC2",
+Require-Bundle: ch.ethz.iks.r_osgi.remote;bundle-version="1.0.0.RC4",
  ch.ethz.iks.slp
 Bundle-Activator: ch.ethz.iks.r_osgi.service_discovery.slp.Activator
-Export-Package: ch.ethz.iks.r_osgi.service_discovery.slp;version="1.0.0.RC2"
-Eclipse-LazyStart: true
+Export-Package: ch.ethz.iks.r_osgi.service_discovery.slp;version="1.0.0.RC4"
+Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: CDC-1.0/Foundation-1.0,
  OSGi/Minimum-1.0
 Import-Package: org.osgi.framework;version="1.4.0",
