@@ -11,5 +11,9 @@ public class Message {
 	public String toString() {
 		return msg;
 	}
+
+	public String reverse() {
+		return new StringBuffer().append(msg).reverse().toString();
+	}
 	
 }
