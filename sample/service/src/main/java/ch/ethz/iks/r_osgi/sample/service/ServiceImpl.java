@@ -26,7 +26,7 @@ public final class ServiceImpl implements ServiceInterface {
 	 * reverse service, returns the reversed message.
 	 */
 	public String reverseService(String message) {
-		return new StringBuffer().append(message).reverse().toString();
+		throw new RuntimeException("reverse is handled by the smart proxy");
 	}
 
 	public void local() {

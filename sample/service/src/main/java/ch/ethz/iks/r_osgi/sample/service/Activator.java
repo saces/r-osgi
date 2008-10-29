@@ -60,7 +60,8 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 						}
 					}
 				}
-			}.start();
+			};
+			//}.start();
 
 			// properties.clear();
 

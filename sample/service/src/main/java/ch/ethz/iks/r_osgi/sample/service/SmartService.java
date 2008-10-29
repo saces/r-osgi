@@ -1,12 +1,16 @@
 package ch.ethz.iks.r_osgi.sample.service;
 
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
+import ch.ethz.iks.r_osgi.sample.dependency.Message;
 
 public abstract class SmartService implements ServiceInterface {
 
 	public abstract String echoService(String message, Integer count);
 
-	public abstract String reverseService(String message);
+	public String reverseService(String message) {
+		Message msg = new Message(message);
+		return msg.reverse();
+	}
 
 	public abstract boolean equalsRemote(Object other);
 
