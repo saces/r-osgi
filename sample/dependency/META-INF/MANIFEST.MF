@@ -1,6 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ch.ethz.iks.sample.dependency
-Bundle-SymbolicName: ch.ethz.iks.sample.dependency
-Bundle-Version: 1.0.0.RC3
+Bundle-SymbolicName: ch.ethz.iks.r_osgi.sample.dependency
+Bundle-Version: 1.0.0.RC4
 Bundle-RequiredExecutionEnvironment: OSGi/Minimum-1.0
+Export-Package: ch.ethz.iks.r_osgi.sample.dependency;version="1.0.0.RC4"
