@@ -743,6 +743,32 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	/**
 	 * 
+	 * @throws InterruptedException 
+	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getRemoteServiceBundle(ch.ethz.iks.r_osgi.RemoteServiceReference)
+	 * @since 1.0.0.RC4
+	 */
+	public Object getRemoteServiceBundle(final RemoteServiceReference ref,
+			final int timeout) throws InterruptedException {
+		if (ref == null) {
+			throw new IllegalArgumentException("Remote Reference is null."); //$NON-NLS-1$
+		}
+		getChannel(ref.getURI()).getCloneBundle(ref);
+		if (timeout < 0) {
+			return null;
+		}
+		// TODO: FIXME use at least all service interfaces
+		final ServiceTracker tracker = new ServiceTracker(RemoteOSGiActivator
+				.getActivator().getContext(), ref.getServiceInterfaces()[0],
+				null);
+		tracker.open();
+		tracker.waitForService(0);
+		// TODO: FIXME compare that the service is actually the one from the fetched
+		// bundle!
+		return tracker.getService();
+	}
+
+	/**
+	 * 
 	 * @param ref
 	 *            the <code>RemoteServiceReference</code> to the service.
 	 * @return the service reference of the service (or service proxy) or
@@ -1058,6 +1084,18 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 	}
 
+	static byte[] getBundle(final Bundle bundle) throws IOException {
+		final byte[] buffer = new byte[BUFFER_SIZE];
+		final CRC32 crc = new CRC32();
+
+		// workaround for Eclipse
+		final String prefix = bundle.getEntry(pkgAdmin
+				.getExportedPackages(bundle)[0].getName().replace('.', '/')) == null ? "/bin" //$NON-NLS-1$
+				: ""; //$NON-NLS-1$
+
+		return generateBundle(bundle, prefix, buffer, crc);
+	}
+
 	static byte[][] getBundlesForPackages(final String[] packages)
 			throws IOException {
 		final HashSet visitedBundles = new HashSet(packages.length);
@@ -1092,9 +1130,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	static boolean checkPackageImport(final String pkg) {
 		// TODO: use versions if on R4
-		return pkgAdmin.getExportedPackage(pkg) != null;	
+		return pkgAdmin.getExportedPackage(pkg) != null;
 	}
-	
+
 	private static byte[] generateBundle(final Bundle bundle,
 			final String prefix, final byte[] buffer, final CRC32 crc)
 			throws IOException {

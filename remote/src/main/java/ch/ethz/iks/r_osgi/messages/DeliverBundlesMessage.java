@@ -4,17 +4,17 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-public class DeliverDependenciesMessage extends RemoteOSGiMessage {
+public class DeliverBundlesMessage extends RemoteOSGiMessage {
 
 	private byte[][] bytes;
 
-	public DeliverDependenciesMessage() {
-		super(RemoteOSGiMessage.DELIVER_DEPENDENCIES);
+	public DeliverBundlesMessage() {
+		super(RemoteOSGiMessage.DELIVER_BUNDLES);
 	}
 
-	public DeliverDependenciesMessage(final ObjectInputStream input)
+	public DeliverBundlesMessage(final ObjectInputStream input)
 			throws IOException {
-		super(RemoteOSGiMessage.DELIVER_DEPENDENCIES);
+		super(RemoteOSGiMessage.DELIVER_BUNDLES);
 		final int bundleCount = input.readInt();
 		bytes = new byte[bundleCount][];
 		for (int i = 0; i < bundleCount; i++) {
@@ -45,7 +45,7 @@ public class DeliverDependenciesMessage extends RemoteOSGiMessage {
 	 */
 	public String toString() {
 		final StringBuffer buffer = new StringBuffer();
-		buffer.append("[DELIVER_DEPENDENCIES]"); //$NON-NLS-1$
+		buffer.append("[DELIVER_BUNDLES]"); //$NON-NLS-1$
 		buffer.append("- XID: "); //$NON-NLS-1$
 		buffer.append(xid);
 		buffer.append(", ... "); //$NON-NLS-1$

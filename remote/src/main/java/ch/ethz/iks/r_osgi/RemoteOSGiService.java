@@ -214,6 +214,23 @@ public interface RemoteOSGiService {
 	Object getRemoteService(final RemoteServiceReference ref);
 
 	/**
+	 * get a copy of the bundle that has registered the remote service.
+	 * 
+	 * @param ref
+	 *            the remote service reference
+	 * @param timeout
+	 *            number of milliseconds to wait for the service to be
+	 *            registered after the bundle has been started. A value of 0
+	 *            means indefinite time, a negative value means don't wait at
+	 *            all.
+	 * @return the service object or null if the timeout is exceeded and the
+	 *         service has not appeared.
+	 * @throws InterruptedException 
+	 */
+	Object getRemoteServiceBundle(final RemoteServiceReference ref,
+			final int timeout) throws InterruptedException;
+
+	/**
 	 * unget the service. The proxy bundle will be uninstalled. The service will
 	 * be no longer available, unless it is retrieved through
 	 * {@link #getRemoteService(RemoteServiceReference)} again.

@@ -106,12 +106,18 @@ public abstract class RemoteOSGiMessage {
 	 * type code for request dependency message.
 	 */
 	public static final short REQUEST_DEPENDENCIES = 12;
+	
+	/**
+	 * type code for request bundle message
+	 */
+	public static final short REQUEST_BUNDLE = 13;
 
 	/**
-	 * type code for deliver dependency message
+	 * type code for deliver bundles message
 	 */
-	public static final short DELIVER_DEPENDENCIES = 13;
+	public static final short DELIVER_BUNDLES = 14;
 
+	
 	/**
 	 * the type code or functionID in SLP notation.
 	 */
@@ -224,8 +230,11 @@ public abstract class RemoteOSGiMessage {
 		case REQUEST_DEPENDENCIES:
 			msg = new RequestDependenciesMessage(input);
 			break;
-		case DELIVER_DEPENDENCIES:
-			msg = new DeliverDependenciesMessage(input);
+		case REQUEST_BUNDLE:
+			msg = new RequestBundleMessage(input);
+			break;
+		case DELIVER_BUNDLES:
+			msg = new DeliverBundlesMessage(input);
 			break;
 		default:
 			throw new RemoteOSGiException("funcID " + funcID //$NON-NLS-1$

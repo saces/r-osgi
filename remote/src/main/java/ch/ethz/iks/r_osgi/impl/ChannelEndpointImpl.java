@@ -64,8 +64,9 @@ import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.channels.ChannelEndpoint;
 import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
-import ch.ethz.iks.r_osgi.messages.DeliverDependenciesMessage;
+import ch.ethz.iks.r_osgi.messages.DeliverBundlesMessage;
 import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
+import ch.ethz.iks.r_osgi.messages.RequestBundleMessage;
 import ch.ethz.iks.r_osgi.messages.RequestDependenciesMessage;
 import ch.ethz.iks.r_osgi.messages.RequestServiceMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteCallMessage;
@@ -664,29 +665,38 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 
 		// build the RequestServiceMessage
-		final RequestServiceMessage fetchReq = new RequestServiceMessage();
-		fetchReq.setServiceID(ref.getURI().getFragment());
+		final RequestServiceMessage req = new RequestServiceMessage();
+		req.setServiceID(ref.getURI().getFragment());
 
 		// send the RequestServiceMessage and get a DeliverServiceMessage in
-		// return
-		final RemoteOSGiMessage msg = sendAndWait(fetchReq);
+		// return. The DeliverServiceMessage contains a minimal description of
+		// the resources
+		// of a proxy bundle. This is the service interface plus type injections
+		// plus import/export
+		// declarations for the bundle.
+		final DeliverServiceMessage deliv = (DeliverServiceMessage) sendAndWait(req);
 
+		// generate a proxy bundle for the service
+		final InputStream in = new ProxyGenerator().generateProxyBundle(ref
+				.getURI(), deliv);
+
+		installResolveAndStartBundle(ref, in, true);
+	}
+
+	private void installResolveAndStartBundle(final RemoteServiceReference ref,
+			final InputStream in, final boolean isProxy) {
 		try {
-			final DeliverServiceMessage deliv = (DeliverServiceMessage) msg;
-			final URI service = networkChannel.getRemoteAddress().resolve(
-					"#" + deliv.getServiceID()); //$NON-NLS-1$
-
-			// generate a proxy bundle for the service
-			final InputStream in = new ProxyGenerator().generateProxyBundle(
-					service, deliv);
 
 			final Bundle bundle = RemoteOSGiActivator.getActivator()
-					.getContext().installBundle(service.toString(), in);
+					.getContext().installBundle(ref.getURI().toString(), in);
 
-			checkImports(deliv.getImports());
+			checkImports((String) bundle.getHeaders().get(
+					Constants.IMPORT_PACKAGE));
 
-			// store the bundle for state updates and cleanup
-			proxyBundles.put(service.getFragment(), bundle);
+			if (isProxy) {
+				// store the bundle for state updates and cleanup
+				proxyBundles.put(ref.getURI().getFragment(), bundle);
+			}
 
 			// start the bundle
 			bundle.start();
@@ -701,6 +711,24 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 	}
 
+	void getCloneBundle(final RemoteServiceReference ref) {
+		if (networkChannel == null) {
+			throw new RemoteOSGiException("Channel is closed."); //$NON-NLS-1$
+		}
+
+		// build the RequestBundleMessage
+		final RequestBundleMessage req = new RequestBundleMessage();
+		req.setServiceID(ref.getURI().getFragment());
+
+		final DeliverBundlesMessage deliv = (DeliverBundlesMessage) sendAndWait(req);
+
+		final byte[] bundleBytes = deliv.getDependencies()[0];
+
+		installResolveAndStartBundle(ref,
+				new ByteArrayInputStream(bundleBytes), false);
+	}
+
+	// TODO: recurse
 	private void checkImports(final String importString) {
 		final ArrayList missingImports = new ArrayList();
 		final StringTokenizer tokenizer = new StringTokenizer(importString, ",");
@@ -718,17 +746,19 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		final String[] missing = (String[]) missingImports
 				.toArray(new String[missingImports.size()]);
 		if (missing.length > 0) {
-			System.out.println("MISSING DEPENDENCIES " + Arrays.asList(missing));
+			System.out
+					.println("MISSING DEPENDENCIES " + Arrays.asList(missing));
 			final RequestDependenciesMessage req = new RequestDependenciesMessage();
 			req.setPackages(missing);
-			final DeliverDependenciesMessage deps = (DeliverDependenciesMessage) sendAndWait(req);
+			final DeliverBundlesMessage deps = (DeliverBundlesMessage) sendAndWait(req);
 			final byte[][] depBytes = deps.getDependencies();
 			for (int i = 0; i < depBytes.length; i++) {
 				try {
-					final Bundle bundle = RemoteOSGiActivator.getActivator().getContext()
-							.installBundle("r-osgi://dep/" + missing[i],
+					final Bundle bundle = RemoteOSGiActivator.getActivator()
+							.getContext().installBundle(
+									"r-osgi://dep/" + missing[i],
 									new ByteArrayInputStream(depBytes[i]));
-					bundle.start();
+					// bundle.start();
 				} catch (BundleException be) {
 					be.printStackTrace();
 				}
@@ -852,14 +882,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			return lease;
 		}
 		case RemoteOSGiMessage.REQUEST_SERVICE: {
-			final RequestServiceMessage fetchReq = (RequestServiceMessage) msg;
-			final String serviceID = fetchReq.getServiceID();
+			final RequestServiceMessage reqSrv = (RequestServiceMessage) msg;
+			final String serviceID = reqSrv.getServiceID();
 
 			final RemoteServiceRegistration reg = getServiceRegistration(serviceID);
 
 			final DeliverServiceMessage m = reg.getDeliverServiceMessage();
-			m.setXID(fetchReq.getXID());
-			m.setServiceID(fetchReq.getServiceID());
+			m.setXID(reqSrv.getXID());
+			m.setServiceID(reqSrv.getServiceID());
 			return m;
 		}
 		case RemoteOSGiMessage.LEASE_UPDATE: {
@@ -1066,20 +1096,39 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				return m;
 			}
 		}
+		case RemoteOSGiMessage.REQUEST_BUNDLE:
+			final RequestBundleMessage reqB = (RequestBundleMessage) msg;
+
+			try {
+				final String serviceID = reqB.getServiceID();
+
+				final RemoteServiceRegistration reg = getServiceRegistration(serviceID);
+
+				final byte[] bytes = RemoteOSGiServiceImpl.getBundle(reg
+						.getReference().getBundle());
+
+				final DeliverBundlesMessage delB = new DeliverBundlesMessage();
+				delB.setXID(reqB.getXID());
+				delB.setDependencies(new byte[][] { bytes });
+				return delB;
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+				return null;
+			}
 		case RemoteOSGiMessage.REQUEST_DEPENDENCIES:
 			final RequestDependenciesMessage reqDeps = (RequestDependenciesMessage) msg;
 
 			try {
 				final byte[][] bundleBytes = RemoteOSGiServiceImpl
 						.getBundlesForPackages(reqDeps.getPackages());
-				final DeliverDependenciesMessage delDeps = new DeliverDependenciesMessage();
+				final DeliverBundlesMessage delDeps = new DeliverBundlesMessage();
 				delDeps.setXID(reqDeps.getXID());
 				delDeps.setDependencies(bundleBytes);
 				return delDeps;
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
 				return null;
-			}			
+			}
 		default:
 			throw new RemoteOSGiException("Unimplemented message " + msg); //$NON-NLS-1$
 		}
