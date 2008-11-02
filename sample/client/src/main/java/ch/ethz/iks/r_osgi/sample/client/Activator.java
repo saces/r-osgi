@@ -56,6 +56,12 @@ public class Activator implements BundleActivator, EventHandler {
 
 	private Thread clientThread;
 
+	private static final int GET_PROXY = 0;
+	
+	private static final int GET_BUNDLE_CLONE = 1;
+	
+	private static final int CLIENT = GET_PROXY;
+	
 	public void start(final BundleContext context) {
 		try {
 			System.out.println("starting sample client");
@@ -110,7 +116,13 @@ public class Activator implements BundleActivator, EventHandler {
 						.getRemoteServiceReferences(uri, ServiceInterface.class
 								.getName(), null);
 				System.out.println("REFERENCES " + Arrays.asList(refs));
-				service = (ServiceInterface) remote.getRemoteService(refs[0]);
+				
+				if (CLIENT == GET_PROXY) {
+					service = (ServiceInterface) remote.getRemoteService(refs[0]);
+				} else if (CLIENT == GET_BUNDLE_CLONE) {
+					service = (ServiceInterface) remote.getRemoteServiceBundle(refs[0], 0);
+					System.out.println("SERVICE IS " + service);
+				}
 				clientThread = new ClientThread();
 				clientThread.start();
 			}
