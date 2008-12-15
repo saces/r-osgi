@@ -34,6 +34,7 @@
 						<bundleSymbolicName>ch.ethz.iks.r_osgi.sample.dependency</bundleSymbolicName>						
 						<bundleVendor>Jan S. Rellermeyer, ETH Zurich</bundleVendor>
 						<importPackage>org.osgi.framework</importPackage>
+						<exportPackage>ch.ethz.iks.r_osgi.sample.dependency</exportPackage>
 					</osgiManifest>
 				</configuration>
 			</plugin>
