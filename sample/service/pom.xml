@@ -13,16 +13,16 @@
 
 	<build>
 		<plugins>
-	    	<plugin>
-		        <groupId>org.apache.maven.plugins</groupId>
-        		<artifactId>maven-compiler-plugin</artifactId>
-          		<configuration>
-	    			<source>1.2</source>
-	    			<target>1.1</target>
-	    			<optimize>true</optimize>
-	    			<debug>false</debug>
-	    		</configuration>
-	    	</plugin>		
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.2</source>
+					<target>1.1</target>
+					<optimize>true</optimize>
+					<debug>false</debug>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.felix.plugins</groupId>
 				<artifactId>maven-osgi-plugin</artifactId>
@@ -30,12 +30,17 @@
 				<extensions>true</extensions>
 				<configuration>
 					<osgiManifest>
-						<bundleActivator>ch.ethz.iks.r_osgi.sample.service.Activator</bundleActivator>
+						<bundleActivator>ch.ethz.iks.r_osgi.sample.service.Activator
+						</bundleActivator>
 						<bundleName>R-OSGi Sample Service</bundleName>
-						<bundleSymbolicName>ch.ethz.iks.r_osgi.sample.service</bundleSymbolicName>						
+						<bundleSymbolicName>ch.ethz.iks.r_osgi.sample.service
+						</bundleSymbolicName>
 						<bundleVendor>Jan S. Rellermeyer, ETH Zurich</bundleVendor>
-						<importPackage>org.osgi.framework, ch.ethz.iks.r_osgi, org.osgi.service.event,  ch.ethz.iks.r_osgi.sample.dependency</importPackage>
-						<exportPackage>ch.ethz.iks.concierge.shell.commands, ch.ethz.iks.r_osgi.sample.api</exportPackage>
+						<importPackage>org.osgi.framework,
+							org.osgi.service.event, ch.ethz.iks.r_osgi,
+							ch.ethz.iks.r_osgi.sample.dependency</importPackage>
+						<exportPackage>ch.ethz.iks.concierge.shell.commands,
+							ch.ethz.iks.r_osgi.sample.api</exportPackage>
 					</osgiManifest>
 				</configuration>
 			</plugin>
@@ -48,30 +53,37 @@
 			<artifactId>org.osgi</artifactId>
 			<version>3.0</version>
 			<scope>provided</scope>
-		</dependency>	
+		</dependency>
 		<dependency>
 			<groupId>ch.ethz.iks.r-osgi</groupId>
 			<artifactId>remote</artifactId>
 			<version>${pom.version}</version>
 			<scope>provided</scope>
 		</dependency>
-    	<dependency>
-      		<groupId>ch.ethz.iks.concierge</groupId>
-      		<artifactId>event-admin</artifactId>
-      		<version>1.0.0.RC2</version>
-      		<scope>provided</scope>
-    	</dependency>		
+		<dependency>
+			<groupId>ch.ethz.iks.concierge</groupId>
+			<artifactId>event-admin</artifactId>
+			<version>1.0.0.RC2</version>
+			<scope>provided</scope>
+		</dependency>
+        <dependency>
+			<groupId>ch.ethz.iks.r-osgi.sample</groupId>
+			<artifactId>sample.dependency</artifactId>
+			<version>${pom.version}</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
-	
-  <reporting>
-    <plugins>
-      <plugin>
-        <artifactId>maven-site-plugin</artifactId>
-        <configuration>
-          <templateFile>${basedir}/../../maven-site-r-osgi.vm</templateFile>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
-	
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<artifactId>maven-site-plugin</artifactId>
+				<configuration>
+					<templateFile>${basedir}/../../maven-site-r-osgi.vm
+					</templateFile>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
+
 </project>

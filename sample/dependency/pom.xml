@@ -13,16 +13,16 @@
 
 	<build>
 		<plugins>
-	    	<plugin>
-		        <groupId>org.apache.maven.plugins</groupId>
-        		<artifactId>maven-compiler-plugin</artifactId>
-          		<configuration>
-	    			<source>1.2</source>
-	    			<target>1.1</target>
-	    			<optimize>true</optimize>
-	    			<debug>false</debug>
-	    		</configuration>
-	    	</plugin>		
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.2</source>
+					<target>1.1</target>
+					<optimize>true</optimize>
+					<debug>false</debug>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.felix.plugins</groupId>
 				<artifactId>maven-osgi-plugin</artifactId>
@@ -31,10 +31,13 @@
 				<configuration>
 					<osgiManifest>
 						<bundleName>R-OSGi Sample Dependency</bundleName>
-						<bundleSymbolicName>ch.ethz.iks.r_osgi.sample.dependency</bundleSymbolicName>						
+						<bundleSymbolicName>ch.ethz.iks.r_osgi.sample.dependency
+						</bundleSymbolicName>
 						<bundleVendor>Jan S. Rellermeyer, ETH Zurich</bundleVendor>
-						<importPackage>org.osgi.framework</importPackage>
-						<exportPackage>ch.ethz.iks.r_osgi.sample.dependency</exportPackage>
+						<importPackage>org.osgi.framework
+						</importPackage>
+						<exportPackage>ch.ethz.iks.r_osgi.sample.dependency
+						</exportPackage>
 					</osgiManifest>
 				</configuration>
 			</plugin>
@@ -49,16 +52,17 @@
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
-	
+
 	<reporting>
-    <plugins>
-      <plugin>
-        <artifactId>maven-site-plugin</artifactId>
-        <configuration>
-          <templateFile>${basedir}/../../maven-site-r-osgi.vm</templateFile>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
-	
+		<plugins>
+			<plugin>
+				<artifactId>maven-site-plugin</artifactId>
+				<configuration>
+					<templateFile>${basedir}/../../maven-site-r-osgi.vm
+					</templateFile>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
+
 </project>

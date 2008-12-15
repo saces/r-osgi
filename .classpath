@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" output="remote/target/classes" path="remote/src/main/java"/>
-	<classpathentry kind="src" output="sample/api/target/classes" path="sample/api/src/main/java"/>
+	<classpathentry kind="src" path="sample/dependency/src/main/java"/>
 	<classpathentry kind="src" output="sample/client/target/classes" path="sample/client/src/main/java"/>
 	<classpathentry kind="src" output="sample/service/target/classes" path="sample/service/src/main/java"/>
 	<classpathentry kind="src" output="sample/clockservice/target/classes" path="sample/clockservice/src/main/java"/>
