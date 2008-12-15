@@ -1,0 +1,12 @@
+-Dch.ethz.iks.concierge.log.enabled=true
+-Dch.ethz.iks.concierge.log.level=4
+
+-Dch.ethz.iks.concierge.debug.packages=true
+-Dch.ethz.iks.r_osgi.debug.internal=true
+-Dch.ethz.iks.r_osgi.debug.messages=true
+
+-init
+-istart ../shared/bundles/service-tracker-1.0.0.RC2.jar
+-istart ../shared/bundles/event-admin-1.0.0.RC2.jar
+-istart ../../../remote/target/remote-1.0.0.RC4.jar
+-istart ../../client/target/sample.client-1.0.0.RC4.jar
