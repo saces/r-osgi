@@ -31,6 +31,7 @@ package ch.ethz.iks.r_osgi.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -96,6 +97,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	static boolean IS_R4 = false;
 
+	private final static Method getEntry;
+	private final static Method getEntryPaths;
+
 	static {
 		final String verString = System.getProperty("java.class.version"); //$NON-NLS-1$
 		if (verString != null && Float.parseFloat(verString) >= 49) {
@@ -106,6 +110,20 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		if (osgiVerString != null && (!osgiVerString.trim().startsWith("1.3"))) { //$NON-NLS-1$
 			IS_R4 = true;
 		}
+		Method m = null;
+		Method n = null;
+		try {
+			m = Bundle.class
+					.getMethod("getEntry", new Class[] { String.class });
+			n = Bundle.class.getMethod("getEntryPaths",
+					new Class[] { String.class });
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		}
+		getEntry = m;
+		getEntryPaths = n;
 	}
 
 	/**
@@ -743,7 +761,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	/**
 	 * 
-	 * @throws InterruptedException 
+	 * @throws InterruptedException
 	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getRemoteServiceBundle(ch.ethz.iks.r_osgi.RemoteServiceReference)
 	 * @since 1.0.0.RC4
 	 */
@@ -762,7 +780,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 				null);
 		tracker.open();
 		tracker.waitForService(0);
-		// TODO: FIXME compare that the service is actually the one from the fetched
+		// TODO: FIXME compare that the service is actually the one from the
+		// fetched
 		// bundle!
 		return tracker.getService();
 	}
@@ -1088,12 +1107,22 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		final byte[] buffer = new byte[BUFFER_SIZE];
 		final CRC32 crc = new CRC32();
 
-		// workaround for Eclipse
-		final String prefix = bundle.getEntry(pkgAdmin
-				.getExportedPackages(bundle)[0].getName().replace('.', '/')) == null ? "/bin" //$NON-NLS-1$
-				: ""; //$NON-NLS-1$
+		if (getEntry == null) {
+			throw new RuntimeException("Running on R3...");
+		}
 
-		return generateBundle(bundle, prefix, buffer, crc);
+		try {
+			// workaround for Eclipse
+			final String prefix = getEntry.invoke(bundle,
+					new Object[] { pkgAdmin.getExportedPackages(bundle)[0]
+							.getName().replace('.', '/') }) == null ? "/bin" //$NON-NLS-1$
+					: ""; //$NON-NLS-1$
+
+			return generateBundle(bundle, prefix, buffer, crc);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IOException(e.getMessage());
+		}
 	}
 
 	static byte[][] getBundlesForPackages(final String[] packages)
@@ -1118,12 +1147,22 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			}
 			visitedBundles.add(bundle);
 
-			// workaround for Eclipse
-			final String prefix = bundle
-					.getEntry(packages[i].replace('.', '/')) == null ? "/bin" //$NON-NLS-1$
-					: ""; //$NON-NLS-1$
+			if (getEntry == null) {
+				throw new RuntimeException("Running on R3...");
+			}
 
-			bundleBytes.add(generateBundle(bundle, prefix, buffer, crc));
+			// workaround for Eclipse
+			try {
+				final String prefix = getEntry.invoke(bundle,
+						new Object[] { packages[i].replace('.', '/') }) == null ? "/bin" //$NON-NLS-1$
+						: ""; //$NON-NLS-1$
+				bundleBytes.add(generateBundle(bundle, prefix, buffer, crc));
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new IOException(e.getMessage());
+			}
+
 		}
 		return (byte[][]) bundleBytes.toArray(new byte[bundleBytes.size()][]);
 	}
@@ -1135,9 +1174,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	private static byte[] generateBundle(final Bundle bundle,
 			final String prefix, final byte[] buffer, final CRC32 crc)
-			throws IOException {
+			throws Exception {
 
-		final URL url = bundle.getEntry(SEPARATOR_CHAR + MANIFEST_FILE_NAME);
+		final URL url = (URL) getEntry.invoke(bundle,
+				new Object[] { SEPARATOR_CHAR + MANIFEST_FILE_NAME });
 		final Manifest mf = new Manifest();
 		mf.read(url.openStream());
 
@@ -1154,9 +1194,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	private static void scan(final Bundle bundle, final String prefix,
 			final String path, final JarOutputStream out, final byte[] buffer,
-			final CRC32 crc) throws IOException {
+			final CRC32 crc) throws Exception {
 
-		Enumeration e = bundle.getEntryPaths(prefix + SEPARATOR_CHAR + path);
+		Enumeration e = (Enumeration) getEntryPaths.invoke(bundle,
+				new Object[] { prefix + SEPARATOR_CHAR + path });
 		if (e == null) {
 			return;
 		}
