@@ -60,9 +60,9 @@
   </organization>
   <modules>
     <module>remote</module>    
+    <module>sample/dependency</module>
     <module>sample/client</module>
     <module>sample/service</module>
-    <module>sample/dependency</module>
     <module>sample/clockservice</module>
     <module>sample/concierge/shell</module>
     <module>transport/mina</module>
