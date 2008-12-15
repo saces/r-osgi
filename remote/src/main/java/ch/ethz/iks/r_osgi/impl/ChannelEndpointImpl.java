@@ -39,9 +39,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.osgi.framework.Bundle;
@@ -82,6 +84,7 @@ import ch.ethz.iks.r_osgi.streams.InputStreamHandle;
 import ch.ethz.iks.r_osgi.streams.InputStreamProxy;
 import ch.ethz.iks.r_osgi.streams.OutputStreamHandle;
 import ch.ethz.iks.r_osgi.streams.OutputStreamProxy;
+import ch.ethz.iks.util.CollectionUtils;
 
 /**
  * <p>
@@ -691,7 +694,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					.getContext().installBundle(ref.getURI().toString(), in);
 
 			checkImports((String) bundle.getHeaders().get(
-					Constants.IMPORT_PACKAGE));
+					Constants.IMPORT_PACKAGE), (String) bundle.getHeaders()
+					.get(Constants.EXPORT_PACKAGE));
 
 			if (isProxy) {
 				// store the bundle for state updates and cleanup
@@ -728,10 +732,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				new ByteArrayInputStream(bundleBytes), false);
 	}
 
-	// TODO: recurse
-	private void checkImports(final String importString) {
-		final ArrayList missingImports = new ArrayList();
-		final StringTokenizer tokenizer = new StringTokenizer(importString, ",");
+	private String[] getTokens(String str) {
+		final ArrayList result = new ArrayList();
+		final StringTokenizer tokenizer = new StringTokenizer(str, ",");
 		while (tokenizer.hasMoreTokens()) {
 			final String token = tokenizer.nextToken();
 			final int pos;
@@ -739,12 +742,27 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final String pkg = (pos = token.indexOf(";")) > -1 ? token
 					.substring(0, pos).trim() : token.trim();
 			if (!RemoteOSGiServiceImpl.checkPackageImport(pkg)) {
-				missingImports.add(pkg);
+				result.add(pkg);
 			}
 		}
 
-		final String[] missing = (String[]) missingImports
-				.toArray(new String[missingImports.size()]);
+		return (String[]) result.toArray(new String[result.size()]);
+	}
+
+	// TODO: recurse
+	private void checkImports(final String importString,
+			final String exportString) {
+
+		final Set exports = new HashSet(Arrays.asList(getTokens(exportString)));
+		final Set imports = new HashSet(Arrays.asList(getTokens(importString)));
+
+		final String[] missing = (String[]) CollectionUtils.rightDifference(
+				imports, exports).toArray(new String[0]);
+
+		System.out
+		.println("MISSING DEPENDENCIES " + Arrays.asList(missing));
+
+		
 		if (missing.length > 0) {
 			System.out
 					.println("MISSING DEPENDENCIES " + Arrays.asList(missing));

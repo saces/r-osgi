@@ -29,6 +29,8 @@
 package ch.ethz.iks.r_osgi.impl;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -120,7 +122,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
 		}
 		getEntry = m;
 		getEntryPaths = n;
@@ -1136,6 +1137,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		final byte[] buffer = new byte[BUFFER_SIZE];
 		final CRC32 crc = new CRC32();
 
+		final File base = getEntry == null ? RemoteOSGiActivator.getActivator()
+				.getContext().getDataFile("../..") : null;
+
 		// TODO: for R4, handle multiple versions
 		for (int i = 0; i < packages.length; i++) {
 			// TODO: debug output
@@ -1148,19 +1152,36 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			visitedBundles.add(bundle);
 
 			if (getEntry == null) {
-				throw new RuntimeException("Running on R3...");
-			}
 
-			// workaround for Eclipse
-			try {
-				final String prefix = getEntry.invoke(bundle,
-						new Object[] { packages[i].replace('.', '/') }) == null ? "/bin" //$NON-NLS-1$
-						: ""; //$NON-NLS-1$
-				bundleBytes.add(generateBundle(bundle, prefix, buffer, crc));
+				FileInputStream in = new FileInputStream(new File(base, bundle
+						.getBundleId()
+						+ "/bundle"));
 
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new IOException(e.getMessage());
+				int read;
+				final ByteArrayOutputStream out = new ByteArrayOutputStream(
+						2048);
+
+				while ((read = in.read(buffer, 0, 2048)) > -1) {
+					out.write(buffer, 0, read);
+				}
+
+				bundleBytes.add(out.toByteArray());
+
+				// throw new RuntimeException("Running on R3...");
+			} else {
+
+				// workaround for Eclipse
+				try {
+					final String prefix = getEntry.invoke(bundle,
+							new Object[] { packages[i].replace('.', '/') }) == null ? "/bin" //$NON-NLS-1$
+							: ""; //$NON-NLS-1$
+					bundleBytes
+							.add(generateBundle(bundle, prefix, buffer, crc));
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					throw new IOException(e.getMessage());
+				}
 			}
 
 		}
@@ -1169,6 +1190,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	static boolean checkPackageImport(final String pkg) {
 		// TODO: use versions if on R4
+		if (pkg.startsWith("org.osgi")) {
+			return true;
+		}
 		return pkgAdmin.getExportedPackage(pkg) != null;
 	}
 
