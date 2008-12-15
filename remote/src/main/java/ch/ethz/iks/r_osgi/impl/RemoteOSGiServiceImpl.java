@@ -101,6 +101,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	private final static Method getEntry;
 	private final static Method getEntryPaths;
+	private final static File base;
 
 	static {
 		final String verString = System.getProperty("java.class.version"); //$NON-NLS-1$
@@ -125,6 +126,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 		getEntry = m;
 		getEntryPaths = n;
+
+		base = getEntry == null ? RemoteOSGiActivator.getActivator()
+				.getContext().getDataFile("../..") : null;
 	}
 
 	/**
@@ -1106,10 +1110,13 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	static byte[] getBundle(final Bundle bundle) throws IOException {
 		final byte[] buffer = new byte[BUFFER_SIZE];
-		final CRC32 crc = new CRC32();
+		final CRC32 crc = getEntry == null ? null : new CRC32();
+		final ByteArrayOutputStream out = getEntry == null ? new ByteArrayOutputStream(
+				BUFFER_SIZE)
+				: null;
 
 		if (getEntry == null) {
-			throw new RuntimeException("Running on R3...");
+			return getBundleConcierge(bundle, buffer, out);
 		}
 
 		try {
@@ -1135,15 +1142,13 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		// bundles and entries to improve
 		// the performance on smaller VMs.
 		final byte[] buffer = new byte[BUFFER_SIZE];
-		final CRC32 crc = new CRC32();
-
-		final File base = getEntry == null ? RemoteOSGiActivator.getActivator()
-				.getContext().getDataFile("../..") : null;
+		final CRC32 crc = getEntry == null ? null : new CRC32();
+		final ByteArrayOutputStream out = getEntry == null ? new ByteArrayOutputStream(
+				BUFFER_SIZE)
+				: null;
 
 		// TODO: for R4, handle multiple versions
 		for (int i = 0; i < packages.length; i++) {
-			// TODO: debug output
-			System.out.println("getting dependency for " + packages[i]);
 			final Bundle bundle = pkgAdmin.getExportedPackage(packages[i])
 					.getExportingBundle();
 			if (visitedBundles.contains(bundle)) {
@@ -1152,22 +1157,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			visitedBundles.add(bundle);
 
 			if (getEntry == null) {
-
-				FileInputStream in = new FileInputStream(new File(base, bundle
-						.getBundleId()
-						+ "/bundle"));
-
-				int read;
-				final ByteArrayOutputStream out = new ByteArrayOutputStream(
-						2048);
-
-				while ((read = in.read(buffer, 0, 2048)) > -1) {
-					out.write(buffer, 0, read);
-				}
-
-				bundleBytes.add(out.toByteArray());
-
-				// throw new RuntimeException("Running on R3...");
+				bundleBytes.add(getBundleConcierge(bundle, buffer, out));
 			} else {
 
 				// workaround for Eclipse
@@ -1177,7 +1167,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							: ""; //$NON-NLS-1$
 					bundleBytes
 							.add(generateBundle(bundle, prefix, buffer, crc));
-
 				} catch (Exception e) {
 					e.printStackTrace();
 					throw new IOException(e.getMessage());
@@ -1186,6 +1175,22 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 		}
 		return (byte[][]) bundleBytes.toArray(new byte[bundleBytes.size()][]);
+	}
+
+	private static byte[] getBundleConcierge(final Bundle bundle,
+			final byte[] buffer, final ByteArrayOutputStream out)
+			throws IOException {
+		FileInputStream in = new FileInputStream(new File(base, bundle
+				.getBundleId()
+				+ "/bundle"));
+		out.reset();
+
+		int read;
+		while ((read = in.read(buffer, 0, 2048)) > -1) {
+			out.write(buffer, 0, read);
+		}
+
+		return out.toByteArray();
 	}
 
 	static boolean checkPackageImport(final String pkg) {
