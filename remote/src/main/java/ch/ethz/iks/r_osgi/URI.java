@@ -80,8 +80,13 @@ public final class URI implements Serializable {
 	 *            the string.
 	 */
 	public URI(final String uriString) {
+		this(uriString, true);
+	}
+
+	private URI(final String uriString, final boolean hostLookup) {
 		parse(uriString);
-		if (scheme.startsWith("r-osgi") || scheme.startsWith("http")) { //$NON-NLS-1$ //$NON-NLS-2$
+		if (hostLookup
+				&& (scheme.startsWith("r-osgi") || scheme.startsWith("http"))) { //$NON-NLS-1$ //$NON-NLS-2$
 			try {
 				host = InetAddress.getByName(hostString);
 			} catch (final UnknownHostException uhe) {
@@ -101,7 +106,7 @@ public final class URI implements Serializable {
 	 */
 	public static URI create(final String uriString) {
 		try {
-			return new URI(uriString);
+			return new URI(uriString, false);
 		} catch (final Throwable t) {
 			return null;
 		}

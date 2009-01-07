@@ -668,7 +668,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getListeningPort(java.lang.String)
 	 * @category RemoteOSGiService
 	 */
-	public int getListeningPort(String protocol) throws RemoteOSGiException {
+	public int getListeningPort(final String protocol) throws RemoteOSGiException {
 		final NetworkChannelFactory factory = getNetworkChannelFactory(protocol);
 		return factory.getListeningPort(protocol);
 	}
@@ -1225,7 +1225,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			final String path, final JarOutputStream out, final byte[] buffer,
 			final CRC32 crc) throws Exception {
 
-		Enumeration e = (Enumeration) getEntryPaths.invoke(bundle,
+		final Enumeration e = (Enumeration) getEntryPaths.invoke(bundle,
 				new Object[] { prefix + SEPARATOR_CHAR + path });
 		if (e == null) {
 			return;

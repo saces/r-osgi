@@ -360,6 +360,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 										+ " already in use. This instance of R-OSGi is running on port " //$NON-NLS-1$
 										+ listeningPort);
 					}
+					RemoteOSGiServiceImpl.R_OSGI_PORT = listeningPort;
 					return;
 				} catch (final BindException b) {
 					e++;
