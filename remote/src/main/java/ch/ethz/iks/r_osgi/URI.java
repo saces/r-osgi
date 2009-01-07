@@ -81,6 +81,13 @@ public final class URI implements Serializable {
 	 */
 	public URI(final String uriString) {
 		parse(uriString);
+		if (scheme.startsWith("r-osgi") || scheme.startsWith("http")) { //$NON-NLS-1$ //$NON-NLS-2$
+			try {
+				host = InetAddress.getByName(hostString);
+			} catch (final UnknownHostException uhe) {
+				host = null;
+			}
+		}
 	}
 
 	/**
@@ -135,13 +142,6 @@ public final class URI implements Serializable {
 				}
 			}
 			hostString = uriString.substring(cs, ce);
-			if (scheme.startsWith("r-osgi") || scheme.startsWith("http")) { //$NON-NLS-1$ //$NON-NLS-2$
-				try {
-					host = InetAddress.getByName(hostString);
-				} catch (final UnknownHostException uhe) {
-					host = null;
-				}
-			}
 		} catch (final IndexOutOfBoundsException i) {
 			throw new IllegalArgumentException(uriString + " caused " //$NON-NLS-1$
 					+ i.getMessage());
