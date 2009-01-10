@@ -187,6 +187,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private static final String NO_LOOPS = "(!(" //$NON-NLS-1$
 			+ RemoteEventMessage.EVENT_SENDER_URI + "=*))"; //$NON-NLS-1$
 
+	private ArrayList workQueue = new ArrayList();
+
+	private static final int MAX_THREADS = 2;
+
 	boolean hasRedundantLinks = false;
 
 	/**
@@ -208,6 +212,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"opening new channel " + getRemoteAddress()); //$NON-NLS-1$
 		}
+		initThreadPool();
 		RemoteOSGiServiceImpl.registerChannelEndpoint(this);
 	}
 
@@ -220,7 +225,34 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	ChannelEndpointImpl(final NetworkChannel channel) {
 		networkChannel = channel;
 		channel.bind(this);
+		initThreadPool();
 		RemoteOSGiServiceImpl.registerChannelEndpoint(this);
+	}
+
+	private void initThreadPool() {
+		ThreadGroup threadPool = new ThreadGroup("WorkerThreads" + toString());
+		for (int i = 0; i < MAX_THREADS; i++) {
+			final Thread t = new Thread(threadPool, "WorkerThread" + i) {
+				public void run() {
+					try {
+						while (!isInterrupted()) {
+							final Runnable r;
+							synchronized (workQueue) {
+								if (workQueue.isEmpty()) {
+									workQueue.wait();
+								}
+								r = (Runnable) workQueue.remove(0);
+							}
+							r.run();
+						}
+					} catch (InterruptedException ie) {
+
+					}
+				}
+			};
+			t.start();
+
+		}
 	}
 
 	/**
@@ -245,7 +277,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			callback.result(msg);
 			return;
 		} else {
-			new Thread() {
+			final Runnable r = new Runnable() {
 				public void run() {
 					final RemoteOSGiMessage reply = handleMessage(msg);
 					if (reply != null) {
@@ -260,7 +292,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						}
 					}
 				}
-			}.start();
+			};
+			synchronized (workQueue) {
+				workQueue.add(r);
+				workQueue.notify();
+			}
 		}
 	}
 
@@ -759,11 +795,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		final String[] missing = (String[]) CollectionUtils.rightDifference(
 				imports, exports).toArray(new String[0]);
 
-		System.out
-		.println("MISSING DEPENDENCIES " + Arrays.asList(missing));
-
-		
 		if (missing.length > 0) {
+			// TODO: remove debug output
 			System.out
 					.println("MISSING DEPENDENCIES " + Arrays.asList(missing));
 			final RequestDependenciesMessage req = new RequestDependenciesMessage();
@@ -772,11 +805,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final byte[][] depBytes = deps.getDependencies();
 			for (int i = 0; i < depBytes.length; i++) {
 				try {
-					final Bundle bundle = RemoteOSGiActivator.getActivator()
-							.getContext().installBundle(
-									"r-osgi://dep/" + missing[i],
+					RemoteOSGiActivator.getActivator().getContext()
+							.installBundle("r-osgi://dep/" + missing[i],
 									new ByteArrayInputStream(depBytes[i]));
-					// bundle.start();
 				} catch (BundleException be) {
 					be.printStackTrace();
 				}
@@ -1171,9 +1202,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 
 		send(msg);
-
+		
 		// wait for the reply
 		synchronized (blocking) {
+			final RemoteOSGiMessage test = blocking.getResult();
+			if (test != null) {
+				return test;
+			}
 			final long timeout = System.currentTimeMillis() + TIMEOUT;
 			try {
 				while (networkChannel != null
@@ -1527,7 +1562,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		synchronized (callbacks) {
 			callbacks.put(xid, new AsyncCallback() {
-				public void result(RemoteOSGiMessage msg) {
+				public void result(final RemoteOSGiMessage msg) {
 					final RemoteCallResultMessage result = (RemoteCallResultMessage) msg;
 					if (result.causedException()) {
 						callback.remoteCallResult(false, result.getException());

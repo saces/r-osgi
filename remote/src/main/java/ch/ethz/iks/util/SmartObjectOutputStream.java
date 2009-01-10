@@ -29,6 +29,7 @@
 
 package ch.ethz.iks.util;
 
+import java.io.Externalizable;
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectOutputStream;
