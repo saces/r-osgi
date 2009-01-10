@@ -346,7 +346,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 *             if the server socket cannot be opened.
 		 */
 		TCPAcceptorThread() throws IOException {
-			setName("TCPAcceptorThread"); //$NON-NLS-1$
+			setName("TCPChannel:TCPAcceptorThread"); //$NON-NLS-1$
 			setDaemon(true);
 			
 			int e = 0;

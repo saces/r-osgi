@@ -189,7 +189,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 	private ArrayList workQueue = new ArrayList();
 
-	private static final int MAX_THREADS = 2;
+	// TODO: make configurable
+	private static final int MAX_THREADS = 5;
 
 	boolean hasRedundantLinks = false;
 
@@ -238,7 +239,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						while (!isInterrupted()) {
 							final Runnable r;
 							synchronized (workQueue) {
-								if (workQueue.isEmpty()) {
+								while (workQueue.isEmpty()) {
 									workQueue.wait();
 								}
 								r = (Runnable) workQueue.remove(0);
@@ -246,7 +247,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 							r.run();
 						}
 					} catch (InterruptedException ie) {
-
+						ie.printStackTrace();
 					}
 				}
 			};
