@@ -97,9 +97,6 @@ public final class LeaseMessage extends RemoteOSGiMessage {
 			ClassNotFoundException {
 		super(LEASE);
 		final int serviceCount = input.readShort();
-		// TODO: debug output
-		System.out.println("READING " + serviceCount + " SERVICE RECORDS...");
-		
 		serviceIDs = new String[serviceCount];
 		serviceInterfaces = new String[serviceCount][];
 		serviceProperties = new Dictionary[serviceCount];
