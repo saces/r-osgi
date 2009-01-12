@@ -225,7 +225,7 @@ public final class URI implements Serializable {
 	 */
 	public boolean equals(final Object other) {
 		if (other instanceof String) {
-			return equals(URI.create((String) other));
+			return equals(new URI((String) other));
 		} else if (other instanceof URI) {
 			final URI otherURI = (URI) other;
 			return scheme.equals(otherURI.scheme)
