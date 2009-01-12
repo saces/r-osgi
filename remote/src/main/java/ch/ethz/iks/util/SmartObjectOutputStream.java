@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2008 Jan S. Rellermeyer
+/* Copyright (c) 2006-2009 Jan S. Rellermeyer
  * Systems Group,
  * Institute for Pervasive Computing, ETH Zurich.
  * All rights reserved.
@@ -29,7 +29,6 @@
 
 package ch.ethz.iks.util;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectOutputStream;
@@ -46,31 +45,35 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 	private final ObjectOutputStream out;
 
 	public SmartObjectOutputStream(final OutputStream out) throws IOException {
+		// implicitly: super();
+		// thereby, enableOverride is set
 		this.out = new ObjectOutputStream(out);
 	}
 
 	protected final void writeObjectOverride(final Object o) throws IOException {
 		if (o == null) {
-			out.write(0);
+			out.writeByte(0);
 			return;
 		}
+
 		final Object obj = o instanceof BoxedPrimitive ? ((BoxedPrimitive) o)
 				.getBoxed() : o;
 
 		final String clazzName = obj.getClass().getName();
 		if (SmartConstants.positiveList.contains(clazzName)) {
 			// string serializable classes
-			out.write(1);
+			out.writeByte(1);
 			final String id = (String) SmartConstants.classToId.get(clazzName);
 			out.writeUTF(id != null ? id : clazzName);
 			out.writeUTF(obj.toString());
 			return;
 		} else if (obj instanceof Serializable) {
 			// java serializable classes
-			out.write(2);
+			out.writeByte(2);
 			out.writeObject(obj);
+			return;
 		} else {
-			out.write(3);
+			out.writeByte(3);
 
 			// all other classes: try smart serialization
 			Class clazz = obj.getClass();
@@ -83,7 +86,6 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 			out.writeUTF(clazz.getName());
 
 			// TODO: cache this information...
-
 			while (clazz != Object.class) {
 				// check for native methods
 				final Method[] methods = clazz.getDeclaredMethods();
@@ -122,71 +124,139 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 		}
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#write(int)
+	 */
 	public final void write(final int val) throws IOException {
 		out.write(val);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#write(byte[])
+	 */
 	public final void write(final byte[] buf) throws IOException {
-		out.write(buf, 0, buf.length);
+		out.write(buf);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#write(byte[], int, int)
+	 */
 	public final void write(final byte[] buf, final int off, final int len)
 			throws IOException {
 		out.write(buf, off, len);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#flush()
+	 */
 	public final void flush() throws IOException {
 		out.flush();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#reset()
+	 */
 	public final void reset() throws IOException {
 		out.reset();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#close()
+	 */
 	public final void close() throws IOException {
 		out.close();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#writeBoolean(boolean)
+	 */
 	public final void writeBoolean(final boolean val) throws IOException {
 		out.writeBoolean(val);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#writeByte(int)
+	 */
 	public final void writeByte(final int val) throws IOException {
 		out.writeByte(val);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#writeShort(int)
+	 */
 	public final void writeShort(final int val) throws IOException {
 		out.writeShort(val);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#writeChar(int)
+	 */
 	public final void writeChar(final int val) throws IOException {
 		out.writeChar(val);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#writeInt(int)
+	 */
 	public final void writeInt(final int val) throws IOException {
 		out.writeInt(val);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#writeLong(long)
+	 */
 	public final void writeLong(final long val) throws IOException {
 		out.writeLong(val);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#writeFloat(float)
+	 */
 	public final void writeFloat(final float val) throws IOException {
 		out.writeFloat(val);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#writeDouble(double)
+	 */
 	public final void writeDouble(final double val) throws IOException {
 		out.writeDouble(val);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#writeBytes(java.lang.String)
+	 */
 	public final void writeBytes(final String str) throws IOException {
 		out.writeBytes(str);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#writeChars(java.lang.String)
+	 */
 	public final void writeChars(final String str) throws IOException {
 		out.writeChars(str);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectOutputStream#writeUTF(java.lang.String)
+	 */
 	public final void writeUTF(final String str) throws IOException {
 		out.writeUTF(str);
 	}

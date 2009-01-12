@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2008 Jan S. Rellermeyer
+/* Copyright (c) 2006-2009 Jan S. Rellermeyer
  * Systems Group,
  * Institute for Pervasive Computing, ETH Zurich.
  * All rights reserved.
@@ -41,17 +41,22 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 	private final ObjectInputStream in;
 
 	public SmartObjectInputStream(final InputStream in) throws IOException {
+		// implicitly: super();
+		// thereby, enableOverride is set
 		this.in = new ObjectInputStream(in);
 	}
 
 	protected final Object readObjectOverride() throws IOException,
 			ClassNotFoundException {
-		final int cat = in.read();
+		
+		final byte cat = in.readByte();
 		switch (cat) {
 		case 0:
+			// null
 			return null;
 		case 1:
 			// string serialized object
+			// TODO: cache constructors
 			try {
 				final String type = in.readUTF();
 				final Class test = (Class) SmartConstants.idToClass.get(type);
@@ -82,7 +87,6 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 				while (fieldCount > -1) {
 					for (int i = 0; i < fieldCount; i++) {
 						final String fieldName = in.readUTF();
-						System.out.println("read " + fieldName); //$NON-NLS-1$
 						final Object value = readObjectOverride();
 						final Field field = clazz.getDeclaredField(fieldName);
 
@@ -108,72 +112,140 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 		}
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#read()
+	 */
 	public final int read() throws IOException {
 		return in.read();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#read(byte[], int, int)
+	 */
 	public final int read(final byte[] buf, final int off, final int len)
 			throws IOException {
 		return in.read(buf, off, len);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#available()
+	 */
 	public final int available() throws IOException {
 		return in.available();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#close()
+	 */
 	public final void close() throws IOException {
 		in.close();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readBoolean()
+	 */
 	public final boolean readBoolean() throws IOException {
 		return in.readBoolean();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readByte()
+	 */
 	public final byte readByte() throws IOException {
 		return in.readByte();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readUnsignedByte()
+	 */
 	public final int readUnsignedByte() throws IOException {
 		return in.readUnsignedByte();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readChar()
+	 */
 	public final char readChar() throws IOException {
 		return in.readChar();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readShort()
+	 */
 	public final short readShort() throws IOException {
 		return in.readShort();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readUnsignedShort()
+	 */
 	public final int readUnsignedShort() throws IOException {
 		return in.readUnsignedShort();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readInt()
+	 */
 	public final int readInt() throws IOException {
 		return in.readInt();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readLong()
+	 */
 	public final long readLong() throws IOException {
 		return in.readLong();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readFloat()
+	 */
 	public final float readFloat() throws IOException {
 		return in.readFloat();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readDouble()
+	 */
 	public final double readDouble() throws IOException {
 		return in.readDouble();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readFully(byte[])
+	 */
 	public final void readFully(final byte[] buf) throws IOException {
-		in.readFully(buf, 0, buf.length);
+		in.readFully(buf);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readFully(byte[], int, int)
+	 */
 	public final void readFully(final byte[] buf, final int off, final int len)
 			throws IOException {
 		in.readFully(buf, off, len);
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#skipBytes(int)
+	 */
 	public final int skipBytes(final int len) throws IOException {
 		return in.skipBytes(len);
 	}
@@ -185,6 +257,10 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 		return in.readLine();
 	}
 
+	/**
+	 * 
+	 * @see java.io.ObjectInputStream#readUTF()
+	 */
 	public final String readUTF() throws IOException {
 		return in.readUTF();
 	}

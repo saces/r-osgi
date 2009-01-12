@@ -129,12 +129,12 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		/**
 		 * the input stream.
 		 */
-		protected SmartObjectInputStream input;
+		protected java.io.ObjectInputStream input;
 
 		/**
 		 * the output stream.
 		 */
-		protected SmartObjectOutputStream output;
+		protected java.io.ObjectOutputStream output;
 
 		/**
 		 * the channel endpoint.
@@ -217,9 +217,11 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			socket.setTcpNoDelay(true);
 			output = new SmartObjectOutputStream(new BufferedOutputStream(
 					socket.getOutputStream()));
+			//output = new java.io.ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 			output.flush();
 			input = new SmartObjectInputStream(new BufferedInputStream(socket
 					.getInputStream()));
+			//input = new java.io.ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
 		}
 
 		/**
