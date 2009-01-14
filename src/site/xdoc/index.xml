@@ -12,15 +12,14 @@
 	<body>
 		<section name="Overview">
 			<p>
-			<b>Current release: 1.0.0.RC2</b><br/>
+			<b>Current release: 1.0.0.RC4</b><br/>
+			<b>Improvements:</b><br/>
 			<ul>
-				<li>Complete redesign of the R-OSGi model.</li> 
-				<li>Service discovery is now an orthogonal functionality and handled by an optional layer.</li>
-				<li>Remote services are now accessible in a way much more similar to local services. </li>
-				<li>Remote services can implement multiple service interfaces and the generated proxies will implement all of them </li>			
-				<li>Pluggable transports (e.g., tcp, tcp over mina, bluetooth, ...) </li>
-				<li>Pluggable service discovery modules (e.g., SLP service discovery, SSDP in bluetooth networks, ...) </li>
-				<li>RC2 fixes issues with the stream handling and the URI reverse lookup problem</li>
+				<li>Smart serialization allows to use Java classes as arguments which don't implement Serializable.</li> 
+				<li>Dependency provisioning: the package dependencies of the client proxy will get resolved by provisioning the corresponding bundles from the remote framework.</li>
+				<li>Native support for non-transparent asynchronous service invocation.</li>
+				<li>Improved performance.</li>
+				<li>Plenty of bugs fixed.</li>
 			</ul>
 			</p>
 			<p>

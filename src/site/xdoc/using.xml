@@ -33,6 +33,11 @@
 				<td>SwissQM is a stack-based Virtual Machine for wireless sensor networks. We use R-OSGi in an experimental branch to provide an integration into the Eclipse IDE.</td>
 				<td><a href="http://www.swissqm.inf.ethz.ch">http://www.swissqm.inf.ethz.ch</a></td>
 			</tr>
+			<tr>
+				<td><i>BUG</i></td>
+				<td>The BUG platform can access remote services with R-OSGi, see: <a href="http://community.buglabs.net/kgilmer/posts/49-R-OSGi-or-how-to-call-OSGi-services-remotely-Part-I">http://community.buglabs.net/kgilmer/posts/49-R-OSGi-or-how-to-call-OSGi-services-remotely-Part-I</a></td>
+				<td><a href="http://www.buglabs.net">http://www.buglabs.net</a></td>
+			</tr>			
 		</table>
 		</p>		
 		<p>

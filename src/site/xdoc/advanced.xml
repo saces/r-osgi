@@ -12,7 +12,7 @@
 	<body>
 		<section name="Advanced R-OSGi">
 			<p>
-			For reasons of saving service provider's resources or to have client dependent code parts, services can register smart proxies. These are 
+			For reasons of saving service provider's resources or to have client-dependent code parts, services can register smart proxies. These are 
 			abstract classes that implement the service interface and can have additional methods. The service consuming platform uses smart proxies during
 			proxy bundle generation and leaves all implemented (i.e. not abstract) methods untouched. Abstract methods are implemented with remote 
 			method invocations. 
