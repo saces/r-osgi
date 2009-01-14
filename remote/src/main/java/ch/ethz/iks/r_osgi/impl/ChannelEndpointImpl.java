@@ -1313,25 +1313,21 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		// wait for the reply
 		synchronized (blocking) {
-			final RemoteOSGiMessage test = blocking.getResult();
-			if (test != null) {
-				return test;
-			}
 			final long timeout = System.currentTimeMillis() + TIMEOUT;
+			RemoteOSGiMessage result = blocking.getResult();
 			try {
-				while (networkChannel != null
+				while (result == null && networkChannel != null
 						&& System.currentTimeMillis() < timeout) {
 					blocking.wait(TIMEOUT);
-					final RemoteOSGiMessage result = blocking.getResult();
-					if (result != null) {
-						return result;
-					}
+					result = blocking.getResult();
 				}
 			} catch (InterruptedException ie) {
 				throw new RemoteOSGiException(
 						"Interrupted while waiting for callback", ie); //$NON-NLS-1$
 			}
-			if (networkChannel == null) {
+			if (result != null) {
+				return result;
+			} else if (networkChannel == null) {
 				throw new RemoteOSGiException("Channel is closed"); //$NON-NLS-1$
 			} else {
 				throw new RemoteOSGiException(
