@@ -75,7 +75,7 @@
       <plugin>
         <artifactId>maven-site-plugin</artifactId>
         <configuration>
-          <templateFile>${basedir}/../../maven-site-r-osgi.vm</templateFile>
+          <templateFile>${basedir}/../../../maven-site-r-osgi.vm</templateFile>
         </configuration>
       </plugin>
     </plugins>

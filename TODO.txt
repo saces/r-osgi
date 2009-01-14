@@ -1,9 +1,9 @@
 
-- asynchronous API
-- default port problem
+- asynchronous API (DONE)
+- default port problem (FIXED)
 - disconnect problem
-- find the reason for the timing problem in the tests (testInterface fails if executed with the other tests)
-- dependency bundle transfer
+- find the reason for the timing problem in the tests (testInterface fails if executed with the other tests) 
+- dependency bundle transfer (DONE)
 - test / fix service discovery
 - SerialUID equivalent for smart serialization
 - dependency bundle updates

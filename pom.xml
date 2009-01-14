@@ -32,7 +32,7 @@
       <name>Michael Duller</name>
       <email>michael.duller_at_inf.ethz.ch</email>
       <url>http://people.inf.ethz.ch/dullerm</url>
-      <organization>IKS, ETH Zurich</organization>
+      <organization>Systems Group, ETH Zurich</organization>
       <organizationUrl>http://www.iks.inf.ethz.ch</organizationUrl>
       <roles>
         <role>Sensor Node Hacker</role>
@@ -164,7 +164,7 @@
     </repository>
     <site>
       <id>sourceforge-site</id>
-      <url>scp://shell.sourceforge.net/home/groups/r/r-/r-osgi/htdocs/</url>
+      <url>scp://rjan,r-osgi@web.sourceforge.net/home/groups/r/r-/r-osgi/htdocs/</url>
     </site>
   </distributionManagement>
 </project>

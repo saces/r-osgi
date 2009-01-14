@@ -55,7 +55,9 @@
 		</p>
 		<p>
 			Recent publications: <br/>
-			<i>Jan S. Rellermeyer, Michael Duller, Ken Gilmer, Damianos Maragkos, Dimitrios Papageorgiou, Gustavo Alonso: <a href="http://www.iks.inf.ethz.ch/publications/publications/iot08.html" target="_new">The Software Fabric for the Internet of Things</a>. In: Proceedings of the 1st International Conference on the Internet of Things (IoT 2008), Zurich, Switzerland, 2008</i><br/>
+			<i>Jan S. Rellermeyer, Oriana Riva, Gustavo Alonso: <a href="http://www.iks.inf.ethz.ch/publications/middleware08_alfredo.html" target="new">AlfredO: An Architecture for Flexible Interaction with Electronic Devices</a>. In: Proceedings of the ACM/IFIP/USENIX 9th International Middleware Conference (Middleware 2008), Leuven, Belgium, December 2008</i><br/>
+			<i>Jan S. Rellermeyer, Michael Duller, Gustavo Alonso: <a href="http://www.iks.inf.ethz.ch/publications/hotswup08.html" target="new">Consistently Applying Updates to Compositions of Distributed OSGi Services</a>. In: Hot Topics on Software Updates (HotSWUp) Workshop (in conjunction with OOPSLA 08), Nashville, TN, October 2008</i><br/>
+			<i>Jan S. Rellermeyer, Michael Duller, Ken Gilmer, Damianos Maragkos, Dimitrios Papageorgiou, Gustavo Alonso: <a href="http://www.iks.inf.ethz.ch/publications/publications/iot08.html" target="new">The Software Fabric for the Internet of Things</a>. In: Proceedings of the 1st International Conference on the Internet of Things (IoT 2008), Zurich, Switzerland, 2008</i><br/>
 			<i>Jan S. Rellermeyer, Gustavo Alonso, Timothy Roscoe: <a href="http://www.iks.inf.ethz.ch/publications/publications/middleware07_r-osgi.html" target='new'>R-OSGi: Distributed Applications through Software Modularization</a>. In: Proceedings of the ACM/IFIP/USENIX 8th International Middleware Conference Conference (Middleware 2007), Newport Beach, CA, 2007</i><br/>
 			<i>Jan S. Rellermeyer, Gustavo Alonso, Timothy Roscoe: <a href="http://www.iks.inf.ethz.ch/publications/publications/oopsla07demo.html" target='new'>Ready for Distribution? Turning Modular into Distributed Applications with the R-OSGi Deployment Tool (Demo)</a>. In: Companion Proceedings of the ACM SIGPLAN International Conference on Object-Oriented Programming, Systems, Languages and Applications (OOPSLA 07), Montreal, Canada, 2007.</i><br/>          	
 			<i>Jan S. Rellermeyer, Gustavo Alonso, Timothy Roscoe: <a href="http://www.iks.inf.ethz.ch/publications/publications/etx07.html" target='new'>Building, Deploying, and Monitoring Distributed Applications with Eclipse and R-OSGi</a>. In: Eclipse Technology eXchange (ETX 07) Workshop (in conjunction with OOPSLA 07), Montreal, Canada, 2007</i><br/>
@@ -63,7 +65,7 @@
 				
 		<p>
 			Thanks to all who attended our talk at EclipseCon 2007: <b><a href="http://www.eclipsecon.org/2007/index.php?page=sub/&amp;id=3661">Services Everywhere: OSGi in Distributed Environments</a></b>. Both the paper and the presentation slides are available on the <a href="http://eclipsezilla.eclipsecon.org/show_bug.cgi?id=3661">Eclipsezilla</a>.<br/>
-			<a href="http://www.eclipsecon.org/2007/"><img border="0" heigth="48" width="300" src="http://www.eclipsecon.org/2007/image600x96.gif"/></a>
+			<a href="http://www.eclipsecon.org/2007/"><img border="0" heigth="24" width="150" src="http://www.eclipsecon.org/2007/image600x96.gif"/></a>
 		</p>
 		</section>
 	</body>
