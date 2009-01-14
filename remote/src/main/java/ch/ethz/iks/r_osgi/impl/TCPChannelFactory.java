@@ -355,7 +355,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 
 					if (e != 0) {
 						System.err
-								.println("Port " //$NON-NLS-1$
+								.println("WARNING: Port " //$NON-NLS-1$
 										+ RemoteOSGiServiceImpl.R_OSGI_PORT
 										+ " already in use. This instance of R-OSGi is running on port " //$NON-NLS-1$
 										+ listeningPort);

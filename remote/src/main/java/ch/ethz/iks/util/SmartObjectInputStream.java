@@ -115,8 +115,7 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 						+ ": " + e.getMessage()); //$NON-NLS-1$
 			}
 		default:
-			System.err.println("Unhandled case " + cat); //$NON-NLS-1$
-			throw new IllegalStateException();
+			throw new IllegalStateException("Unhandled case " + cat); //$NON-NLS-1$
 		}
 	}
 

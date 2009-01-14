@@ -308,7 +308,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		} else {
 			if (PROXY_DEBUG || MSG_DEBUG || DEBUG) {
 				System.err
-						.println("NO LOG SERVICE PRESENT, DEBUG PROPERTIES HAVE NO EFFECT ..."); //$NON-NLS-1$
+						.println("WARNING: NO LOG SERVICE PRESENT, DEBUG PROPERTIES HAVE NO EFFECT ..."); //$NON-NLS-1$
 				PROXY_DEBUG = false;
 				MSG_DEBUG = false;
 				DEBUG = false;
@@ -1243,8 +1243,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 				scan(bundle, prefix, entry, out, buffer, crc);
 			} else {
 				final URL url = bundle.getResource(prefix + "/" + entry);
-				System.out.println(prefix + "/" + entry);
-				System.out.println("URL IS " + url);
 				final InputStream in = url.openStream();
 				int read;
 				int totallyRead = 0;
