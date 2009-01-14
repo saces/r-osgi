@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2008 Jan S. Rellermeyer
+/* Copyright (c) 2006-2009 Jan S. Rellermeyer
  * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -80,13 +80,20 @@ public final class URI implements Serializable {
 	 *            the string.
 	 */
 	public URI(final String uriString) {
-		this(uriString, true);
+		parse(uriString);
 	}
 
-	private URI(final String uriString, final boolean hostLookup) {
+	/**
+	 * create a new URI
+	 * 
+	 * @param uriString
+	 *            the string
+	 * @param hostLookup
+	 *            do a host lookup?
+	 */
+	public URI(final String uriString, final boolean hostLookup) {
 		parse(uriString);
-		if (hostLookup
-				&& (scheme.startsWith("r-osgi") || scheme.startsWith("http"))) { //$NON-NLS-1$ //$NON-NLS-2$
+		if (hostLookup) {
 			try {
 				host = InetAddress.getByName(hostString);
 			} catch (final UnknownHostException uhe) {
@@ -97,7 +104,7 @@ public final class URI implements Serializable {
 
 	/**
 	 * convenience method for creating a new URI instance. Never throws and
-	 * exception, even if the input is unparsable. Should be used only in
+	 * exception, even if the input is not well-formed. Should be used only in
 	 * controlled environments when it can be assured that the input is valid.
 	 * 
 	 * @param uriString
@@ -106,7 +113,7 @@ public final class URI implements Serializable {
 	 */
 	public static URI create(final String uriString) {
 		try {
-			return new URI(uriString, false);
+			return new URI(uriString);
 		} catch (final Throwable t) {
 			return null;
 		}
@@ -225,7 +232,7 @@ public final class URI implements Serializable {
 	 */
 	public boolean equals(final Object other) {
 		if (other instanceof String) {
-			return equals(new URI((String) other));
+			return equals(new URI((String) other, true));
 		} else if (other instanceof URI) {
 			final URI otherURI = (URI) other;
 			return scheme.equals(otherURI.scheme)
