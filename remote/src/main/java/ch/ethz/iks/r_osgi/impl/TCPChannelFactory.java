@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2008 Jan S. Rellermeyer
+/* Copyright (c) 2006-2009 Jan S. Rellermeyer
  * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -30,6 +30,8 @@ package ch.ethz.iks.r_osgi.impl;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
@@ -129,12 +131,12 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		/**
 		 * the input stream.
 		 */
-		protected java.io.ObjectInputStream input;
+		protected ObjectInputStream input;
 
 		/**
 		 * the output stream.
 		 */
-		protected java.io.ObjectOutputStream output;
+		protected ObjectOutputStream output;
 
 		/**
 		 * the channel endpoint.
@@ -217,11 +219,9 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			socket.setTcpNoDelay(true);
 			output = new SmartObjectOutputStream(new BufferedOutputStream(
 					socket.getOutputStream()));
-			//output = new java.io.ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 			output.flush();
 			input = new SmartObjectInputStream(new BufferedInputStream(socket
 					.getInputStream()));
-			//input = new java.io.ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
 		}
 
 		/**
@@ -311,12 +311,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 							RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 									"{TCP Channel} received " + msg); //$NON-NLS-1$
 						}
-						// TODO: remote debug output
-						//System.out.println(System.currentTimeMillis() + " {TCP Channel} received " + msg);
 						endpoint.receivedMessage(msg);
 					} catch (final IOException ioe) {
-						// TODO: debug output
-						ioe.printStackTrace();
 						connected = false;
 						try {
 							socket.close();
@@ -350,7 +346,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		TCPAcceptorThread() throws IOException {
 			setName("TCPChannel:TCPAcceptorThread"); //$NON-NLS-1$
 			setDaemon(true);
-			
+
 			int e = 0;
 			while (true) {
 				try {
