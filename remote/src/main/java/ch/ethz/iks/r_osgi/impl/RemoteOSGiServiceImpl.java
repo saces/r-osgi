@@ -186,7 +186,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 	// TODO: make configurable
 	static final int MAX_THREADS = 5;
-	
+
 	/**
 	 * log proxy generation debug output.
 	 */
@@ -671,7 +671,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * @see ch.ethz.iks.r_osgi.RemoteOSGiService#getListeningPort(java.lang.String)
 	 * @category RemoteOSGiService
 	 */
-	public int getListeningPort(final String protocol) throws RemoteOSGiException {
+	public int getListeningPort(final String protocol)
+			throws RemoteOSGiException {
 		final NetworkChannelFactory factory = getNetworkChannelFactory(protocol);
 		return factory.getListeningPort(protocol);
 	}
@@ -1241,7 +1242,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			} else if (entry.endsWith(SEPARATOR_CHAR)) {
 				scan(bundle, prefix, entry, out, buffer, crc);
 			} else {
-				final URL url = bundle.getResource(entry);
+				final URL url = bundle.getResource(prefix + "/" + entry);
+				System.out.println(prefix + "/" + entry);
+				System.out.println("URL IS " + url);
 				final InputStream in = url.openStream();
 				int read;
 				int totallyRead = 0;
