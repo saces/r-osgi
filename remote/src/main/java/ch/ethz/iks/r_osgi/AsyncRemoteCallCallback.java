@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2008 Jan S. Rellermeyer
+/* Copyright (c) 2006-2009 Jan S. Rellermeyer
  * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -28,8 +28,26 @@
  */
 package ch.ethz.iks.r_osgi;
 
+/**
+ * Callback for getting the result of an asynchronous remote call. Will be
+ * called by the system as soon as the call has completed, either successfully
+ * or with an exception.
+ * 
+ * @author Jan S. Rellermeyer
+ * 
+ */
 public interface AsyncRemoteCallCallback {
 
+	/**
+	 * get the result of the remote call.
+	 * 
+	 * @param success
+	 *            indicated if the call has completed successfully or with an
+	 *            exception.
+	 * @param o
+	 *            the result of the call or the exception is success is set to
+	 *            <code>false</code>.
+	 */
 	void remoteCallResult(final boolean success, final Object o);
 
 }

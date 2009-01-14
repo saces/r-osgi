@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2008 Jan S. Rellermeyer
+/* Copyright (c) 2006-2009 Jan S. Rellermeyer
  * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -84,17 +84,6 @@ public interface RemoteOSGiService {
 	 * @since 0.5
 	 */
 	String R_OSGi_REGISTRATION = "service.remote.registration"; //$NON-NLS-1$
-
-	/**
-	 * policy "service_proxy" means: dynamically build a proxy at client side.
-	 * (default)
-	 * 
-	 * @since 0.5
-	 * @deprecated With the new model, service proxies is the only supported
-	 *             policy. Any value set to the R_OSGi_REGISTRATION policy will
-	 *             have the effect of SERVICE_PROXY_POLICY;
-	 */
-	String SERVICE_PROXY_POLICY = "service_proxy"; //$NON-NLS-1$
 
 	/**
 	 * Can be set to use a smart proxy. Smart proxies have to be abstract

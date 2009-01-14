@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2008 Jan S. Rellermeyer
+/* Copyright (c) 2006-2009 Jan S. Rellermeyer
  * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -120,7 +120,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	/**
 	 * the channel.
 	 */
-	NetworkChannel networkChannel;
+	protected NetworkChannel networkChannel;
 
 	/**
 	 * the services provided by the OSGi framework holding the remote channel
@@ -148,7 +148,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	/**
 	 * the callback register
 	 */
-	final Map callbacks = new HashMap(0);
+	protected final Map callbacks = new HashMap(0);
 
 	/**
 	 * map of service uri -> RemoteServiceRegistration.
@@ -164,7 +164,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * map of service uri -> proxy bundle. If the endpoint is closed, the
 	 * proxies are unregistered.
 	 */
-	final HashMap proxyBundles = new HashMap(0);
+	protected final HashMap proxyBundles = new HashMap(0);
 	/**
 	 * map of stream id -> stream instance.
 	 */
@@ -189,9 +189,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 	private ArrayList workQueue = new ArrayList();
 
-	// TODO: make configurable
-	private static final int MAX_THREADS = 5;
-
+	/**
+	 * used by the multiplexer and serves as a marker whether or not the channel
+	 * may dispose itself when the connection went down.
+	 */
 	boolean hasRedundantLinks = false;
 
 	/**
@@ -230,9 +231,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		RemoteOSGiServiceImpl.registerChannelEndpoint(this);
 	}
 
+	/**
+	 * initialize the thread pool
+	 */
 	private void initThreadPool() {
-		ThreadGroup threadPool = new ThreadGroup("WorkerThreads" + toString());
-		for (int i = 0; i < MAX_THREADS; i++) {
+		// TODO: tradeoff, could as well be central for all endpoints...
+		final ThreadGroup threadPool = new ThreadGroup("WorkerThreads"
+				+ toString());
+		for (int i = 0; i < RemoteOSGiServiceImpl.MAX_THREADS; i++) {
 			final Thread t = new Thread(threadPool, "WorkerThread" + i) {
 				public void run() {
 					try {
@@ -252,7 +258,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				}
 			};
 			t.start();
-
 		}
 	}
 
@@ -270,9 +275,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			return;
 		}
 		final Integer xid = new Integer(msg.getXID());
-		final BlockingCallback callback;
+		final WaitingCallback callback;
 		synchronized (callbacks) {
-			callback = (BlockingCallback) callbacks.remove(xid);
+			callback = (WaitingCallback) callbacks.remove(xid);
 		}
 		if (callback != null) {
 			callback.result(msg);
@@ -325,7 +330,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			throw new RemoteOSGiException("Channel is closed"); //$NON-NLS-1$
 		}
 		// check arguments for streams and replace with placeholder
-		replaceStreams(args);
+		for (int i = 0; i < args.length; i++) {
+			if (args[i] instanceof InputStream) {
+				args[i] = getInputStreamPlaceholder((InputStream) args[i]);
+			} else if (args[i] instanceof OutputStream) {
+				args[i] = getOutputStreamPlaceholder((OutputStream) args[i]);
+			}
+		}
 
 		final RemoteCallMessage invokeMsg = new RemoteCallMessage();
 		invokeMsg.setServiceID(URI.create(service).getFragment());
@@ -334,16 +345,79 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		try {
 			// send the message and get a MethodResultMessage in return
-			final RemoteCallResultMessage result = (RemoteCallResultMessage) sendAndWait(invokeMsg);
-			if (result.causedException()) {
-				// TODO: debug output
-				result.getException().printStackTrace();
-				throw result.getException();
+			final RemoteCallResultMessage resultMsg = (RemoteCallResultMessage) sendAndWait(invokeMsg);
+			if (resultMsg.causedException()) {
+				throw resultMsg.getException();
 			}
-			return replaceStreamHandle(result.getResult());
+			final Object result = resultMsg.getResult();
+			if (result instanceof InputStreamHandle) {
+				return getInputStreamProxy((InputStreamHandle) result);
+			} else if (result instanceof OutputStreamHandle) {
+				return getOutputStreamProxy((OutputStreamHandle) result);
+			} else {
+				return result;
+			}
 		} catch (final RemoteOSGiException e) {
 			throw new RemoteOSGiException("Method invocation of " //$NON-NLS-1$
 					+ service + " " + methodSignature + " failed.", e); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+	}
+
+	void asyncRemoteCall(final String fragment, final String methodSignature,
+			final Object[] args, final AsyncRemoteCallCallback callback) {
+		if (networkChannel == null) {
+			throw new RemoteOSGiException("Channel is closed"); //$NON-NLS-1$
+		}
+		// check arguments for streams and replace with placeholder
+		for (int i = 0; i < args.length; i++) {
+			if (args[i] instanceof InputStream) {
+				args[i] = getInputStreamPlaceholder((InputStream) args[i]);
+			} else if (args[i] instanceof OutputStream) {
+				args[i] = getOutputStreamPlaceholder((OutputStream) args[i]);
+			}
+		}
+
+		final Integer xid = new Integer(RemoteOSGiServiceImpl.nextXid());
+
+		synchronized (callbacks) {
+			callbacks.put(xid, new AsyncCallback() {
+				public void result(final RemoteOSGiMessage msg) {
+					final RemoteCallResultMessage resultMsg = (RemoteCallResultMessage) msg;
+					if (resultMsg.causedException()) {
+						callback.remoteCallResult(false, resultMsg
+								.getException());
+					}
+					final Object result = resultMsg.getResult();
+					final Object res;
+					if (result instanceof InputStreamHandle) {
+						res = getInputStreamProxy((InputStreamHandle) result);
+					} else if (result instanceof OutputStreamHandle) {
+						res = getOutputStreamProxy((OutputStreamHandle) result);
+					} else {
+						res = result;
+					}
+					callback.remoteCallResult(true, res);
+				}
+			});
+		}
+
+		final RemoteCallMessage invokeMsg = new RemoteCallMessage();
+		invokeMsg.setServiceID(fragment);
+		invokeMsg.setMethodSignature(methodSignature);
+		invokeMsg.setArgs(args);
+		invokeMsg.setXID(xid.shortValue());
+
+		try {
+			send(invokeMsg);
+		} catch (final RemoteOSGiException e) {
+			callbacks.remove(xid);
+			callback
+					.remoteCallResult(
+							false,
+							new RemoteOSGiException(
+									"Method invocation of " //$NON-NLS-1$
+											+ getRemoteAddress()
+											+ "#" + fragment + " " + methodSignature + " failed.", e)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 	}
 
@@ -730,7 +804,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final Bundle bundle = RemoteOSGiActivator.getActivator()
 					.getContext().installBundle(ref.getURI().toString(), in);
 
-			checkImports((String) bundle.getHeaders().get(
+			retrieveDependencies((String) bundle.getHeaders().get(
 					Constants.IMPORT_PACKAGE), (String) bundle.getHeaders()
 					.get(Constants.EXPORT_PACKAGE));
 
@@ -752,6 +826,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 	}
 
+	/**
+	 * get a clone of a remote bundle
+	 * 
+	 * @param ref
+	 *            the remote service reference to the service for which the
+	 *            bundle clone is requested.
+	 */
 	void getCloneBundle(final RemoteServiceReference ref) {
 		if (networkChannel == null) {
 			throw new RemoteOSGiException("Channel is closed."); //$NON-NLS-1$
@@ -769,7 +850,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				new ByteArrayInputStream(bundleBytes), false);
 	}
 
-	private String[] getTokens(String str) {
+	/**
+	 * tokenize a package import/export string
+	 * 
+	 * @param str
+	 *            the string
+	 * @return the tokens
+	 */
+	private String[] getTokens(final String str) {
 		final ArrayList result = new ArrayList();
 		final StringTokenizer tokenizer = new StringTokenizer(str, ",");
 		while (tokenizer.hasMoreTokens()) {
@@ -786,8 +874,16 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		return (String[]) result.toArray(new String[result.size()]);
 	}
 
-	// TODO: recurse
-	private void checkImports(final String importString,
+	/**
+	 * get the missing dependencies from remote for a given bundle defined by
+	 * its declared package import and exports.
+	 * 
+	 * @param importString
+	 *            the declared package imports
+	 * @param exportString
+	 *            the declared package exports
+	 */
+	private void retrieveDependencies(final String importString,
 			final String exportString) {
 
 		final Set exports = new HashSet(Arrays.asList(getTokens(exportString)));
@@ -797,9 +893,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				imports, exports).toArray(new String[0]);
 
 		if (missing.length > 0) {
-			// TODO: remove debug output
-			System.out
-					.println("MISSING DEPENDENCIES " + Arrays.asList(missing));
 			final RequestDependenciesMessage req = new RequestDependenciesMessage();
 			req.setPackages(missing);
 			final DeliverBundlesMessage deps = (DeliverBundlesMessage) sendAndWait(req);
@@ -1032,7 +1125,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 				// get the invocation arguments and the local method
 				final Object[] arguments = invMsg.getArgs();
-				replaceStreamHandles(arguments);
+				for (int i = 0; i < arguments.length; i++) {
+					if (arguments[i] instanceof InputStreamHandle) {
+						arguments[i] = getInputStreamProxy((InputStreamHandle) arguments[i]);
+					} else if (arguments[i] instanceof OutputStreamHandle) {
+						arguments[i] = getOutputStreamProxy((OutputStreamHandle) arguments[i]);
+					}
+				}
 
 				final Method method = serv.getMethod(invMsg
 						.getMethodSignature());
@@ -1043,7 +1142,15 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 							arguments);
 					final RemoteCallResultMessage m = new RemoteCallResultMessage();
 					m.setXID(invMsg.getXID());
-					m.setResult(replaceStream(result));
+					if (result instanceof InputStream) {
+						m
+								.setResult(getInputStreamPlaceholder((InputStream) result));
+					} else if (result instanceof OutputStream) {
+						m
+								.setResult(getOutputStreamPlaceholder((OutputStream) result));
+					} else {
+						m.setResult(result);
+					}
 					return m;
 				} catch (final InvocationTargetException t) {
 					t.printStackTrace();
@@ -1196,14 +1303,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			msg.setXID(RemoteOSGiServiceImpl.nextXid());
 		}
 		final Integer xid = new Integer(msg.getXID());
-		final BlockingCallback blocking = new BlockingCallback();
+		final WaitingCallback blocking = new WaitingCallback();
 
 		synchronized (callbacks) {
 			callbacks.put(xid, blocking);
 		}
 
 		send(msg);
-		
+
 		// wait for the reply
 		synchronized (blocking) {
 			final RemoteOSGiMessage test = blocking.getResult();
@@ -1328,7 +1435,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
-	 * update the statements of supply and demand.
+	 * update the topics
 	 * 
 	 * @param topicsAdded
 	 *            the topics added.
@@ -1435,50 +1542,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		return new OutputStreamProxy(placeholder.getStreamID(), this);
 	}
 
-	// TODO: to smart serialization
-	private final void replaceStreams(final Object[] args) {
-		for (int i = 0; i < args.length; i++) {
-			if (args[i] instanceof InputStream) {
-				args[i] = getInputStreamPlaceholder((InputStream) args[i]);
-			} else if (args[i] instanceof OutputStream) {
-				args[i] = getOutputStreamPlaceholder((OutputStream) args[i]);
-			}
-		}
-	}
-
-	// TODO: to smart serialization
-	private final void replaceStreamHandles(final Object[] args) {
-		// check args for stream placeholders and replace with proxies
-		for (int i = 0; i < args.length; i++) {
-			if (args[i] instanceof InputStreamHandle) {
-				args[i] = getInputStreamProxy((InputStreamHandle) args[i]);
-			} else if (args[i] instanceof OutputStreamHandle) {
-				args[i] = getOutputStreamProxy((OutputStreamHandle) args[i]);
-			}
-		}
-	}
-
-	// TODO: to smart serialization
-	final Object replaceStreamHandle(final Object obj) {
-		if (obj instanceof InputStreamHandle) {
-			return getInputStreamProxy((InputStreamHandle) obj);
-		}
-		if (obj instanceof OutputStreamHandle) {
-			return getOutputStreamProxy((OutputStreamHandle) obj);
-		}
-		return obj;
-	}
-
-	// TODO: to smart serialization
-	private final Object replaceStream(final Object obj) {
-		if (obj instanceof InputStream) {
-			return getInputStreamPlaceholder((InputStream) obj);
-		} else if (obj instanceof OutputStream) {
-			return getOutputStreamPlaceholder((OutputStream) obj);
-		}
-		return obj;
-	}
-
 	/**
 	 * get the next stream wrapper id.
 	 * 
@@ -1551,51 +1614,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 	}
 
-	void asyncRemoteCall(final String fragment, final String methodSignature,
-			final Object[] args, final AsyncRemoteCallCallback callback) {
-		if (networkChannel == null) {
-			throw new RemoteOSGiException("Channel is closed"); //$NON-NLS-1$
-		}
-		// check arguments for streams and replace with placeholder
-		replaceStreams(args);
-
-		final Integer xid = new Integer(RemoteOSGiServiceImpl.nextXid());
-
-		synchronized (callbacks) {
-			callbacks.put(xid, new AsyncCallback() {
-				public void result(final RemoteOSGiMessage msg) {
-					final RemoteCallResultMessage result = (RemoteCallResultMessage) msg;
-					if (result.causedException()) {
-						callback.remoteCallResult(false, result.getException());
-					}
-					callback.remoteCallResult(true, replaceStreamHandle(result
-							.getResult()));
-				}
-			});
-		}
-
-		final RemoteCallMessage invokeMsg = new RemoteCallMessage();
-		invokeMsg.setServiceID(fragment);
-		invokeMsg.setMethodSignature(methodSignature);
-		invokeMsg.setArgs(args);
-		invokeMsg.setXID(xid.shortValue());
-
-		try {
-			send(invokeMsg);
-		} catch (final RemoteOSGiException e) {
-			callbacks.remove(xid);
-			callback
-					.remoteCallResult(
-							false,
-							new RemoteOSGiException(
-									"Method invocation of " //$NON-NLS-1$
-											+ getRemoteAddress()
-											+ "#" + fragment + " " + methodSignature + " failed.", e)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		}
-
-	}
-
-	class BlockingCallback implements AsyncCallback {
+	/**
+	 * callback that signals when the result has become available.
+	 * 
+	 * @author Jan S. Rellermeyer
+	 * 
+	 */
+	class WaitingCallback implements AsyncCallback {
 
 		private RemoteOSGiMessage result;
 

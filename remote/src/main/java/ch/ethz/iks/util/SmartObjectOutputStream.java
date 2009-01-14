@@ -40,6 +40,14 @@ import java.lang.reflect.Modifier;
 
 import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
 
+/**
+ * Smart object output stream that is able to deserialize classes which do not
+ * implement Serializable. It only rejects classes which have native code parts
+ * and the OSGi ServiceReference and ServiceRegistration classes.
+ * 
+ * @author Jan S. Rellermeyer
+ * 
+ */
 public final class SmartObjectOutputStream extends ObjectOutputStream {
 
 	private final ObjectOutputStream out;

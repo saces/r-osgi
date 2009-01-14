@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2008 Jan S. Rellermeyer
+/* Copyright (c) 2006-2009 Jan S. Rellermeyer
  * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -36,6 +36,9 @@ import java.util.TreeMap;
 /**
  * Scheduler utility. Objects can be scheduled and the registered listener is
  * called when the scheduled object becomes due.
+ * 
+ * Notice: this class is going to be removed once R-OSGi moves to CDC/Foundation
+ * 1.1 and the java.util.Timer class can be used instead.
  * 
  * @author Jan S. Rellermeyer, ETH Zurich.
  * @since 0.6

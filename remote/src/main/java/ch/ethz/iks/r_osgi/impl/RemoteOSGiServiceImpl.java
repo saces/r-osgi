@@ -184,6 +184,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 */
 	private static final int BUFFER_SIZE = 2048;
 
+	// TODO: make configurable
+	static final int MAX_THREADS = 5;
+	
 	/**
 	 * log proxy generation debug output.
 	 */

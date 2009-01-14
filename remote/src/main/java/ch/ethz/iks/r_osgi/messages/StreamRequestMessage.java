@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2008 Michael Duller
+/* Copyright (c) 2006-2009 Jan S. Rellermeyer
  * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.

@@ -36,6 +36,14 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+/**
+ * Smart object input stream that is able to deserialize classes which do not
+ * implement Serializable. It only rejects classes which have native code parts
+ * and the OSGi ServiceReference and ServiceRegistration classes.
+ * 
+ * @author Jan S. Rellermeyer
+ * 
+ */
 public final class SmartObjectInputStream extends ObjectInputStream {
 
 	private final ObjectInputStream in;
@@ -48,7 +56,7 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 
 	protected final Object readObjectOverride() throws IOException,
 			ClassNotFoundException {
-		
+
 		final byte cat = in.readByte();
 		switch (cat) {
 		case 0:
