@@ -238,7 +238,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		// TODO: tradeoff, could as well be central for all endpoints...
 		final ThreadGroup threadPool = new ThreadGroup("WorkerThreads"
 				+ toString());
-		for (int i = 0; i < RemoteOSGiServiceImpl.MAX_THREADS; i++) {
+		for (int i = 0; i < RemoteOSGiServiceImpl.MAX_THREADS_PER_ENDPOINT; i++) {
 			final Thread t = new Thread(threadPool, "WorkerThread" + i) {
 				public void run() {
 					try {

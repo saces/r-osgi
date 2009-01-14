@@ -148,6 +148,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	static final String REGISTER_DEFAULT_TCP_CHANNEL = "ch.ethz.iks.r_osgi.registerDefaultChannel"; //$NON-NLS-1$
 
 	/**
+	 * register the default tcp channel? If not set to "false", the channel gets
+	 * registered.
+	 */
+	static final String THREADS_PER_ENDPOINT = "ch.ethz.iks.r_osgi.threadsPerEndpoint"; //$NON-NLS-1$
+
+	/**
 	 * constant that holds the property string for proxy debug option.
 	 */
 	static final String PROXY_DEBUG_PROPERTY = "ch.ethz.iks.r_osgi.debug.proxyGeneration"; //$NON-NLS-1$
@@ -184,8 +190,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 */
 	private static final int BUFFER_SIZE = 2048;
 
-	// TODO: make configurable
-	static final int MAX_THREADS = 5;
+	/**
+	 * how many worker threads per endpoint?
+	 */
+	static final int MAX_THREADS_PER_ENDPOINT = Integer.getInteger(
+			THREADS_PER_ENDPOINT, 2).intValue();
 
 	/**
 	 * log proxy generation debug output.
@@ -275,7 +284,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 */
 	RemoteOSGiServiceImpl() throws IOException {
 		// find out own IP address
-		// TODO: allow configuration
 		try {
 			MY_ADDRESS = InetAddress.getAllByName(InetAddress.getLocalHost()
 					.getHostName())[0].getHostAddress();
