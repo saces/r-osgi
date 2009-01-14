@@ -29,7 +29,7 @@ import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
  * @author rjan
  * 
  */
-public class MethodResultMessageCodec extends RemoteOSGiMessageCodec {
+public class RemoteCallResultMessageCodec extends RemoteOSGiMessageCodec {
 
 	private static final Set MESSAGE_TYPE;
 
@@ -38,7 +38,7 @@ public class MethodResultMessageCodec extends RemoteOSGiMessageCodec {
 				.asList(new Class[] { RemoteCallResultMessage.class })));
 	}
 
-	public MethodResultMessageCodec() {
+	public RemoteCallResultMessageCodec() {
 		super(RemoteOSGiMessage.REMOTE_CALL_RESULT);
 	}
 
