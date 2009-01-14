@@ -45,8 +45,9 @@ public abstract class RemoteOSGiMessageCodec implements MessageEncoder,
 
 	/*
 	 * 
-	 * @see org.apache.mina.filter.codec.demux.MessageDecoder#decodable(org.apache.mina.common.IoSession,
-	 *      org.apache.mina.common.ByteBuffer)
+	 * @see
+	 * org.apache.mina.filter.codec.demux.MessageDecoder#decodable(org.apache
+	 * .mina.common.IoSession, org.apache.mina.common.ByteBuffer)
 	 */
 	public MessageDecoderResult decodable(IoSession session, ByteBuffer in) {
 		if (in.remaining() < 5) {
@@ -56,7 +57,7 @@ public abstract class RemoteOSGiMessageCodec implements MessageEncoder,
 		if (version != 1) {
 			return MessageDecoderResult.NOT_OK;
 		}
-		final short funcID = in.getShort();
+		final byte funcID = in.get();
 		if (funcID != type) {
 			return MessageDecoderResult.NOT_OK;
 		}
@@ -64,7 +65,7 @@ public abstract class RemoteOSGiMessageCodec implements MessageEncoder,
 		session.setAttribute("xid", xid);
 
 		final int length = in.getInt();
-		if (in.remaining() < (length - 9)) {
+		if (in.remaining() < (length - 10)) {			
 			return MessageDecoderResult.NEED_DATA;
 		}
 		return MessageDecoderResult.OK;
@@ -73,13 +74,14 @@ public abstract class RemoteOSGiMessageCodec implements MessageEncoder,
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.apache.mina.filter.codec.demux.MessageDecoder#decode(org.apache.mina.common.IoSession,
-	 *      org.apache.mina.common.ByteBuffer,
-	 *      org.apache.mina.filter.codec.ProtocolDecoderOutput)
+	 * @see
+	 * org.apache.mina.filter.codec.demux.MessageDecoder#decode(org.apache.mina
+	 * .common.IoSession, org.apache.mina.common.ByteBuffer,
+	 * org.apache.mina.filter.codec.ProtocolDecoderOutput)
 	 */
 	public MessageDecoderResult decode(IoSession session, ByteBuffer in,
 			ProtocolDecoderOutput out) throws Exception {
-		in.skip(9);
+		in.skip(12);
 
 		decodeBody(session, in, out);
 		return MessageDecoderResult.OK;
@@ -91,9 +93,10 @@ public abstract class RemoteOSGiMessageCodec implements MessageEncoder,
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.apache.mina.filter.codec.demux.MessageEncoder#encode(org.apache.mina.common.IoSession,
-	 *      java.lang.Object,
-	 *      org.apache.mina.filter.codec.ProtocolEncoderOutput)
+	 * @see
+	 * org.apache.mina.filter.codec.demux.MessageEncoder#encode(org.apache.mina
+	 * .common.IoSession, java.lang.Object,
+	 * org.apache.mina.filter.codec.ProtocolEncoderOutput)
 	 */
 	public void encode(IoSession session, Object message,
 			ProtocolEncoderOutput out) throws Exception {
@@ -102,14 +105,14 @@ public abstract class RemoteOSGiMessageCodec implements MessageEncoder,
 		buf.setAutoExpand(true); // Enable auto-expand for easier encoding
 
 		buf.put((byte) 1); // version
-		buf.putShort(type); // funcID
+		buf.put((byte) type); // funcID
 		buf.putInt(msg.getXID()); // xid
 
-		buf.skip(4); // skip length
+		buf.skip(6); // skip length
 
 		encodeBody(session, msg, buf);
-
-		buf.putInt(5, buf.position());
+		
+		buf.putInt(6, buf.position());
 
 		buf.flip();
 		out.write(buf);
@@ -121,8 +124,10 @@ public abstract class RemoteOSGiMessageCodec implements MessageEncoder,
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.apache.mina.filter.codec.demux.MessageDecoder#finishDecode(org.apache.mina.common.IoSession,
-	 *      org.apache.mina.filter.codec.ProtocolDecoderOutput)
+	 * @see
+	 * org.apache.mina.filter.codec.demux.MessageDecoder#finishDecode(org.apache
+	 * .mina.common.IoSession,
+	 * org.apache.mina.filter.codec.ProtocolDecoderOutput)
 	 */
 	public void finishDecode(IoSession session, ProtocolDecoderOutput out)
 			throws Exception {
