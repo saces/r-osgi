@@ -7,7 +7,6 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import org.apache.mina.common.ConnectFuture;
@@ -51,13 +50,13 @@ public class MinaMessageTestCase extends TestCase implements IoHandler {
 	protected void setUp() throws Exception {
 		super.setUp();
 		acceptor = new SocketAcceptor();
-		// acceptor.getFilterChain().addLast("logger", new LoggingFilter());
+		//acceptor.getFilterChain().addLast("logger", new LoggingFilter());
 		acceptor.getFilterChain().addLast("protocol",
 				new ProtocolCodecFilter(new RemoteOSGiProtocolCodecFactory()));
 		acceptor.bind(new InetSocketAddress(10000), this);
 
 		connector = new SocketConnector();
-		// connector.getFilterChain().addLast("logger", new LoggingFilter());
+		//connector.getFilterChain().addLast("logger", new LoggingFilter());
 		connector.getFilterChain().addLast("protocol",
 				new ProtocolCodecFilter(new RemoteOSGiProtocolCodecFactory()));
 		final ConnectFuture connectFuture = connector.connect(
