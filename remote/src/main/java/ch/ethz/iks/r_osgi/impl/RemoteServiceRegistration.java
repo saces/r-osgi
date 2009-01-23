@@ -28,6 +28,7 @@
  */
 package ch.ethz.iks.r_osgi.impl;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -133,7 +134,7 @@ final class RemoteServiceRegistration {
 					(String) ref.getProperty(RemoteOSGiService.PRESENTATION));
 			deliverServiceMessage.setServiceID(((Long) ref
 					.getProperty(Constants.SERVICE_ID)).toString());
-		} catch (final Exception e) {
+		} catch (final IOException e) {
 			if (RemoteOSGiServiceImpl.log != null) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_ERROR,
 						"Error during remote service registration", e); //$NON-NLS-1$
