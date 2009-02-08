@@ -533,6 +533,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							final RemoteServiceRegistration reg = (RemoteServiceRegistration) serviceRegistrations
 									.get(reference);
 
+							unregisterFromServiceDiscovery(reg);
 							registerWithServiceDiscovery(reg);
 
 							final LeaseUpdateMessage lu = new LeaseUpdateMessage();
