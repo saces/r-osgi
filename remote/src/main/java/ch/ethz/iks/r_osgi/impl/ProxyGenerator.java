@@ -863,23 +863,13 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				method.visitInsn(returnType.getOpcode(IRETURN));
 				break;
 			case Type.ARRAY:
-
 				final StringBuffer a = new StringBuffer();
 
-				final int esort = returnType.getElementType().getSort();
-				if (esort < Type.ARRAY) {
 					for (int i = 0; i < returnType.getDimensions(); i++) {
 						a.append("["); //$NON-NLS-1$
 					}
-					// primitive array
 					method.visitTypeInsn(CHECKCAST, a.toString()
 							+ returnType.getElementType().toString());
-				} else {
-					// object array
-					a.append("["); //$NON-NLS-1$
-					method.visitTypeInsn(CHECKCAST, a.toString()
-							+ returnType.getInternalName() + ";"); //$NON-NLS-1$
-				}
 				method.visitInsn(ARETURN);
 				break;
 			default:
@@ -894,7 +884,6 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 
 			implemented.add(name + desc);
 			return null;
-
 		} else {
 			// proxy method, contains code so just rewrite the code ...
 			final MethodVisitor method = writer.visitMethod(access, name, desc,

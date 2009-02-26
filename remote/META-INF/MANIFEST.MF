@@ -15,10 +15,10 @@ Export-Package: ch.ethz.iks.r_osgi;version="1.0.0.RC4",
  ch.ethz.iks.r_osgi.service_discovery;version="1.0.0.RC4",
  ch.ethz.iks.r_osgi.types;version="1.0.0.RC4",
  ch.ethz.iks.util;version="1.0.0.RC4",
- org.objectweb.asm;version="3.0.0"
+ org.objectweb.asm;version="3.1.0"
 DynamicImport-Package: *
 Bundle-ClassPath: .,
- asm-3.0.jar
+ asm-3.1.jar
 Bundle-Activator: ch.ethz.iks.r_osgi.impl.RemoteOSGiActivator
 Bundle-RequiredExecutionEnvironment: OSGi/Minimum-1.0,
  CDC-1.0/Foundation-1.0
