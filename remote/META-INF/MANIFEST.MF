@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: R_OSGi Remote Service
-Bundle-SymbolicName: ch.ethz.iks.r_osgi.remote
+Bundle-SymbolicName: ch.ethz.iks.r_osgi.remote;singleton:=true
 Bundle-Version: 1.0.0.RC4
 Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
 Import-Package: org.osgi.framework,

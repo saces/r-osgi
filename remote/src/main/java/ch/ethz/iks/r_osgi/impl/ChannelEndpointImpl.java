@@ -917,6 +917,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @return the remote service reference, or <code>null</code>.
 	 */
 	RemoteServiceReferenceImpl getRemoteReference(final String uri) {
+		if (remoteServices == null) {
+			throw new RemoteOSGiException("Channel is closed."); //$NON-NLS-1$
+		}
 		return (RemoteServiceReferenceImpl) remoteServices.get(uri);
 	}
 

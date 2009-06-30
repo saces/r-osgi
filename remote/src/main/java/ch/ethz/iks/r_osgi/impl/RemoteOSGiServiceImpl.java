@@ -127,8 +127,14 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		getEntry = m;
 		getEntryPaths = n;
 
-		base = getEntry == null ? RemoteOSGiActivator.getActivator()
-				.getContext().getDataFile("../..") : null;
+		File b = null;
+		try {
+		 b = getEntry == null ? RemoteOSGiActivator.getActivator()
+				.getContext().getDataFile("../..").getCanonicalFile() : null;
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+		base = b;
 	}
 
 	/**

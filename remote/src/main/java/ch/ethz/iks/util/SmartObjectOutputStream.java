@@ -113,7 +113,7 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 					out.writeInt(fieldCount);
 					for (int i = 0; i < fieldCount; i++) {
 						final int mod = fields[i].getModifiers();
-						if (Modifier.isStatic(mod)) {
+						if (Modifier.isStatic(mod) || Modifier.isTransient(mod)) {
 							continue;
 						} else if (!Modifier.isPublic(mod)) {
 							fields[i].setAccessible(true);

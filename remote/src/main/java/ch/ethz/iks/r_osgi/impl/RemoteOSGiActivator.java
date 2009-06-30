@@ -54,12 +54,12 @@ public final class RemoteOSGiActivator implements BundleActivator {
 	private RemoteOSGiServiceImpl remoting;
 
 	private static RemoteOSGiActivator instance;
-	
+
 	private BundleContext context;
-	
+
 	static RemoteOSGiActivator getActivator() {
 		return instance;
-	}	
+	}
 
 	BundleContext getContext() {
 		return context;
@@ -77,7 +77,7 @@ public final class RemoteOSGiActivator implements BundleActivator {
 	public void start(final BundleContext context) throws Exception {
 		instance = this;
 		this.context = context;
-		
+
 		// get the log service, if present
 		final ServiceReference logRef = context
 				.getServiceReference("org.osgi.service.log.LogService"); //$NON-NLS-1$
@@ -90,10 +90,20 @@ public final class RemoteOSGiActivator implements BundleActivator {
 			remoting = new RemoteOSGiServiceImpl();
 		}
 
+		final Hashtable props = new Hashtable();
+		/*
+		props.put(DistributionProvider.PROP_KEY_PRODUCT_NAME, "R-OSGi");
+		props.put(DistributionProvider.PROP_KEY_PRODUCT_VERSION, "1.0.0.RC5");
+		props.put(DistributionProvider.PROP_KEY_VENDOR_NAME,
+				"Jan S. Rellermeyer, ETH Zurich");
+		// will be updated by the transports
+		props.put(DistributionProvider.PROP_KEY_SUPPORTED_INTENTS, "");
+		*/
 		// and register the service
 		context.registerService(new String[] {
-				RemoteOSGiService.class.getName(), Remoting.class.getName() },
-				remoting, null);
+				RemoteOSGiService.class.getName(), Remoting.class.getName(),
+				//DistributionProvider.class.getName() 
+		}, remoting, props);
 
 		// register the default tcp channel
 		if (!"false" //$NON-NLS-1$
@@ -104,6 +114,7 @@ public final class RemoteOSGiActivator implements BundleActivator {
 					TCPChannelFactory.PROTOCOL);
 			context.registerService(NetworkChannelFactory.class.getName(),
 					new TCPChannelFactory(), properties);
+			// TODO: add default transport supported intents
 		}
 	}
 
