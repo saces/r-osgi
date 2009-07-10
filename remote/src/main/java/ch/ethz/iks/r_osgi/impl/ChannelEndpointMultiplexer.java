@@ -227,7 +227,7 @@ final class ChannelEndpointMultiplexer implements ChannelEndpoint,
 	 * @see ch.ethz.iks.r_osgi.channels.ChannelEndpoint#isConnected()
 	 */
 	public boolean isConnected() {
-		return true;
+		return primary.isConnected();
 	}
 
 	/**
