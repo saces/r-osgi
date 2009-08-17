@@ -77,7 +77,7 @@ final class RemoteServiceRegistration {
 	/**
 	 * a prefactored deliver service message.
 	 */
-	private DeliverServiceMessage deliverServiceMessage;
+	private volatile DeliverServiceMessage deliverServiceMessage;
 
 	/**
 	 * creates a new RemoteService object.
@@ -87,6 +87,7 @@ final class RemoteServiceRegistration {
 	 *            registered. Can be a surrogate.
 	 * @param service
 	 *            the <code>ServiceReference</code>
+	 * @throws ClassNotFoundException
 	 * @throws ClassNotFoundException
 	 *             if one of the interface classes cannot be found.
 	 * @throws ServiceLocationException
@@ -100,7 +101,8 @@ final class RemoteServiceRegistration {
 		interfaceNames = (String[]) service.getProperty(Constants.OBJECTCLASS);
 
 		// get the service object
-		serviceObject = RemoteOSGiActivator.getActivator().getContext().getService(service);
+		serviceObject = RemoteOSGiActivator.getActivator().getContext()
+				.getService(service);
 		if (serviceObject == null) {
 			throw new IllegalStateException("Service is not present."); //$NON-NLS-1$
 		}
@@ -127,19 +129,42 @@ final class RemoteServiceRegistration {
 		final CodeAnalyzer analyzer = new CodeAnalyzer(bundleLoader,
 				(String) headers.get(Constants.IMPORT_PACKAGE),
 				(String) headers.get(Constants.EXPORT_PACKAGE));
-		try {
-			deliverServiceMessage = analyzer.analyze(interfaceNames,
-					(String) ref.getProperty(RemoteOSGiService.SMART_PROXY),
-					(String[]) ref.getProperty(RemoteOSGiService.INJECTIONS),
-					(String) ref.getProperty(RemoteOSGiService.PRESENTATION));
-			deliverServiceMessage.setServiceID(((Long) ref
-					.getProperty(Constants.SERVICE_ID)).toString());
-		} catch (final IOException e) {
-			if (RemoteOSGiServiceImpl.log != null) {
-				RemoteOSGiServiceImpl.log.log(LogService.LOG_ERROR,
-						"Error during remote service registration", e); //$NON-NLS-1$
+		new Thread() {
+			public void run() {
+				synchronized (RemoteServiceRegistration.this) {
+					try {
+						deliverServiceMessage = analyzer
+								.analyze(
+										interfaceNames,
+										(String) ref
+												.getProperty(RemoteOSGiService.SMART_PROXY),
+										(String[]) ref
+												.getProperty(RemoteOSGiService.INJECTIONS),
+										(String) ref
+												.getProperty(RemoteOSGiService.PRESENTATION));
+						deliverServiceMessage.setServiceID(((Long) ref
+								.getProperty(Constants.SERVICE_ID)).toString());
+					} catch (final IOException e) {
+						e.printStackTrace();
+						if (RemoteOSGiServiceImpl.log != null) {
+							RemoteOSGiServiceImpl.log
+									.log(
+											LogService.LOG_ERROR,
+											"Error during remote service registration", e); //$NON-NLS-1$
+						}
+					} catch (final ClassNotFoundException cnf) {
+						cnf.printStackTrace();
+						if (RemoteOSGiServiceImpl.log != null) {
+							RemoteOSGiServiceImpl.log
+									.log(
+											LogService.LOG_ERROR,
+											"Error during remote service registration", cnf); //$NON-NLS-1$
+						}
+					}
+					RemoteServiceRegistration.this.notifyAll();
+				}
 			}
-		}
+		}.start();
 	}
 
 	/**
@@ -232,7 +257,16 @@ final class RemoteServiceRegistration {
 	 * @return the message.
 	 */
 	DeliverServiceMessage getDeliverServiceMessage() {
-		return deliverServiceMessage;
+		synchronized (this) {
+			if (deliverServiceMessage == null) {
+				try {
+					wait();
+				} catch (final InterruptedException e) {
+					// ignore
+				}
+			}
+			return deliverServiceMessage;
+		}
 	}
 
 	public String toString() {
