@@ -867,8 +867,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		final Set imports = new HashSet(Arrays.asList(StringUtils.splitString(
 				importString, ",")));
 
-		final String[] missing = (String[]) CollectionUtils.rightDifference(
-				imports, exports).toArray(new String[0]);
+		final String[] missing = RemoteOSGiServiceImpl.getMissingPackages((String[]) CollectionUtils.rightDifference(
+				imports, exports).toArray(new String[0]));
 
 		if (missing.length > 0) {
 			final RequestDependenciesMessage req = new RequestDependenciesMessage();

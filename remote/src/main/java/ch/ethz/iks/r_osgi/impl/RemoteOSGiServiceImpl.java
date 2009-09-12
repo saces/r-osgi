@@ -1180,6 +1180,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		if (RemoteOSGiServiceImpl.IS_R4 && versionString != null) {
 			final ExportedPackage[] pkgs = pkgAdmin
 					.getExportedPackages(pkgString);
+			if(pkgs == null) {
+				return null;
+			}
 			for (int j = 0; j < pkgs.length; j++) {
 				final boolean matches = StringUtils.isVersionInRange(pkgs[j]
 						.getVersion(), versionString);
@@ -1292,7 +1295,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			} else if (entry.endsWith(SEPARATOR_CHAR)) {
 				scan(bundle, prefix, entry, out, buffer, crc);
 			} else {
-				final URL url = bundle.getResource(prefix + "/" + entry);
+				final URL url = bundle.getEntry(prefix + "/" + entry);
 				final InputStream in = url.openStream();
 				int read;
 				int totallyRead = 0;
