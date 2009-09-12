@@ -136,7 +136,7 @@ final class CodeAnalyzer implements ClassVisitor {
 		this.loader = loader;
 
 		if (imports != null) {
-			final String[] tokens = StringUtils.stringToArray(imports, ","); //$NON-NLS-1$
+			final String[] tokens = StringUtils.splitString(imports, ","); //$NON-NLS-1$
 			importsMap = new HashMap(tokens.length);
 			for (int i = 0; i < tokens.length; i++) {
 				final int pos = tokens[i].indexOf(";"); //$NON-NLS-1$
@@ -152,7 +152,7 @@ final class CodeAnalyzer implements ClassVisitor {
 		}
 
 		if (exports != null) {
-			final String[] tokens = StringUtils.stringToArray(exports, ","); //$NON-NLS-1$
+			final String[] tokens = StringUtils.splitString(exports, ","); //$NON-NLS-1$
 			exportsMap = new HashMap(tokens.length);
 			for (int i = 0; i < tokens.length; i++) {
 				final int pos = tokens[i].indexOf(";"); //$NON-NLS-1$

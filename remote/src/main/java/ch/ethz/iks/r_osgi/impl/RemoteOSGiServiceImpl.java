@@ -62,6 +62,7 @@ import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.log.LogService;
+import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
@@ -82,6 +83,7 @@ import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.messages.LeaseUpdateMessage;
 import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryHandler;
 import ch.ethz.iks.util.CollectionUtils;
+import ch.ethz.iks.util.StringUtils;
 
 /**
  * <p>
@@ -1152,6 +1154,47 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 	}
 
+	static String[] getMissingPackages(final String[] packages) {
+		final List missing = new ArrayList();
+		for (int i = 0; i < packages.length; i++) {
+			if (getBundleForPackage(packages[i]) == null) {
+				missing.add(packages[i]);
+			}
+		}
+		return (String[]) missing.toArray(new String[missing.size()]);
+
+	}
+
+	private static Bundle getBundleForPackage(final String packageStr) {
+		ExportedPackage pkg = null;
+		final String pkgString;
+		String versionString = null;
+		final String[] tokens = StringUtils.splitString(packageStr, ";");
+		pkgString = tokens[0];
+		for (int j = 0; j < tokens.length; j++) {
+			if (tokens[j].startsWith("version")) {
+				versionString = tokens[j].substring("version=".length());
+				break;
+			}
+		}
+		if (RemoteOSGiServiceImpl.IS_R4 && versionString != null) {
+			final ExportedPackage[] pkgs = pkgAdmin
+					.getExportedPackages(pkgString);
+			for (int j = 0; j < pkgs.length; j++) {
+				final boolean matches = StringUtils.isVersionInRange(pkgs[j]
+						.getVersion(), versionString);
+				if (matches
+						&& (pkg == null || pkgs[j].getVersion().compareTo(
+								pkg.getVersion()) > 0)) {
+					pkg = pkgs[j];
+				}
+			}
+		} else {
+			pkg = pkgAdmin.getExportedPackage(pkgString);
+		}
+		return pkg == null ? null : pkg.getExportingBundle();
+	}
+
 	static byte[][] getBundlesForPackages(final String[] packages)
 			throws IOException {
 		final HashSet visitedBundles = new HashSet(packages.length);
@@ -1166,10 +1209,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 				BUFFER_SIZE)
 				: null;
 
-		// TODO: for R4, handle multiple versions
 		for (int i = 0; i < packages.length; i++) {
-			final Bundle bundle = pkgAdmin.getExportedPackage(packages[i])
-					.getExportingBundle();
+			final Bundle bundle = getBundleForPackage(packages[i]);
+
 			if (visitedBundles.contains(bundle)) {
 				continue;
 			}
@@ -1196,6 +1238,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		return (byte[][]) bundleBytes.toArray(new byte[bundleBytes.size()][]);
 	}
 
+
 	private static byte[] getBundleConcierge(final Bundle bundle,
 			final byte[] buffer, final ByteArrayOutputStream out)
 			throws IOException {
@@ -1210,14 +1253,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 
 		return out.toByteArray();
-	}
-
-	static boolean checkPackageImport(final String pkg) {
-		// TODO: use versions if on R4
-		if (pkg.startsWith("org.osgi")) {
-			return true;
-		}
-		return pkgAdmin.getExportedPackage(pkg) != null;
 	}
 
 	private static byte[] generateBundle(final Bundle bundle,

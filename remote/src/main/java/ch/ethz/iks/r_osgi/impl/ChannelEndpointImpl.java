@@ -44,7 +44,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
@@ -68,15 +67,15 @@ import ch.ethz.iks.r_osgi.channels.NetworkChannel;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
 import ch.ethz.iks.r_osgi.messages.DeliverBundlesMessage;
 import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
-import ch.ethz.iks.r_osgi.messages.RequestBundleMessage;
-import ch.ethz.iks.r_osgi.messages.RequestDependenciesMessage;
-import ch.ethz.iks.r_osgi.messages.RequestServiceMessage;
-import ch.ethz.iks.r_osgi.messages.RemoteCallMessage;
 import ch.ethz.iks.r_osgi.messages.LeaseMessage;
 import ch.ethz.iks.r_osgi.messages.LeaseUpdateMessage;
+import ch.ethz.iks.r_osgi.messages.RemoteCallMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteCallResultMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteEventMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
+import ch.ethz.iks.r_osgi.messages.RequestBundleMessage;
+import ch.ethz.iks.r_osgi.messages.RequestDependenciesMessage;
+import ch.ethz.iks.r_osgi.messages.RequestServiceMessage;
 import ch.ethz.iks.r_osgi.messages.StreamRequestMessage;
 import ch.ethz.iks.r_osgi.messages.StreamResultMessage;
 import ch.ethz.iks.r_osgi.messages.TimeOffsetMessage;
@@ -85,6 +84,7 @@ import ch.ethz.iks.r_osgi.streams.InputStreamProxy;
 import ch.ethz.iks.r_osgi.streams.OutputStreamHandle;
 import ch.ethz.iks.r_osgi.streams.OutputStreamProxy;
 import ch.ethz.iks.util.CollectionUtils;
+import ch.ethz.iks.util.StringUtils;
 
 /**
  * <p>
@@ -851,30 +851,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
-	 * tokenize a package import/export string
-	 * 
-	 * @param str
-	 *            the string
-	 * @return the tokens
-	 */
-	private String[] getTokens(final String str) {
-		final ArrayList result = new ArrayList();
-		final StringTokenizer tokenizer = new StringTokenizer(str, ",");
-		while (tokenizer.hasMoreTokens()) {
-			final String token = tokenizer.nextToken();
-			final int pos;
-			// TODO: handle versions for R4!
-			final String pkg = (pos = token.indexOf(";")) > -1 ? token
-					.substring(0, pos).trim() : token.trim();
-			if (!RemoteOSGiServiceImpl.checkPackageImport(pkg)) {
-				result.add(pkg);
-			}
-		}
-
-		return (String[]) result.toArray(new String[result.size()]);
-	}
-
-	/**
 	 * get the missing dependencies from remote for a given bundle defined by
 	 * its declared package import and exports.
 	 * 
@@ -886,8 +862,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private void retrieveDependencies(final String importString,
 			final String exportString) {
 
-		final Set exports = new HashSet(Arrays.asList(getTokens(exportString)));
-		final Set imports = new HashSet(Arrays.asList(getTokens(importString)));
+		final Set exports = new HashSet(Arrays.asList(StringUtils.splitString(
+				exportString, ",")));
+		final Set imports = new HashSet(Arrays.asList(StringUtils.splitString(
+				importString, ",")));
 
 		final String[] missing = (String[]) CollectionUtils.rightDifference(
 				imports, exports).toArray(new String[0]);

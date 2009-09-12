@@ -28,7 +28,10 @@
  */
 package ch.ethz.iks.util;
 
-import java.util.StringTokenizer;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.osgi.framework.Version;
 
 /**
  * String utilities.
@@ -44,24 +47,136 @@ public final class StringUtils {
 	private StringUtils() {
 	}
 
-	/**
-	 * transforms a string list into an array of Strings.
-	 * 
-	 * @param data
-	 *            the string list.
-	 * @param delim
-	 *            the list delimiter.
-	 * @return the array of strings.
-	 * @since 0.2
-	 */
-	public static String[] stringToArray(final String data, final String delim) {
-		final StringTokenizer tokenizer = new StringTokenizer(data, delim);
-		final String[] tokens = new String[tokenizer.countTokens()];
-		final int tokenCount = tokenizer.countTokens();
-		for (int i = 0; i < tokenCount; i++) {
-			tokens[i] = tokenizer.nextToken().trim();
+	public static String[] splitString(final String values,
+			final String delimiter) throws IllegalArgumentException {
+		if (values == null) {
+			return new String[0];
 		}
 
-		return tokens;
+		final List tokens = new ArrayList(values.length() / 10);
+		int pointer = 0;
+		int quotePointer = 0;
+		int tokenStart = 0;
+		int nextDelimiter;
+		while ((nextDelimiter = values.indexOf(delimiter, pointer)) > -1) {
+			int openingQuote = values.indexOf("\"", quotePointer);
+			int closingQuote = values.indexOf("\"", openingQuote + 1);
+			if (openingQuote > closingQuote) {
+				throw new IllegalArgumentException(
+						"Missing closing quotation mark.");
+			}
+			if (openingQuote > -1 && openingQuote < nextDelimiter
+					&& closingQuote < nextDelimiter) {
+				quotePointer = ++closingQuote;
+				continue;
+			}
+			if (openingQuote < nextDelimiter && nextDelimiter < closingQuote) {
+				pointer = ++closingQuote;
+				continue;
+			}
+			// TODO: for performance, fold the trim into the splitting
+			tokens.add(values.substring(tokenStart, nextDelimiter).trim());
+			pointer = ++nextDelimiter;
+			quotePointer = pointer;
+			tokenStart = pointer;
+		}
+		tokens.add(values.substring(tokenStart).trim());
+		return (String[]) tokens.toArray(new String[tokens.size()]);
+	}
+
+	/**
+	 * splits a parameter (directives or attributes) into key and value
+	 * 
+	 * @param token
+	 * @return
+	 */
+	public static String[] splitParameter(final String token)
+			throws IllegalArgumentException {
+		int pos = token.indexOf(":=");
+		int offset = 2;
+		if (pos < 0) {
+			pos = token.indexOf("=");
+			if (pos < 0) {
+				throw new IllegalArgumentException("Malformed parameter "
+						+ token);
+			}
+			offset = 1;
+		}
+		return new String[] { token.substring(0, pos),
+				unQuote(token.substring(pos + offset, token.length())) };
+	}
+
+	public static String unQuote(final String quoted) {
+		final int len = quoted.length();
+		final int start = quoted.charAt(0) == '"' ? 1 : 0;
+		final int end = quoted.charAt(quoted.length() - 1) == '"' ? len - 1
+				: len;
+		return (start == 0 && end == len) ? quoted : quoted.substring(start,
+				end);
+	}
+
+	/**
+	 * check, if the version is in the range of the version range specified by
+	 * str
+	 * 
+	 * @param version
+	 *            the Version to compare against the range
+	 * @param str
+	 *            String, that describes the version range
+	 * @return true, if version in range
+	 */
+	public static boolean isVersionInRange(Version version, String str) {
+		// System.out.println("    VERSION CHECK: "+version.toString()+" in range "+str+"?");
+
+		// parse range
+		if (str == null || str.length() < 1) {
+			return (version.compareTo(Version.emptyVersion) > -1);
+		}
+
+		// remove "
+		if (str.startsWith("\"")) {
+			str = str.substring(1, str.length());
+		}
+		if (str.endsWith("\"")) {
+			str = str.substring(0, str.length() - 1);
+		}
+
+		final String[] bounds = splitString(str, ",");
+		if (bounds.length <= 1) {
+			// range is only an "atleast value"
+			Version v2 = new Version(str);
+			if (version.compareTo(v2) < 0) {
+				return false;
+			}
+		} else {
+			// range has lower and upper bound
+			final Version lower = new Version(bounds[0].substring(1).trim());
+			final Version upper = new Version(bounds[1].substring(0,
+					bounds[1].length() - 1).trim());
+			// check lower bound
+			if (bounds[0].startsWith("[")) {
+				if (version.compareTo(lower) < 0) {
+					return false;
+				}
+			} else {
+				// assume "("
+				if (version.compareTo(lower) <= 0) {
+					return false;
+				}
+			}
+			// check upper bound
+			if (bounds[1].endsWith("]")) {
+				if (version.compareTo(upper) > 0) {
+					return false;
+				}
+			} else {
+				// assume ")"
+				if (version.compareTo(upper) >= 0) {
+					return false;
+				}
+			}
+
+		}
+		return true;
 	}
 }
