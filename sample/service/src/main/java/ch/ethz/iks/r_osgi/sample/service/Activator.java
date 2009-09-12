@@ -48,7 +48,7 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 			new Thread() {
 				public void run() {
 					setName("SampleServiceEventThread");
-					final Event event = new Event("test/topic", null);
+					final Event event = new Event("test/topic", (Dictionary) null);
 					while (true) {
 						System.out.println();
 						System.out.println("SENDING EVENT " + event);
