@@ -29,6 +29,7 @@
 package ch.ethz.iks.r_osgi;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 import org.osgi.framework.Filter;
 
@@ -214,7 +215,7 @@ public interface RemoteOSGiService {
 	 *            all.
 	 * @return the service object or null if the timeout is exceeded and the
 	 *         service has not appeared.
-	 * @throws InterruptedException 
+	 * @throws InterruptedException
 	 */
 	Object getRemoteServiceBundle(final RemoteServiceReference ref,
 			final int timeout) throws InterruptedException;
@@ -252,6 +253,9 @@ public interface RemoteOSGiService {
 	 *            a callback to be called when the result is available
 	 */
 	void asyncRemoteCall(final URI service, final String methodSignature,
+			final Object[] args, final AsyncRemoteCallCallback callback);
+
+	void asyncRemoteCall(final URI service, final Method method,
 			final Object[] args, final AsyncRemoteCallCallback callback);
 
 	/**

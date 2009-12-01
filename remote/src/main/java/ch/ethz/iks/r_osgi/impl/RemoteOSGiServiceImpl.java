@@ -52,6 +52,7 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.CRC32;
 
+import org.objectweb.asm.Type;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -131,8 +132,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 		File b = null;
 		try {
-		 b = getEntry == null ? RemoteOSGiActivator.getActivator()
-				.getContext().getDataFile("../..").getCanonicalFile() : null;
+			b = getEntry == null ? RemoteOSGiActivator.getActivator()
+					.getContext().getDataFile("../..").getCanonicalFile()
+					: null;
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
@@ -1181,7 +1183,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		if (RemoteOSGiServiceImpl.IS_R4 && versionString != null) {
 			final ExportedPackage[] pkgs = pkgAdmin
 					.getExportedPackages(pkgString);
-			if(pkgs == null) {
+			if (pkgs == null) {
 				return null;
 			}
 			for (int j = 0; j < pkgs.length; j++) {
@@ -1241,7 +1243,6 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		}
 		return (byte[][]) bundleBytes.toArray(new byte[bundleBytes.size()][]);
 	}
-
 
 	private static byte[] getBundleConcierge(final Bundle bundle,
 			final byte[] buffer, final ByteArrayOutputStream out)
@@ -1345,6 +1346,12 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			Object[] args, AsyncRemoteCallCallback callback) {
 		final ChannelEndpointImpl endpoint = getChannel(service);
 		endpoint.asyncRemoteCall(service.getFragment(), methodSignature, args,
+				callback);
+	}
+
+	public void asyncRemoteCall(final URI service, final Method method,
+			final Object[] args, final AsyncRemoteCallCallback callback) {
+		asyncRemoteCall(service, Type.getMethodDescriptor(method), args,
 				callback);
 	}
 
