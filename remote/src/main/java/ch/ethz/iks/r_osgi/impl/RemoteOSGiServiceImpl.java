@@ -1030,6 +1030,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 */
 	static void unregisterChannelEndpoint(final String channelURI) {
 		channels.remove(channelURI);
+		multiplexers.remove(channelURI);
 	}
 
 	/**

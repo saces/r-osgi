@@ -275,9 +275,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			return;
 		}
 		final Integer xid = new Integer(msg.getXID());
-		final WaitingCallback callback;
+		final AsyncCallback callback;
 		synchronized (callbacks) {
-			callback = (WaitingCallback) callbacks.remove(xid);
+			callback = (AsyncCallback) callbacks.remove(xid);
 		}
 		if (callback != null) {
 			callback.result(msg);
