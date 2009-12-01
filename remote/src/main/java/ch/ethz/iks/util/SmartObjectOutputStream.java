@@ -108,9 +108,16 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 				}
 
 				try {
-					final Field[] fields = clazz.getDeclaredFields();
+					final Field[] fields = clazz.getDeclaredFields();					
 					final int fieldCount = fields.length;
-					out.writeInt(fieldCount);
+					int realFieldCount = 0;
+					for (int i = 0; i < fieldCount; i++) {
+						final int mod = fields[i].getModifiers();
+						if (!(Modifier.isStatic(mod) || Modifier.isTransient(mod))) {
+							realFieldCount++;
+						}								
+					}							
+					out.writeInt(realFieldCount);
 					for (int i = 0; i < fieldCount; i++) {
 						final int mod = fields[i].getModifiers();
 						if (Modifier.isStatic(mod) || Modifier.isTransient(mod)) {
