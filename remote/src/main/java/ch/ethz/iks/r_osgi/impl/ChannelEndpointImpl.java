@@ -431,7 +431,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @category ChannelEndpoint
 	 */
 	public Dictionary getProperties(final String serviceID) {
-		return getRemoteReference(serviceID).getProperties();
+		final RemoteServiceReferenceImpl rref = getRemoteReference(serviceID);
+		return rref == null ? null : rref.getProperties();
 	}
 
 	/**
@@ -444,10 +445,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 * @category ChannelEndpoint
 	 */
 	public Dictionary getPresentationProperties(final String serviceID) {
+		final RemoteServiceReferenceImpl rref = getRemoteReference(serviceID);
+
 		final Dictionary attribs = new Hashtable();
 		attribs.put(RemoteOSGiService.SERVICE_URI, serviceID);
-		attribs.put(RemoteOSGiService.PRESENTATION, getRemoteReference(
-				serviceID).getProperty(RemoteOSGiService.PRESENTATION));
+		attribs.put(RemoteOSGiService.PRESENTATION, rref == null ? null : rref
+				.getProperty(RemoteOSGiService.PRESENTATION));
 		return attribs;
 	}
 
@@ -867,8 +870,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		final Set imports = new HashSet(Arrays.asList(StringUtils.splitString(
 				importString, ",")));
 
-		final String[] missing = RemoteOSGiServiceImpl.getMissingPackages((String[]) CollectionUtils.rightDifference(
-				imports, exports).toArray(new String[0]));
+		final String[] missing = RemoteOSGiServiceImpl
+				.getMissingPackages((String[]) CollectionUtils.rightDifference(
+						imports, exports).toArray(new String[0]));
 
 		if (missing.length > 0) {
 			final RequestDependenciesMessage req = new RequestDependenciesMessage();
