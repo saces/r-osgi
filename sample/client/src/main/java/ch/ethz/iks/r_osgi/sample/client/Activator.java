@@ -36,10 +36,14 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.Filter;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
+import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.URI;
@@ -50,18 +54,25 @@ public class Activator implements BundleActivator, EventHandler {
 
 	private ServiceReference sref;
 
-	private RemoteOSGiService remote;
+	private static RemoteOSGiService remote;
 
-	private ServiceInterface service;
+	private static ServiceInterface service;
 
 	private Thread clientThread;
 
 	private static final int GET_PROXY = 0;
-	
+
 	private static final int GET_BUNDLE_CLONE = 1;
-	
+
 	private static final int CLIENT = GET_PROXY;
-	
+
+	private static final URI uri = new URI(System.getProperty(
+			"ch.ethz.iks.r_osgi.service.uri", "r-osgi://localhost:9278"));
+
+	// private static final URI uri = new URI("btspp://0010DCE96CB8:1");
+	// private static final URI uri = new URI("btspp://0014A4D46D9A:1");
+	// private static final URI uri = new URI("r-osgi://localhost:9270");
+
 	public void start(final BundleContext context) {
 		try {
 			System.out.println("starting sample client");
@@ -77,7 +88,7 @@ public class Activator implements BundleActivator, EventHandler {
 			final Hashtable props = new Hashtable();
 			props.put(EventConstants.EVENT_TOPIC, new String[] { "test/*" });
 			context.registerService(EventHandler.class.getName(), this, props);
-			
+
 			if (Boolean.getBoolean("ch.ethz.iks.r_osgi.service.discovery")) {
 				context.registerService(ServiceDiscoveryListener.class
 						.getName(), new ServiceDiscoveryListener() {
@@ -104,27 +115,36 @@ public class Activator implements BundleActivator, EventHandler {
 				}, null);
 
 			} else {
-				final URI uri = new URI(System.getProperty(
-						"ch.ethz.iks.r_osgi.service.uri",
-						"r-osgi://localhost:9278"));
-				// final URI uri = new URI("r-osgi://84.73.219.12:9278");
-				// final URI uri = new URI("btspp://0010DCE96CB8:1");
-				// final URI uri = new URI("btspp://0014A4D46D9A:1");
-				// final URI uri = new URI("r-osgi://localhost:9270");
-				remote.connect(uri);
-				final RemoteServiceReference[] refs = remote
-						.getRemoteServiceReferences(uri, ServiceInterface.class
-								.getName(), null);
-				System.out.println("REFERENCES " + Arrays.asList(refs));
-				
-				if (CLIENT == GET_PROXY) {
-					service = (ServiceInterface) remote.getRemoteService(refs[0]);
-				} else if (CLIENT == GET_BUNDLE_CLONE) {
-					service = (ServiceInterface) remote.getRemoteServiceBundle(refs[0], 0);
-					System.out.println("SERVICE IS " + service);
-				}
-				clientThread = new ClientThread();
-				clientThread.start();
+
+				// wait for the proxy to disappear in order to do a reconnect
+				final ServiceTracker tracker = new ServiceTracker(context,
+						ServiceInterface.class.getName(),
+						new ServiceTrackerCustomizer() {
+
+							public Object addingService(
+									final ServiceReference reference) {
+								clientThread = new ClientThread();
+								clientThread.start();
+								return context.getService(reference);
+							}
+
+							public void modifiedService(
+									ServiceReference reference, Object service) {
+
+							}
+
+							public void removedService(
+									ServiceReference reference, Object service) {
+								clientThread.interrupt();
+								// service disappeared, try a reconnect
+								new ReconnectThread().start();
+							}
+
+						});
+				tracker.open();
+
+				getService();
+
 			}
 
 		} catch (Exception e) {
@@ -139,6 +159,22 @@ public class Activator implements BundleActivator, EventHandler {
 			clientThread = null;
 		}
 		remote = null;
+	}
+
+	private static final void getService() throws Exception {
+		remote.connect(uri);
+		final RemoteServiceReference[] refs = remote
+				.getRemoteServiceReferences(uri, ServiceInterface.class
+						.getName(), null);
+		System.out.println("REFERENCES " + Arrays.asList(refs));
+
+		if (CLIENT == GET_PROXY) {
+			service = (ServiceInterface) remote.getRemoteService(refs[0]);
+		} else if (CLIENT == GET_BUNDLE_CLONE) {
+			service = (ServiceInterface) remote.getRemoteServiceBundle(refs[0],
+					0);
+			System.out.println("SERVICE IS " + service);
+		}
 	}
 
 	private class ClientThread extends Thread {
@@ -166,10 +202,12 @@ public class Activator implements BundleActivator, EventHandler {
 						}
 						service.verifyBlock("This is a test".getBytes(), 0, 1,
 								2);
-						
-						System.out.println(service.checkArray("ABCDEF", 1000)[0]);
-						
-						System.out.println(service.checkDoubleArray("FEDCBA", 100, 100)[1][1]);
+
+						System.out
+								.println(service.checkArray("ABCDEF", 1000)[0]);
+
+						System.out.println(service.checkDoubleArray("FEDCBA",
+								100, 100)[1][1]);
 						wait(5000);
 					}
 				}
@@ -179,8 +217,30 @@ public class Activator implements BundleActivator, EventHandler {
 		}
 	}
 
+	public class ReconnectThread extends Thread {
+		public void run() {
+			while (true) {
+				try {
+					remote.connect(uri);
+					System.err.println("reconnect successful");
+					break;
+				} catch (RemoteOSGiException e) {
+					System.err.println("reconnect not successful");
+				} catch (IOException e) {
+					System.err.println("reconnect not successful");
+				}
+			}
+
+			try {
+				getService();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public void handleEvent(Event event) {
-		System.out.println("---> Received event " + event.getTopic());		
+		System.out.println("---> Received event " + event.getTopic());
 	};
 
 }
