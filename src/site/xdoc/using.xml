@@ -37,6 +37,16 @@
 				<td><i>BUG</i></td>
 				<td>The BUG platform can access remote services with R-OSGi, see: <a href="http://community.buglabs.net/kgilmer/posts/49-R-OSGi-or-how-to-call-OSGi-services-remotely-Part-I">http://community.buglabs.net/kgilmer/posts/49-R-OSGi-or-how-to-call-OSGi-services-remotely-Part-I</a></td>
 				<td><a href="http://www.buglabs.net">http://www.buglabs.net</a></td>
+			</tr>
+			<tr>
+				<td>ixTrend</td>
+				<td>ixTrend is a software application for data acquisition from patient monitors. The software acquires, visualizes and store high-resolution medical signals and vital parameters. The software has also the ability to export the data in different file-formats. R-OSGi is used in the client-server software for the remote communication.</td>
+				<td><a href="http://www.ixellence.com/ixtrend">http://www.ixellence.com/ixtrend</a></td>
+			</tr>
+			<tr>
+				<td>ixCam</td>
+				<td>ixCam is a universal software for the automatic supervision of video cameras. The software allows the connection and supervision of several cameras of different types and manufacturers at the same time. Within ixCam R-OSGi was also used for the remote communication of the client-server application. R-OSGi is also used for transferring the image data.</td>
+				<td><a href="http://www.ixellence.com/ixcam">http://www.ixellence.com/ixtrend</a></td>
 			</tr>			
 		</table>
 		</p>		

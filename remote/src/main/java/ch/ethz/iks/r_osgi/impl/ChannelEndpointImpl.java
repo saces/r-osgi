@@ -187,6 +187,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	private static final String NO_LOOPS = "(!(" //$NON-NLS-1$
 			+ RemoteEventMessage.EVENT_SENDER_URI + "=*))"; //$NON-NLS-1$
 
+	private ThreadGroup threadPool;
+	
 	private ArrayList workQueue = new ArrayList();
 
 	/**
@@ -236,7 +238,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	private void initThreadPool() {
 		// TODO: tradeoff, could as well be central for all endpoints...
-		final ThreadGroup threadPool = new ThreadGroup("WorkerThreads"
+		threadPool = new ThreadGroup("WorkerThreads"
 				+ toString());
 		for (int i = 0; i < RemoteOSGiServiceImpl.MAX_THREADS_PER_ENDPOINT; i++) {
 			final Thread t = new Thread(threadPool, "WorkerThread" + i) {
@@ -564,6 +566,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 		}
 
+		// dispose off the thread pool
+		threadPool.interrupt();
+		
 		remoteServices = null;
 		remoteTopics = null;
 		timeOffset = null;
