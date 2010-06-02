@@ -90,6 +90,19 @@ public final class RemoteOSGiActivator implements BundleActivator {
 			remoting = new RemoteOSGiServiceImpl();
 		}
 
+		// register the default tcp channel
+		if (!"false" //$NON-NLS-1$
+				.equals(context
+						.getProperty(RemoteOSGiServiceImpl.REGISTER_DEFAULT_TCP_CHANNEL))) {
+			final Dictionary properties = new Hashtable();
+			properties.put(NetworkChannelFactory.PROTOCOL_PROPERTY,
+					TCPChannelFactory.PROTOCOL);
+			context.registerService(NetworkChannelFactory.class.getName(),
+					new TCPChannelFactory(), properties);
+			// TODO: add default transport supported intents
+		}
+		
+		
 		final Hashtable props = new Hashtable();
 		/*
 		props.put(DistributionProvider.PROP_KEY_PRODUCT_NAME, "R-OSGi");
@@ -105,17 +118,7 @@ public final class RemoteOSGiActivator implements BundleActivator {
 				//DistributionProvider.class.getName() 
 		}, remoting, props);
 
-		// register the default tcp channel
-		if (!"false" //$NON-NLS-1$
-				.equals(context
-						.getProperty(RemoteOSGiServiceImpl.REGISTER_DEFAULT_TCP_CHANNEL))) {
-			final Dictionary properties = new Hashtable();
-			properties.put(NetworkChannelFactory.PROTOCOL_PROPERTY,
-					TCPChannelFactory.PROTOCOL);
-			context.registerService(NetworkChannelFactory.class.getName(),
-					new TCPChannelFactory(), properties);
-			// TODO: add default transport supported intents
-		}
+
 	}
 
 	/**

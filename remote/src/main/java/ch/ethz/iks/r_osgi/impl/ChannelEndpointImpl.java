@@ -812,9 +812,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final Bundle bundle = RemoteOSGiActivator.getActivator()
 					.getContext().installBundle(ref.getURI().toString(), in);
 
+			/*
 			retrieveDependencies((String) bundle.getHeaders().get(
 					Constants.IMPORT_PACKAGE), (String) bundle.getHeaders()
 					.get(Constants.EXPORT_PACKAGE));
+			*/
 
 			if (isProxy) {
 				// store the bundle for state updates and cleanup

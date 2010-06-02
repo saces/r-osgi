@@ -85,6 +85,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		remoting = r;
 		thread = new TCPAcceptorThread();
 		thread.start();
+		// TODO: remove debug output
+		System.out.println("R-OSGi protocol runs on " + listeningPort);
 	}
 
 	/**
