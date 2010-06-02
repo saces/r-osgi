@@ -7,13 +7,16 @@ import ch.ethz.iks.r_osgi.service_discovery.ServiceDiscoveryHandler;
 
 public class Activator implements BundleActivator {
 
-	public void start(BundleContext context) throws Exception {
+	private SLPServiceDiscoveryHandler handler;
+
+	public void start(final BundleContext context) throws Exception {
+		handler = new SLPServiceDiscoveryHandler(context);
 		context.registerService(ServiceDiscoveryHandler.class.getName(),
-				new SLPServiceDiscoveryHandler(context), null);
+				handler, null);
 	}
 
-	public void stop(BundleContext context) throws Exception {
-
+	public void stop(final BundleContext context) throws Exception {
+		handler.shutdown();
 	}
 
 }

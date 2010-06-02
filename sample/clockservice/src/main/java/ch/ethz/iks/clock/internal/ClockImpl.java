@@ -1,24 +1,26 @@
 package ch.ethz.iks.clock.internal;
 
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 
 import ch.ethz.iks.clock.Alarm;
 import ch.ethz.iks.clock.Clock;
-import ch.ethz.iks.util.ScheduleListener;
-import ch.ethz.iks.util.Scheduler;
 
-class ClockImpl implements Clock, ScheduleListener {
+class ClockImpl implements Clock {
 
 	private final EventAdmin eventAdmin;
 
-	private List alarms = new ArrayList();
+	private final Timer timer = new Timer();
 
-	private final Scheduler scheduler;
+	private Map alarms = new HashMap/* Alarm,AlarmTask */();
 
 	ClockImpl(final EventAdmin eventAdmin) {
 		this.eventAdmin = eventAdmin;
@@ -40,41 +42,49 @@ class ClockImpl implements Clock, ScheduleListener {
 				}
 			}
 		}.start();
-		scheduler = new Scheduler(this);
 	}
 
-	public void addAlarm(Alarm alarm) {
-		alarms.add(alarm);
+	public void addAlarm(final Alarm alarm) {
+		final TimerTask alarmTask = new AlarmTask(alarm);
+		alarms.put(alarm, alarmTask);
 		Dictionary properties = new Hashtable();
 		properties.put("alarm", alarm);
 		eventAdmin.postEvent(new Event("ch/ethz/iks/clock/ADD_ALARM",
 				properties));
-		scheduler.schedule(alarm, alarm.getTime());
+		timer.schedule(alarmTask, new Date(alarm.getTime()));
 	}
 
 	public void removeAlarm(Alarm alarm) {
-		alarms.remove(alarm);
 		Dictionary properties = new Hashtable();
 		properties.put("alarm", alarm);
 		eventAdmin.postEvent(new Event("ch/ethz/iks/clock/DEL_ALARM",
 				properties));
-		scheduler.unschedule(alarm);
+		final AlarmTask task = (AlarmTask) alarms.remove(alarm);
+		task.cancel();
 	}
 
 	public Alarm[] getAlarms() {
-		return (Alarm[]) alarms.toArray(new Alarm[alarms.size()]);
+		return (Alarm[]) alarms.keySet().toArray(new Alarm[alarms.size()]);
 	}
 
 	public long getTime() {
 		return System.currentTimeMillis();
 	}
 
-	public void due(Scheduler s, long time, Object obj) {
-		final Alarm alarm = (Alarm) obj;
-		Dictionary properties = new Hashtable();
-		properties.put("alarm", alarm);
-		eventAdmin.postEvent(new Event("ch/ethz/iks/clock/ALARM", properties));
-		removeAlarm(alarm);
+	class AlarmTask extends TimerTask {
+
+		final Event event;
+
+		AlarmTask(final Alarm alarm) {
+			final Dictionary properties = new Hashtable();
+			properties.put("alarm", alarm);
+			event = new Event("ch/ethz/iks/clock/ALARM", properties);
+		}
+
+		public void run() {
+			eventAdmin.postEvent(event);
+		}
+
 	}
 
 }

@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimerTask;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -26,11 +27,9 @@ import ch.ethz.iks.slp.ServiceLocationException;
 import ch.ethz.iks.slp.ServiceType;
 import ch.ethz.iks.slp.ServiceURL;
 import ch.ethz.iks.util.CollectionUtils;
-import ch.ethz.iks.util.ScheduleListener;
-import ch.ethz.iks.util.Scheduler;
+import java.util.Timer;
 
-public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
-		ScheduleListener {
+public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler {
 
 	private static final int DISCOVERY_INTERVAL = Integer
 			.parseInt(System
@@ -41,7 +40,11 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 	/**
 	 * SLP registration scheduler.
 	 */
-	private final Scheduler reregistration = new Scheduler(this);
+	private final Timer reregistrationTimer = new Timer();
+
+	private final Map reregistrationTasks = new HashMap/*
+														 * ServiceReference,TimerTask
+														 */();
 
 	private Advertiser advertiser;
 
@@ -154,19 +157,19 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 		}
 	}
 
+	public void shutdown() {
+		reregistrationTimer.cancel();
+	}
+
 	public void registerService(final ServiceReference ref,
 			final Dictionary properties, final URI uri) {
-		try {
-			final SLPServiceRegistration reg = new SLPServiceRegistration(ref,
-					properties, uri);
-			registrations.put(ref, reg);
-			reg.register(advertiser);
-			reregistration.schedule(reg, System.currentTimeMillis()
-					+ (SLPServiceDiscoveryHandler.DEFAULT_SLP_LIFETIME - 1)
-					* 1000);
-		} catch (ServiceLocationException slp) {
-			slp.printStackTrace();
-		}
+		final SLPServiceRegistration reg = new SLPServiceRegistration(ref,
+				properties, uri);
+		registrations.put(ref, reg);
+		final TimerTask task = new ReregistrationTask(reg);
+		reregistrationTasks.put(ref, task);
+		reregistrationTimer.schedule(task, 0,
+				(SLPServiceDiscoveryHandler.DEFAULT_SLP_LIFETIME - 1) * 1000);
 	}
 
 	public void unregisterService(final ServiceReference ref) {
@@ -177,18 +180,9 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 		} catch (ServiceLocationException slp) {
 			slp.printStackTrace();
 		}
-		reregistration.unschedule(reg);
-	}
-
-	public void due(Scheduler scheduler, long timestamp, Object object) {
-		final SLPServiceRegistration reg = (SLPServiceRegistration) object;
-		try {
-			reg.register(advertiser);
-		} catch (ServiceLocationException slp) {
-			slp.printStackTrace();
-		}
-		scheduler.reschedule(reg, System.currentTimeMillis()
-				+ (SLPServiceDiscoveryHandler.DEFAULT_SLP_LIFETIME - 1) * 1000);
+		final TimerTask task = (TimerTask) reregistrationTasks.get(ref);
+		task.cancel();
+		reregistrationTimer.purge();
 	}
 
 	private void announceService(final URI uri,
@@ -345,5 +339,23 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler,
 				ie.printStackTrace();
 			}
 		}
+	}
+
+	private class ReregistrationTask extends TimerTask {
+
+		final SLPServiceRegistration reg;
+
+		ReregistrationTask(final SLPServiceRegistration reg) {
+			this.reg = reg;
+		}
+
+		public void run() {
+			try {
+				reg.register(advertiser);
+			} catch (ServiceLocationException slp) {
+				slp.printStackTrace();
+			}
+		}
+
 	}
 }
