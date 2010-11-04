@@ -117,6 +117,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 	int usageCounter = 1;
 
+	private static final boolean USE_THREAD_POOL = false;
+
 	/**
 	 * the channel.
 	 */
@@ -188,7 +190,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			+ RemoteEventMessage.EVENT_SENDER_URI + "=*))"; //$NON-NLS-1$
 
 	private ThreadGroup threadPool;
-	
+
 	private ArrayList workQueue = new ArrayList();
 
 	/**
@@ -216,7 +218,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"opening new channel " + getRemoteAddress()); //$NON-NLS-1$
 		}
-		initThreadPool();
+		if (USE_THREAD_POOL) {
+			initThreadPool();
+		}
 		RemoteOSGiServiceImpl.registerChannelEndpoint(this);
 	}
 
@@ -229,7 +233,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	ChannelEndpointImpl(final NetworkChannel channel) {
 		networkChannel = channel;
 		channel.bind(this);
-		initThreadPool();
+		if (USE_THREAD_POOL) {
+			initThreadPool();
+		}
 		RemoteOSGiServiceImpl.registerChannelEndpoint(this);
 	}
 
@@ -238,28 +244,29 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	private void initThreadPool() {
 		// TODO: tradeoff, could as well be central for all endpoints...
-		threadPool = new ThreadGroup("WorkerThreads"
-				+ toString());
-		for (int i = 0; i < RemoteOSGiServiceImpl.MAX_THREADS_PER_ENDPOINT; i++) {
-			final Thread t = new Thread(threadPool, "WorkerThread" + i) {
-				public void run() {
-					try {
-						while (!isInterrupted()) {
-							final Runnable r;
-							synchronized (workQueue) {
-								while (workQueue.isEmpty()) {
-									workQueue.wait();
+		if (USE_THREAD_POOL) {
+			threadPool = new ThreadGroup("WorkerThreads" + toString());
+			for (int i = 0; i < RemoteOSGiServiceImpl.MAX_THREADS_PER_ENDPOINT; i++) {
+				final Thread t = new Thread(threadPool, "WorkerThread" + i) {
+					public void run() {
+						try {
+							while (!isInterrupted()) {
+								final Runnable r;
+								synchronized (workQueue) {
+									while (workQueue.isEmpty()) {
+										workQueue.wait();
+									}
+									r = (Runnable) workQueue.remove(0);
 								}
-								r = (Runnable) workQueue.remove(0);
+								r.run();
 							}
-							r.run();
+						} catch (InterruptedException ie) {
+							ie.printStackTrace();
 						}
-					} catch (InterruptedException ie) {
-						ie.printStackTrace();
 					}
-				}
-			};
-			t.start();
+				};
+				t.start();
+			}
 		}
 	}
 
@@ -285,25 +292,40 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			callback.result(msg);
 			return;
 		} else {
-			final Runnable r = new Runnable() {
-				public void run() {
-					final RemoteOSGiMessage reply = handleMessage(msg);
-					if (reply != null) {
+			if (USE_THREAD_POOL) {
+				final Runnable r = new Runnable() {
+					public void run() {
+						final RemoteOSGiMessage reply = handleMessage(msg);
+						if (reply != null) {
 
-						try {
-							networkChannel.sendMessage(reply);
-						} catch (final NotSerializableException nse) {
-							throw new RemoteOSGiException("Error sending " //$NON-NLS-1$
-									+ reply, nse);
-						} catch (final IOException e) {
-							dispose();
+							try {
+								networkChannel.sendMessage(reply);
+							} catch (final NotSerializableException nse) {
+								throw new RemoteOSGiException("Error sending " //$NON-NLS-1$
+										+ reply, nse);
+							} catch (final IOException e) {
+								dispose();
+							}
 						}
 					}
+				};
+				synchronized (workQueue) {
+					workQueue.add(r);
+					workQueue.notify();
 				}
-			};
-			synchronized (workQueue) {
-				workQueue.add(r);
-				workQueue.notify();
+			} else {
+				final RemoteOSGiMessage reply = handleMessage(msg);
+				if (reply != null) {
+
+					try {
+						networkChannel.sendMessage(reply);
+					} catch (final NotSerializableException nse) {
+						throw new RemoteOSGiException("Error sending " //$NON-NLS-1$
+								+ reply, nse);
+					} catch (final IOException e) {
+						dispose();
+					}
+				}
 			}
 		}
 	}
@@ -386,8 +408,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				public void result(final RemoteOSGiMessage msg) {
 					final RemoteCallResultMessage resultMsg = (RemoteCallResultMessage) msg;
 					if (resultMsg.causedException()) {
-						callback.remoteCallResult(false, resultMsg
-								.getException());
+						callback.remoteCallResult(false,
+								resultMsg.getException());
 					}
 					final Object result = resultMsg.getResult();
 					final Object res;
@@ -413,13 +435,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			send(invokeMsg);
 		} catch (final RemoteOSGiException e) {
 			callbacks.remove(xid);
-			callback
-					.remoteCallResult(
-							false,
-							new RemoteOSGiException(
-									"Method invocation of " //$NON-NLS-1$
-											+ getRemoteAddress()
-											+ "#" + fragment + " " + methodSignature + " failed.", e)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			callback.remoteCallResult(
+					false,
+					new RemoteOSGiException(
+							"Method invocation of " //$NON-NLS-1$
+									+ getRemoteAddress()
+									+ "#" + fragment + " " + methodSignature + " failed.", e)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 	}
 
@@ -451,8 +472,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		final Dictionary attribs = new Hashtable();
 		attribs.put(RemoteOSGiService.SERVICE_URI, serviceID);
-		attribs.put(RemoteOSGiService.PRESENTATION, rref == null ? null : rref
-				.getProperty(RemoteOSGiService.PRESENTATION));
+		attribs.put(
+				RemoteOSGiService.PRESENTATION,
+				rref == null ? null : rref
+						.getProperty(RemoteOSGiService.PRESENTATION));
 		return attribs;
 	}
 
@@ -568,7 +591,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		// dispose off the thread pool
 		threadPool.interrupt();
-		
+
 		remoteServices = null;
 		remoteTopics = null;
 		timeOffset = null;
@@ -799,8 +822,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		final DeliverServiceMessage deliv = (DeliverServiceMessage) sendAndWait(req);
 
 		// generate a proxy bundle for the service
-		final InputStream in = new ProxyGenerator().generateProxyBundle(ref
-				.getURI(), deliv);
+		final InputStream in = new ProxyGenerator().generateProxyBundle(
+				ref.getURI(), deliv);
 
 		installResolveAndStartBundle(ref, in, true);
 	}
@@ -813,10 +836,10 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					.getContext().installBundle(ref.getURI().toString(), in);
 
 			/*
-			retrieveDependencies((String) bundle.getHeaders().get(
-					Constants.IMPORT_PACKAGE), (String) bundle.getHeaders()
-					.get(Constants.EXPORT_PACKAGE));
-			*/
+			 * retrieveDependencies((String) bundle.getHeaders().get(
+			 * Constants.IMPORT_PACKAGE), (String) bundle.getHeaders()
+			 * .get(Constants.EXPORT_PACKAGE));
+			 */
 
 			if (isProxy) {
 				// store the bundle for state updates and cleanup
@@ -888,7 +911,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			final byte[][] depBytes = deps.getDependencies();
 			for (int i = 0; i < depBytes.length; i++) {
 				try {
-					RemoteOSGiActivator.getActivator().getContext()
+					RemoteOSGiActivator
+							.getActivator()
+							.getContext()
 							.installBundle("r-osgi://dep/" + missing[i],
 									new ByteArrayInputStream(depBytes[i]));
 				} catch (BundleException be) {
@@ -1035,8 +1060,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 			switch (stateUpdate) {
 			case LeaseUpdateMessage.TOPIC_UPDATE: {
-				updateTopics((String[]) suMsg.getPayload()[0], (String[]) suMsg
-						.getPayload()[1]);
+				updateTopics((String[]) suMsg.getPayload()[0],
+						(String[]) suMsg.getPayload()[1]);
 				return null;
 			}
 			case LeaseUpdateMessage.SERVICE_ADDED: {
@@ -1135,11 +1160,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					final RemoteCallResultMessage m = new RemoteCallResultMessage();
 					m.setXID(invMsg.getXID());
 					if (result instanceof InputStream) {
-						m
-								.setResult(getInputStreamPlaceholder((InputStream) result));
+						m.setResult(getInputStreamPlaceholder((InputStream) result));
 					} else if (result instanceof OutputStream) {
-						m
-								.setResult(getOutputStreamPlaceholder((OutputStream) result));
+						m.setResult(getOutputStreamPlaceholder((OutputStream) result));
 					} else {
 						m.setResult(result);
 					}
@@ -1164,8 +1187,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			// transform the event timestamps
 			final Long remoteTs;
 			if ((remoteTs = (Long) properties.get(EventConstants.TIMESTAMP)) != null) {
-				properties.put(EventConstants.TIMESTAMP, getOffset().transform(
-						remoteTs));
+				properties.put(EventConstants.TIMESTAMP,
+						getOffset().transform(remoteTs));
 			}
 
 			final Event event = new Event(eventMsg.getTopic(), properties);
@@ -1208,8 +1231,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				}
 				case StreamRequestMessage.READ_ARRAY: {
 					final byte[] b = new byte[reqMsg.getLenOrVal()];
-					final int len = ((InputStream) stream).read(b, 0, reqMsg
-							.getLenOrVal());
+					final int len = ((InputStream) stream).read(b, 0,
+							reqMsg.getLenOrVal());
 					final StreamResultMessage m = new StreamResultMessage();
 					m.setXID(reqMsg.getXID());
 					m.setResult(StreamResultMessage.RESULT_ARRAY);
@@ -1441,7 +1464,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
 				properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
 						Boolean.TRUE);
-				handlerReg = RemoteOSGiActivator.getActivator().getContext()
+				handlerReg = RemoteOSGiActivator
+						.getActivator()
+						.getContext()
 						.registerService(EventHandler.class.getName(),
 								new EventForwarder(), properties);
 				remoteTopics.addAll(Arrays.asList(topicsAdded));
@@ -1461,8 +1486,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			} else {
 				// update topics
 				final Dictionary properties = new Hashtable();
-				properties.put(EventConstants.EVENT_TOPIC, remoteTopics
-						.toArray(new String[remoteTopics.size()]));
+				properties.put(EventConstants.EVENT_TOPIC,
+						remoteTopics.toArray(new String[remoteTopics.size()]));
 				properties.put(EventConstants.EVENT_FILTER, NO_LOOPS);
 				properties.put(RemoteOSGiServiceImpl.R_OSGi_INTERNAL,
 						Boolean.TRUE);
@@ -1584,11 +1609,11 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				final String[] propertyNames = event.getPropertyNames();
 				final Dictionary props = new Hashtable();
 				for (int i = 0; i < propertyNames.length; i++) {
-					props.put(propertyNames[i], event
-							.getProperty(propertyNames[i]));
+					props.put(propertyNames[i],
+							event.getProperty(propertyNames[i]));
 				}
-				props.put(RemoteEventMessage.EVENT_SENDER_URI, networkChannel
-						.getLocalAddress());
+				props.put(RemoteEventMessage.EVENT_SENDER_URI,
+						networkChannel.getLocalAddress());
 				msg.setProperties(props);
 				send(msg);
 
