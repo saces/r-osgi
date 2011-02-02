@@ -186,7 +186,7 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler {
 		}
 		final TimerTask task = (TimerTask) reregistrationTasks.get(ref);
 		task.cancel();
-		reregistrationTimer.purge();
+		//reregistrationTimer.purge();
 	}
 
 	private void announceService(final URI uri,

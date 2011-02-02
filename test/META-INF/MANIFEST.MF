@@ -14,10 +14,8 @@ Import-Package: ch.ethz.iks.r_osgi;version="[1.0.0,2.0.0)",
  org.apache.mina.filter;version="1.0.8",
  org.apache.mina.filter.codec;version="1.0.8",
  org.apache.mina.transport.socket.nio;version="1.0.8",
- org.junit;version="4.8.1",
  org.osgi.framework;version="1.2.0"
 Bundle-Activator: ch.ethz.iks.r_osgi.test.Activator
-Bundle-ActivationPolicy: lazy
 Export-Package: ch.ethz.iks.r_osgi.test.service
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
-Require-Bundle: org.junit
+Require-Bundle: org.junit;bundle-version="3.8.2"
