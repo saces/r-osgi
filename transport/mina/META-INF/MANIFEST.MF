@@ -5,15 +5,15 @@ Bundle-SymbolicName: ch.ethz.iks.r_osgi.transport.mina
 Bundle-Version: 1.0.0
 Import-Package: ch.ethz.iks.r_osgi;version="[1.0.0,2.0.0)",
  ch.ethz.iks.r_osgi.channels;version="[1.0.0,2.0.0)",
- org.apache.mina.common,
- org.apache.mina.filter,
- org.apache.mina.filter.codec,
- org.apache.mina.filter.codec.demux,
- org.apache.mina.transport.socket.nio,
+ org.apache.mina.common;version="1.0.8",
+ org.apache.mina.filter;version="1.0.8",
+ org.apache.mina.filter.codec;version="1.0.8",
+ org.apache.mina.filter.codec.demux;version="1.0.8",
+ org.apache.mina.transport.socket.nio;version="1.0.8",
  org.osgi.framework;version="1.2.0"
 Bundle-Activator: ch.ethz.iks.r_osgi.transport.mina.Activator
-Export-Package: ch.ethz.iks.r_osgi.transport.mina,
- ch.ethz.iks.r_osgi.transport.mina.codec
+Export-Package: ch.ethz.iks.r_osgi.transport.mina;version="1.0.0",
+ ch.ethz.iks.r_osgi.transport.mina.codec;version="1.0.0"
 Bundle-ClassPath: .
 Bundle-RequiredExecutionEnvironment: OSGi/Minimum-1.1,
  CDC-1.1/Foundation-1.1
