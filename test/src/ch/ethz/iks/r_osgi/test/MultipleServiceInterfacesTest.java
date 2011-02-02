@@ -42,6 +42,9 @@ public class MultipleServiceInterfacesTest extends TestCase {
 				new MultipleInterfaceServiceImpl(), props);
 
 		remote.connect(uri);
+		// potential race condition, ServiceTracker versus getRemoteServiceReferences
+		// adding some delay
+		Thread.sleep(100);
 		final RemoteServiceReference[] refs = remote
 				.getRemoteServiceReferences(uri, ServiceInterfaceOne.class
 						.getName(), null);

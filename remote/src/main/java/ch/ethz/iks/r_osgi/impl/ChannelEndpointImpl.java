@@ -591,7 +591,9 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 		}
 
 		// dispose off the thread pool
-		threadPool.interrupt();
+		if (threadPool != null) {
+			threadPool.interrupt();
+		}
 
 		remoteServices = null;
 		remoteTopics = null;

@@ -5,6 +5,8 @@ Bundle-SymbolicName: ch.ethz.iks.r_osgi.transport.mina
 Bundle-Version: 1.0.0
 Import-Package: ch.ethz.iks.r_osgi;version="[1.0.0,2.0.0)",
  ch.ethz.iks.r_osgi.channels;version="[1.0.0,2.0.0)",
+ ch.ethz.iks.r_osgi.messages;version="1.0.0",
+ ch.ethz.iks.r_osgi.types;version="1.0.0",
  org.apache.mina.common;version="1.0.8",
  org.apache.mina.filter;version="1.0.8",
  org.apache.mina.filter.codec;version="1.0.8",

@@ -1,5 +1,6 @@
 package ch.ethz.iks.r_osgi.sample.service;
 
+import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import org.osgi.framework.BundleActivator;
@@ -23,10 +24,9 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 		// register the sample service and enable R-OSGi remote access by
 		// building a proxy on the client side
 		final Hashtable properties = new Hashtable();
-		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
-				Boolean.TRUE);
-		properties.put(RemoteOSGiService.SMART_PROXY, SmartService.class
-				.getName());
+		properties.put(RemoteOSGiService.R_OSGi_REGISTRATION, Boolean.TRUE);
+		properties.put(RemoteOSGiService.SMART_PROXY,
+				SmartService.class.getName());
 
 		// properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
 		// RemoteOSGiService.TRANSFER_BUNDLE_POLICY);
@@ -34,12 +34,11 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 		final ServiceRegistration reg = context.registerService(
 				ServiceInterface.class.getName(), new ServiceImpl(), null);
 
-		properties.put(SurrogateRegistration.SERVICE_REFERENCE, reg
-				.getReference());
+		properties.put(SurrogateRegistration.SERVICE_REFERENCE,
+				reg.getReference());
 
-		registration = context.registerService(SurrogateRegistration.class
-				.getName(), this, properties);
-
+		registration = context.registerService(
+				SurrogateRegistration.class.getName(), this, properties);
 
 		final ServiceReference ref = context
 				.getServiceReference(EventAdmin.class.getName());
@@ -48,7 +47,8 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 			new Thread() {
 				public void run() {
 					setName("SampleServiceEventThread");
-					final Event event = new Event("test/topic", (Dictionary) null);
+					final Event event = new Event("test/topic",
+							(Dictionary) null);
 					while (true) {
 						System.out.println();
 						System.out.println("SENDING EVENT " + event);
@@ -61,7 +61,7 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 					}
 				}
 			};
-			//}.start();
+			// }.start();
 
 			// properties.clear();
 
@@ -88,11 +88,20 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 						}
 					}, new Hashtable());
 
-			System.out.println("PRESS ANY KEY TO CAUSE A PROPERTY UPDATE");
-			System.in.read();
-			Dictionary newProps = new Hashtable();
-			newProps.put("Dummy", "value");
-			reg.setProperties(newProps);
+			new Thread() {
+				public void run() {
+					try {
+						System.out
+								.println("PRESS ANY KEY TO CAUSE A PROPERTY UPDATE");
+						System.in.read();
+						Dictionary newProps = new Hashtable();
+						newProps.put("Dummy", "value");
+						reg.setProperties(newProps);
+					} catch (final IOException ioe) {
+						ioe.printStackTrace();
+					}
+				}
+			}.start();
 		} else {
 			System.err.println();
 			System.err

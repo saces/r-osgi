@@ -141,8 +141,8 @@ final class CodeAnalyzer implements ClassVisitor {
 			for (int i = 0; i < tokens.length; i++) {
 				final int pos = tokens[i].indexOf(";"); //$NON-NLS-1$
 				if (pos > -1) {
-					importsMap.put(tokens[i].substring(0, pos), tokens[i]
-							.substring(pos + 1, tokens[i].length()));
+					importsMap.put(tokens[i].substring(0, pos),
+							tokens[i].substring(pos + 1, tokens[i].length()));
 				} else {
 					importsMap.put(tokens[i], null);
 				}
@@ -157,8 +157,8 @@ final class CodeAnalyzer implements ClassVisitor {
 			for (int i = 0; i < tokens.length; i++) {
 				final int pos = tokens[i].indexOf(";"); //$NON-NLS-1$
 				if (pos > -1) {
-					exportsMap.put(tokens[i].substring(0, pos), tokens[i]
-							.substring(pos + 1, tokens[i].length()));
+					exportsMap.put(tokens[i].substring(0, pos),
+							tokens[i].substring(pos + 1, tokens[i].length()));
 				} else {
 					exportsMap.put(tokens[i], null);
 				}
@@ -195,7 +195,11 @@ final class CodeAnalyzer implements ClassVisitor {
 
 		if (smartProxy != null) {
 			closure.add(smartProxy);
-			smartProxyLoader = Class.forName(smartProxy).getClassLoader();
+			try {
+				smartProxyLoader = Class.forName(smartProxy).getClassLoader();
+			} catch (final ClassNotFoundException c) {
+				smartProxyLoader = null;
+			}
 			if (smartProxyLoader == loader) {
 				smartProxyLoader = null;
 			}
@@ -287,8 +291,8 @@ final class CodeAnalyzer implements ClassVisitor {
 			proxyExports.add(pkg);
 		}
 		try {
-			final ClassReader reader = new ClassReader(loader
-					.getResourceAsStream(classFile));
+			final ClassReader reader = new ClassReader(
+					loader.getResourceAsStream(classFile));
 
 			injections.put(classFile, reader.b);
 			if (exportsMap.containsKey(pkg)) {
@@ -300,8 +304,8 @@ final class CodeAnalyzer implements ClassVisitor {
 		} catch (final IOException ioe) {
 			if (smartProxyLoader != null) {
 				try {
-					final ClassReader reader = new ClassReader(smartProxyLoader
-							.getResourceAsStream(classFile));
+					final ClassReader reader = new ClassReader(
+							smartProxyLoader.getResourceAsStream(classFile));
 
 					injections.put(classFile, reader.b);
 					if (exportsMap.containsKey(pkg)) {
