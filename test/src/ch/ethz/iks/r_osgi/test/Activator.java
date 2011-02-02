@@ -16,13 +16,6 @@ public class Activator implements BundleActivator {
 	private RemoteOSGiService remote;
 
 	public void start(BundleContext context) throws Exception {
-		System.out.println(ch.ethz.iks.r_osgi.sample.service.Activator.class
-				.getName());
-		System.out.println(ch.ethz.iks.r_osgi.transport.mina.Activator.class
-				.getName());
-//		System.out
-//				.println(ch.ethz.iks.r_osgi.service_discovery.slp.Activator.class
-//						.getName());
 		instance = this;
 		this.context = context;
 		final ServiceReference ref = context

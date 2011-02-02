@@ -13,7 +13,6 @@ import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IdleStatus;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoSession;
-import org.apache.mina.filter.LoggingFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.transport.socket.nio.SocketAcceptor;
 import org.apache.mina.transport.socket.nio.SocketConnector;
@@ -25,7 +24,6 @@ import ch.ethz.iks.r_osgi.messages.LeaseMessage;
 import ch.ethz.iks.r_osgi.messages.LeaseUpdateMessage;
 import ch.ethz.iks.r_osgi.messages.RemoteOSGiMessage;
 import ch.ethz.iks.r_osgi.transport.mina.codec.RemoteOSGiProtocolCodecFactory;
-
 import junit.framework.TestCase;
 
 public class MinaMessageTestCase extends TestCase implements IoHandler {

@@ -1,17 +1,15 @@
 package ch.ethz.iks.r_osgi.test;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
+
+import junit.framework.TestCase;
 
 import org.osgi.framework.BundleContext;
 
-import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.URI;
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
-import junit.framework.TestCase;
 
 public class SampleServiceTestCase extends TestCase {
 

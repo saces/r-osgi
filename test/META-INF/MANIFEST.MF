@@ -3,20 +3,21 @@ Bundle-ManifestVersion: 2
 Bundle-Name: R-OSGi JUnit Plugin Test
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.test
 Bundle-Version: 1.0.0.RC4
-Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
-Import-Package: ch.ethz.iks.r_osgi.sample.service;version="1.0.0.RC4",
+Bundle-Vendor: Jan S. Rellermeyer
+Import-Package: ch.ethz.iks.r_osgi;version="[1.0.0,2.0.0)",
+ ch.ethz.iks.r_osgi.messages;version="[1.0.0,2.0.0)",
+ ch.ethz.iks.r_osgi.sample.api;version="[1.0.0,2.0.0)",
+ ch.ethz.iks.r_osgi.sample.service;version="[1.0.0,2.0.0)",
  org.apache.mina.common,
  org.apache.mina.common.support,
  org.apache.mina.filter,
  org.apache.mina.filter.codec,
  org.apache.mina.transport.socket.nio,
- org.osgi.framework
-Require-Bundle: ch.ethz.iks.r_osgi.remote,
- ch.ethz.iks.r_osgi.sample.service,
- org.junit,
- ch.ethz.iks.r_osgi.transport.mina,
- ch.ethz.iks.r_osgi.service_discovery.slp
+ org.junit;version="4.8.1",
+ org.osgi.framework;version="1.2.0"
 Bundle-Activator: ch.ethz.iks.r_osgi.test.Activator
 Bundle-ActivationPolicy: lazy
 Export-Package: ch.ethz.iks.r_osgi.test.service
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
+Require-Bundle: org.junit,
+ ch.ethz.iks.r_osgi.transport.mina;bundle-version="1.0.0"
