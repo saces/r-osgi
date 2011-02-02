@@ -41,8 +41,8 @@ public class SampleServiceTestCase extends TestCase {
 		assertNotNull(refs);
 		assertTrue(refs.length > 0);
 		final RemoteServiceReference[] refs2 = remote
-				.getRemoteServiceReferences(uri, ServiceInterface.class
-						.getName(), null);
+				.getRemoteServiceReferences(uri,
+						ServiceInterface.class.getName(), null);
 		assertNotNull(refs);
 		assertTrue(refs.length > 0);
 		for (int i = 0; i < refs2.length; i++) {
@@ -50,9 +50,10 @@ public class SampleServiceTestCase extends TestCase {
 			Object o = remote.getRemoteService(refs2[i]);
 			assertTrue(o instanceof ServiceInterface);
 			assertEquals(
-					context.getServiceReferences(ServiceInterface.class
-							.getName(), "(" + RemoteOSGiService.SERVICE_URI
-							+ "=*)").length, 1);
+					context.getServiceReferences(
+							ServiceInterface.class.getName(), "("
+									+ RemoteOSGiService.SERVICE_URI + "=*)").length,
+					1);
 
 			ServiceInterface service = (ServiceInterface) o;
 			service.local();
@@ -66,10 +67,9 @@ public class SampleServiceTestCase extends TestCase {
 			assertTrue(result instanceof String[]);
 			final String[] res = (String[]) result;
 			for (int a = 0; a < x; a++) {
-					assertEquals(res[a], s);
+				assertEquals(res[a], s);
 			}
-			
-			
+
 			final Object result2 = service.checkDoubleArray(s, x, y);
 			assertTrue(result2 instanceof String[][]);
 			final String[][] res2 = (String[][]) result2;
@@ -78,10 +78,12 @@ public class SampleServiceTestCase extends TestCase {
 					assertEquals(res2[a][b], s);
 				}
 			}
-			
-			remote.ungetRemoteService(refs2[i]);			
-			assertEquals(context.getServiceReferences(ServiceInterface.class
-					.getName(), "(" + RemoteOSGiService.SERVICE_URI + "=*)"),
+
+			remote.ungetRemoteService(refs2[i]);
+			assertEquals(
+					context.getServiceReferences(
+							ServiceInterface.class.getName(), "("
+									+ RemoteOSGiService.SERVICE_URI + "=*)"),
 					null);
 		}
 		remote.disconnect(uri);
@@ -97,8 +99,8 @@ public class SampleServiceTestCase extends TestCase {
 		System.out.println("refs " + Arrays.asList(refs));
 		assertTrue(refs.length > 0);
 		final RemoteServiceReference[] refs2 = remote
-				.getRemoteServiceReferences(uri, ServiceInterface.class
-						.getName(), null);
+				.getRemoteServiceReferences(uri,
+						ServiceInterface.class.getName(), null);
 		assertNotNull(refs);
 		assertTrue(refs.length > 0);
 		for (int i = 0; i < refs2.length; i++) {
@@ -106,9 +108,10 @@ public class SampleServiceTestCase extends TestCase {
 			Object o = remote.getRemoteService(refs2[i]);
 			assertTrue(o instanceof ServiceInterface);
 			assertEquals(
-					context.getServiceReferences(ServiceInterface.class
-							.getName(), "(" + RemoteOSGiService.SERVICE_URI
-							+ "=*)").length, 1);
+					context.getServiceReferences(
+							ServiceInterface.class.getName(), "("
+									+ RemoteOSGiService.SERVICE_URI + "=*)").length,
+					1);
 			ServiceInterface service = (ServiceInterface) o;
 			service.local();
 			assertEquals(service.echoService(s, new Integer(1)), s);
@@ -124,10 +127,12 @@ public class SampleServiceTestCase extends TestCase {
 					assertEquals(res[a][b], s);
 				}
 			}
-			
+
 			remote.ungetRemoteService(refs2[i]);
-			assertEquals(context.getServiceReferences(ServiceInterface.class
-					.getName(), "(" + RemoteOSGiService.SERVICE_URI + "=*)"),
+			assertEquals(
+					context.getServiceReferences(
+							ServiceInterface.class.getName(), "("
+									+ RemoteOSGiService.SERVICE_URI + "=*)"),
 					null);
 		}
 		remote.disconnect(uri);
