@@ -4,11 +4,11 @@ Bundle-Name: R_OSGi Remote Service
 Bundle-SymbolicName: ch.ethz.iks.r_osgi.remote;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Vendor: Jan S. Rellermeyer, ETH Zurich
-Import-Package: org.osgi.framework,
- org.osgi.service.event,
- org.osgi.service.log,
- org.osgi.service.packageadmin,
- org.osgi.util.tracker
+Import-Package: org.osgi.framework;version="1.2.0",
+ org.osgi.service.event;version="1.0.0",
+ org.osgi.service.log;version="1.2.0",
+ org.osgi.service.packageadmin;version="1.1.0",
+ org.osgi.util.tracker;version="1.2.0"
 Export-Package: ch.ethz.iks.r_osgi;version="1.0.0",
  ch.ethz.iks.r_osgi.channels;version="1.0.0",
  ch.ethz.iks.r_osgi.messages;version="1.0.0",

@@ -83,6 +83,7 @@ import ch.ethz.iks.r_osgi.streams.InputStreamHandle;
 import ch.ethz.iks.r_osgi.streams.InputStreamProxy;
 import ch.ethz.iks.r_osgi.streams.OutputStreamHandle;
 import ch.ethz.iks.r_osgi.streams.OutputStreamProxy;
+import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
 import ch.ethz.iks.util.CollectionUtils;
 import ch.ethz.iks.util.StringUtils;
 
@@ -244,6 +245,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	 */
 	private void initThreadPool() {
 		// TODO: tradeoff, could as well be central for all endpoints...
+		// could also be instantiated lazily...
 		if (USE_THREAD_POOL) {
 			threadPool = new ThreadGroup("WorkerThreads" + toString());
 			for (int i = 0; i < RemoteOSGiServiceImpl.MAX_THREADS_PER_ENDPOINT; i++) {
@@ -271,7 +273,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
-	 * process a recieved message. Called by the channel.
+	 * process a received message. Called by the channel.
 	 * 
 	 * @param msg
 	 *            the received message.
@@ -1155,7 +1157,14 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 				// invoke method
 				try {
-					Object result = method.invoke(serv.getServiceObject(),
+					if (!TCPChannelFactory.beSmart && arguments != null) {
+						for (int i = 0; i < arguments.length; i++) {
+							if (arguments[i] instanceof BoxedPrimitive) {
+								arguments[i] = ((BoxedPrimitive)arguments[i]).getBoxed();
+							}
+						}
+					}
+					final Object result = method.invoke(serv.getServiceObject(),
 							arguments);
 					final RemoteCallResultMessage m = new RemoteCallResultMessage();
 					m.setXID(invMsg.getXID());

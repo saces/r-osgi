@@ -9,8 +9,8 @@ Import-Package: ch.ethz.iks.r_osgi;version="[1.0.0,2.0.0)",
  ch.ethz.iks.r_osgi.sample.api;version="[1.0.0,2.0.0)",
  ch.ethz.iks.r_osgi.service_discovery;version="[1.0.0,2.0.0)",
  org.osgi.framework;version="1.2.0",
- org.osgi.service.event;version="1.0.2",
- org.osgi.util.tracker;version="1.4.0"
+ org.osgi.service.event;version="1.0.0",
+ org.osgi.util.tracker;version="1.2.0"
 Export-Package: ch.ethz.iks.r_osgi.sample.api;version="1.0.0.RC4"
 Bundle-Activator: ch.ethz.iks.r_osgi.sample.client.Activator
 Bundle-RequiredExecutionEnvironment: CDC-1.0/Foundation-1.0,

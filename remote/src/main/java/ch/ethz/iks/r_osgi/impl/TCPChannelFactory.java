@@ -56,6 +56,8 @@ import ch.ethz.iks.util.SmartObjectOutputStream;
  */
 final class TCPChannelFactory implements NetworkChannelFactory {
 
+	public static final boolean beSmart = false;
+
 	static final String PROTOCOL = "r-osgi"; //$NON-NLS-1$
 	Remoting remoting;
 	private TCPAcceptorThread thread;
@@ -219,11 +221,19 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 				// for 1.2 VMs that do not support the setKeepAlive
 			}
 			socket.setTcpNoDelay(true);
-			output = new SmartObjectOutputStream(new BufferedOutputStream(
-					socket.getOutputStream()));
-			output.flush();
-			input = new SmartObjectInputStream(new BufferedInputStream(socket
-					.getInputStream()));
+			if (beSmart) {
+				output = new SmartObjectOutputStream(new BufferedOutputStream(
+						socket.getOutputStream()));
+				output.flush();
+				input = new SmartObjectInputStream(new BufferedInputStream(
+						socket.getInputStream()));
+			} else {
+				output = new ObjectOutputStream(new BufferedOutputStream(
+						socket.getOutputStream()));
+				output.flush();
+				input = new ObjectInputStream(new BufferedInputStream(
+						socket.getInputStream()));
+			}
 		}
 
 		/**
@@ -362,7 +372,8 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 										+ " already in use. This instance of R-OSGi is running on port " //$NON-NLS-1$
 										+ listeningPort);
 					}
-					System.out.println("R-OSGi listens on port " + listeningPort);
+					System.out.println("R-OSGi listens on port "
+							+ listeningPort);
 					RemoteOSGiServiceImpl.R_OSGI_PORT = listeningPort;
 					return;
 				} catch (final BindException b) {

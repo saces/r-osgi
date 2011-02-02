@@ -43,7 +43,8 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler {
 	private final Timer reregistrationTimer = new Timer();
 
 	private final Map reregistrationTasks = new HashMap/*
-														 * ServiceReference,TimerTask
+														 * ServiceReference,
+														 * TimerTask
 														 */();
 
 	private Advertiser advertiser;
@@ -102,53 +103,56 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler {
 			thread.start();
 
 			try {
-				discoveryListenerTracker = new ServiceTracker(context, context
-						.createFilter("(" + Constants.OBJECTCLASS + "="
+				discoveryListenerTracker = new ServiceTracker(context,
+						context.createFilter("(" + Constants.OBJECTCLASS + "="
 								+ ServiceDiscoveryListener.class.getName()
 								+ ")"), new ServiceTrackerCustomizer() {
 
-					public Object addingService(ServiceReference reference) {
+							public Object addingService(
+									ServiceReference reference) {
 
-						synchronized (thread) {
-							if (!hasListeners) {
-								hasListeners = true;
-								thread.notifyAll();
+								synchronized (thread) {
+									if (!hasListeners) {
+										hasListeners = true;
+										thread.notifyAll();
+									}
+								}
+
+								// TODO: modify the query
+
+								final String filter = (String) reference
+										.getProperty(ServiceDiscoveryListener.FILTER_PROPERTY);
+								CollectionUtils.addValue(queries, filter,
+										reference);
+
+								// TODO: check all known services
+
+								return context.getService(reference);
 							}
-						}
 
-						// TODO: modify the query
+							public void modifiedService(
+									ServiceReference reference, Object service) {
+								// TODO: modify the query
 
-						final String filter = (String) reference
-								.getProperty(ServiceDiscoveryListener.FILTER_PROPERTY);
-						CollectionUtils.addValue(queries, filter, reference);
-
-						// TODO: check all known services
-
-						return context.getService(reference);
-					}
-
-					public void modifiedService(ServiceReference reference,
-							Object service) {
-						// TODO: modify the query
-
-					}
-
-					public void removedService(ServiceReference reference,
-							Object service) {
-
-						final String filter = (String) reference
-								.getProperty(ServiceDiscoveryListener.FILTER_PROPERTY);
-						CollectionUtils.removeValue(queries,
-								new Object[] { filter }, reference);
-
-						synchronized (thread) {
-							if (discoveryListenerTracker.getTrackingCount() == 0) {
-								hasListeners = true;
-								thread.notifyAll();
 							}
-						}
-					}
-				});
+
+							public void removedService(
+									ServiceReference reference, Object service) {
+
+								final String filter = (String) reference
+										.getProperty(ServiceDiscoveryListener.FILTER_PROPERTY);
+								CollectionUtils.removeValue(queries,
+										new Object[] { filter }, reference);
+
+								synchronized (thread) {
+									if (discoveryListenerTracker
+											.getTrackingCount() == 0) {
+										hasListeners = true;
+										thread.notifyAll();
+									}
+								}
+							}
+						});
 				discoveryListenerTracker.open();
 			} catch (InvalidSyntaxException ise) {
 				// should not happen
@@ -279,12 +283,10 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler {
 											for (int k = 0; k < interfaces.length; k++) {
 												if (interfaces[k]
 														.equals(serviceInterfaceName)) {
-													CollectionUtils
-															.addValue(
-																	knownServices,
-																	refs[j],
-																	service
-																			.toString());
+													CollectionUtils.addValue(
+															knownServices,
+															refs[j],
+															service.toString());
 													announceService(
 															uri,
 															serviceInterfaceName,
@@ -320,10 +322,11 @@ public class SLPServiceDiscoveryHandler implements ServiceDiscoveryHandler {
 											&& known.contains(lostService
 													.toString())) {
 										known.remove(lostService.toString());
-										discardService(uri, lostService
-												.getServiceType()
-												.getConcreteTypeName().replace(
-														'/', '.'), refs[i]);
+										discardService(uri,
+												lostService.getServiceType()
+														.getConcreteTypeName()
+														.replace('/', '.'),
+												refs[i]);
 									}
 								}
 							}

@@ -204,7 +204,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	 * how many worker threads per endpoint?
 	 */
 	static final int MAX_THREADS_PER_ENDPOINT = Integer.getInteger(
-			THREADS_PER_ENDPOINT, 2).intValue();
+			THREADS_PER_ENDPOINT, 16).intValue();
 
 	/**
 	 * log proxy generation debug output.
