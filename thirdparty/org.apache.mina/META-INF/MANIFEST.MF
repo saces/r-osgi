@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: org.apache.mina
+Bundle-SymbolicName: org.apache.mina
+Bundle-Version: 1.0.8
+Bundle-Vendor: apache.org
+Bundle-ClassPath: backport-util-concurrent-3.0.jar,
+ mina-core-1.0.8.jar,
+ slf4j-api-1.4.3.jar,
+ slf4j-simple-1.4.3.jar
+Export-Package: org.apache.mina.common;version="1.0.8",
+ org.apache.mina.common.support;version="1.0.8",
+ org.apache.mina.filter;version="1.0.8",
+ org.apache.mina.filter.codec;version="1.0.8",
+ org.apache.mina.filter.codec.demux;version="1.0.8",
+ org.apache.mina.transport.socket.nio;version="1.0.8"
+Import-Package: ch.ethz.iks.r_osgi.types;version="[1.0.0,2.0.0)"
