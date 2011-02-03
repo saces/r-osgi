@@ -16,25 +16,25 @@
 <booleanAttribute key="includeOptional" value="false"/>
 <stringAttribute key="location" value="${workspace_loc}/../junit-workspace"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/ch.ethz.iks.r_osgi.test"/>
+<listEntry value="/ch.ethz.iks.r_osgi.test/src/ch/ethz/iks/r_osgi/test/ChannelReconnectionTest.java"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
-<listEntry value="4"/>
+<listEntry value="1"/>
 </listAttribute>
-<stringAttribute key="org.eclipse.jdt.junit.CONTAINER" value="=ch.ethz.iks.r_osgi.test"/>
+<stringAttribute key="org.eclipse.jdt.junit.CONTAINER" value=""/>
 <booleanAttribute key="org.eclipse.jdt.junit.KEEPRUNNING_ATTR" value="true"/>
 <stringAttribute key="org.eclipse.jdt.junit.TESTNAME" value=""/>
 <stringAttribute key="org.eclipse.jdt.junit.TEST_KIND" value="org.eclipse.jdt.junit.loader.junit3"/>
 <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>
-<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value=""/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="ch.ethz.iks.r_osgi.test.ChannelReconnectionTest"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl ${target.nl} -console"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="ch.ethz.iks.r_osgi.test"/>
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>
 <stringAttribute key="pde.version" value="3.3"/>
 <stringAttribute key="product" value="org.eclipse.equinox.p2.director.app.product"/>
 <booleanAttribute key="run_in_ui_thread" value="true"/>
-<stringAttribute key="selected_target_plugins" value="org.eclipse.osgi.services@default:default,org.eclipse.core.jobs@default:default,org.eclipse.equinox.event@1:true,org.eclipse.equinox.app@default:default,org.eclipse.equinox.preferences@default:default,org.eclipse.osgi@-1:true,org.hamcrest.core@default:default,org.eclipse.core.contenttype@default:default,org.junit*3.8.2.v3_8_2_v20100427-1100@default:default,org.eclipse.equinox.registry@default:default,org.eclipse.equinox.servletbridge.extensionbundle@default:false,org.eclipse.core.runtime.compatibility.registry@default:false,org.eclipse.equinox.transforms.hook@default:false,org.eclipse.core.runtime@default:true,org.eclipse.equinox.weaving.hook@default:false,org.eclipse.equinox.common@2:true"/>
-<stringAttribute key="selected_workspace_plugins" value="ch.ethz.iks.r_osgi.test@3:true,org.apache.mina@default:default,ch.ethz.iks.r_osgi.sample.dependency@1:true,ch.ethz.iks.r_osgi.transport.mina@2:true,ch.ethz.iks.r_osgi.remote@2:true,ch.ethz.iks.r_osgi.service_discovery.slp@2:true,ch.ethz.iks.r_osgi.sample.service@1:true,ch.ethz.iks.slp@1:true"/>
+<stringAttribute key="selected_target_plugins" value="org.eclipse.osgi@-1:true,org.eclipse.equinox.common@2:true,org.eclipse.osgi.services@default:default,org.eclipse.equinox.weaving.hook@default:false,org.eclipse.equinox.servletbridge.extensionbundle@default:false,org.eclipse.core.runtime@default:true,org.junit*3.8.2.v3_8_2_v20100427-1100@default:default,org.eclipse.core.jobs@default:default,org.eclipse.equinox.transforms.hook@default:false,org.eclipse.equinox.preferences@default:default,org.eclipse.core.contenttype@default:default,org.eclipse.equinox.registry@default:default,org.eclipse.equinox.event@1:true,org.eclipse.core.runtime.compatibility.registry@default:false,org.eclipse.equinox.app@default:default,org.hamcrest.core@default:default"/>
+<stringAttribute key="selected_workspace_plugins" value="org.apache.mina@default:default,ch.ethz.iks.r_osgi.remote@2:true,ch.ethz.iks.slp@1:true,ch.ethz.iks.r_osgi.test@3:true,ch.ethz.iks.r_osgi.sample.dependency@1:true,ch.ethz.iks.r_osgi.sample.service@1:true,ch.ethz.iks.r_osgi.service_discovery.slp@2:true,ch.ethz.iks.r_osgi.transport.mina@2:true"/>
 <booleanAttribute key="show_selected_only" value="false"/>
 <stringAttribute key="templateConfig" value="${target_home}\configuration\config.ini"/>
 <booleanAttribute key="tracing" value="false"/>

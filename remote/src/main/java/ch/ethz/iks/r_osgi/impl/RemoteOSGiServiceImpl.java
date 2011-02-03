@@ -706,6 +706,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			} else {
 				channel.usageCounter--;
 			}
+		} else {
+			// TODO: to log
+			System.err.println("No channel " + endpoint + " to close ("
+					+ channelURI + ")");
+			System.err.println("channels " + channels);
 		}
 	}
 

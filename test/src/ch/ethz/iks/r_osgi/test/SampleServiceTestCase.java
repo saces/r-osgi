@@ -127,6 +127,11 @@ public class SampleServiceTestCase extends TestCase {
 					assertEquals(res[a][b], s);
 				}
 			}
+			
+			service.echoByteArray1("great test".getBytes());
+
+			service.echoByteArray2(new byte[][] { "one".getBytes(),
+					"two".getBytes(), "three".getBytes() });
 
 			remote.ungetRemoteService(refs2[i]);
 			assertEquals(

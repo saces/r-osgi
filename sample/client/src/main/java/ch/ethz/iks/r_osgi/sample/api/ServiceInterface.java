@@ -16,11 +16,15 @@ public interface ServiceInterface {
 	public void zero();
 
 	public void local();
-	
-	public boolean verifyBlock(final byte[] data, final int i, final int j, final int k);
-	
+
+	public boolean verifyBlock(final byte[] data, final int i, final int j,
+			final int k);
+
 	public String[] checkArray(String str, int i);
-	
+
 	public String[][] checkDoubleArray(String str, int i, int j);
 
+	public byte[] echoByteArray1(final byte[] bytes);
+
+	public byte[][] echoByteArray2(final byte[][] bytes);
 }

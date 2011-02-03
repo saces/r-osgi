@@ -1,5 +1,6 @@
 package ch.ethz.iks.r_osgi.test;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -15,6 +16,8 @@ public class Activator implements BundleActivator {
 
 	private RemoteOSGiService remote;
 
+	private Bundle remoteBundle;
+
 	public void start(BundleContext context) throws Exception {
 		instance = this;
 		this.context = context;
@@ -24,6 +27,7 @@ public class Activator implements BundleActivator {
 			throw new BundleException("R-OSGi is not present");
 		}
 		remote = (RemoteOSGiService) context.getService(ref);
+		remoteBundle = ref.getBundle();
 	}
 
 	public void stop(BundleContext context) throws Exception {
@@ -43,4 +47,7 @@ public class Activator implements BundleActivator {
 		return remote;
 	}
 
+	public Bundle getR_OSGiBundle() {
+		return remoteBundle;
+	}
 }

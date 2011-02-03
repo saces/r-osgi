@@ -90,29 +90,32 @@ public class Activator implements BundleActivator, EventHandler {
 			context.registerService(EventHandler.class.getName(), this, props);
 
 			if (Boolean.getBoolean("ch.ethz.iks.r_osgi.service.discovery")) {
-				context.registerService(ServiceDiscoveryListener.class
-						.getName(), new ServiceDiscoveryListener() {
+				context.registerService(
+						ServiceDiscoveryListener.class.getName(),
+						new ServiceDiscoveryListener() {
 
-					public void announceService(String serviceInterface, URI uri) {
-						try {
-							remote.connect(uri);
-							final RemoteServiceReference ref = remote
-									.getRemoteServiceReference(uri);
-							service = (ServiceInterface) remote
-									.getRemoteService(ref);
-							clientThread = new ClientThread();
-							clientThread.start();
-						} catch (IOException ioe) {
-							ioe.printStackTrace();
-						}
-					}
+							public void announceService(
+									String serviceInterface, URI uri) {
+								try {
+									remote.connect(uri);
+									final RemoteServiceReference ref = remote
+											.getRemoteServiceReference(uri);
+									service = (ServiceInterface) remote
+											.getRemoteService(ref);
+									clientThread = new ClientThread();
+									clientThread.start();
+								} catch (IOException ioe) {
+									ioe.printStackTrace();
+								}
+							}
 
-					public void discardService(String serviceInterface, URI uri) {
-						System.out.println("LOST SERVICE " + uri);
+							public void discardService(String serviceInterface,
+									URI uri) {
+								System.out.println("LOST SERVICE " + uri);
 
-					}
+							}
 
-				}, null);
+						}, null);
 
 			} else {
 
@@ -164,8 +167,8 @@ public class Activator implements BundleActivator, EventHandler {
 	private static final void getService() throws Exception {
 		remote.connect(uri);
 		final RemoteServiceReference[] refs = remote
-				.getRemoteServiceReferences(uri, ServiceInterface.class
-						.getName(), null);
+				.getRemoteServiceReferences(uri,
+						ServiceInterface.class.getName(), null);
 		System.out.println("REFERENCES " + Arrays.asList(refs));
 
 		if (CLIENT == GET_PROXY) {
@@ -202,6 +205,11 @@ public class Activator implements BundleActivator, EventHandler {
 						}
 						service.verifyBlock("This is a test".getBytes(), 0, 1,
 								2);
+
+						service.echoByteArray1("great test".getBytes());
+
+						service.echoByteArray2(new byte[][] { "one".getBytes(),
+								"two".getBytes(), "three".getBytes() });
 
 						System.out
 								.println(service.checkArray("ABCDEF", 1000)[0]);

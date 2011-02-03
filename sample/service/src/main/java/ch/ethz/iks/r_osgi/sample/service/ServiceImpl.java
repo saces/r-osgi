@@ -51,23 +51,35 @@ public final class ServiceImpl implements ServiceInterface {
 		System.out.println("GOT CALLED WITH " + new String(data));
 		return true;
 	}
-	
+
 	public String[][] checkDoubleArray(String str, int x, int y) {
 		final String[][] result = new String[x][y];
-		for (int i=0; i<x; i++) {
-			for (int j=0; j<y; j++) {
+		for (int i = 0; i < x; i++) {
+			for (int j = 0; j < y; j++) {
 				result[i][j] = str;
 			}
 		}
 		return result;
 	}
-	
+
 	public String[] checkArray(String str, int x) {
 		final String[] result = new String[x];
-		for (int a=0; a<x; a++) {
+		for (int a = 0; a < x; a++) {
 			result[a] = str;
 		}
-		
+
 		return result;
+	}
+
+	public byte[] echoByteArray1(byte[] bytes) {
+		System.out.println(new String(bytes));
+		return bytes;
+	}
+
+	public byte[][] echoByteArray2(byte[][] bytes) {
+		for (int i = 0; i < bytes.length; i++) {
+			System.out.println(new String(bytes[i]));
+		}
+		return bytes;
 	}
 }

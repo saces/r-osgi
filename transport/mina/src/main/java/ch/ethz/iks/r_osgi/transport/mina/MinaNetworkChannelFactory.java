@@ -75,7 +75,7 @@ public class MinaNetworkChannelFactory implements NetworkChannelFactory {
 	}
 
 	public void deactivate(Remoting remoting) throws IOException {
-
+		acceptor.unbindAll();
 	}
 
 	public NetworkChannel getConnection(ChannelEndpoint endpoint,
