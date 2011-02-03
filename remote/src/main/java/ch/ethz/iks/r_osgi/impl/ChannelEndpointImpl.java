@@ -587,7 +587,17 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 		// dispose off the thread pool
 		if (threadPool != null) {
-			threadPool.interrupt();
+			final Thread[] threads = new Thread[RemoteOSGiServiceImpl.MAX_THREADS_PER_ENDPOINT];
+			final int count = threadPool.enumerate(threads);
+			for (int i = 0; i < count; i++) {
+				threads[i].interrupt();
+				try {
+					threads[i].join();
+				} catch (InterruptedException e) {
+					//
+				}
+			}
+			threadPool.destroy();
 		}
 
 		remoteServices = null;
