@@ -356,18 +356,17 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	private void setupTrackers(final BundleContext context) throws IOException {
 
 		// initialize service trackers
-		eventAdminTracker = new ServiceTracker(context, EventAdmin.class
-				.getName(), null);
+		eventAdminTracker = new ServiceTracker(context,
+				EventAdmin.class.getName(), null);
 		eventAdminTracker.open();
 		if (eventAdminTracker.getTrackingCount() == 0 && log != null) {
-			log
-					.log(LogService.LOG_WARNING,
-							"NO EVENT ADMIN FOUND. REMOTE EVENT DELIVERY TEMPORARILY DISABLED."); //$NON-NLS-1$
+			log.log(LogService.LOG_WARNING,
+					"NO EVENT ADMIN FOUND. REMOTE EVENT DELIVERY TEMPORARILY DISABLED."); //$NON-NLS-1$
 		}
 
 		try {
-			eventHandlerTracker = new ServiceTracker(context, context
-					.createFilter("(&(" + Constants.OBJECTCLASS + "=" //$NON-NLS-1$ //$NON-NLS-2$
+			eventHandlerTracker = new ServiceTracker(context,
+					context.createFilter("(&(" + Constants.OBJECTCLASS + "=" //$NON-NLS-1$ //$NON-NLS-2$
 							+ EventHandler.class.getName() + ")(!(" //$NON-NLS-1$
 							+ R_OSGi_INTERNAL + "=*)))"), //$NON-NLS-1$
 					new ServiceTrackerCustomizer() {
@@ -390,9 +389,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 								final Object oldTopics) {
 
 							final List oldTopicList = (List) oldTopics;
-							final List newTopicList = Arrays
-									.asList((String[]) reference
-											.getProperty(EventConstants.EVENT_TOPIC));
+							final List newTopicList = Arrays.asList((String[]) reference
+									.getProperty(EventConstants.EVENT_TOPIC));
 							final Collection removed = CollectionUtils
 									.rightDifference(newTopicList, oldTopicList);
 							final Collection added = CollectionUtils
@@ -452,18 +450,15 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 													.size()]);
 
 							for (int i = 0; i < regs.length; i++) {
-								handler
-										.registerService(
-												regs[i].getReference(),
-												regs[i].getProperties(),
-												URI
-														.create("r-osgi://" //$NON-NLS-1$
-																+ RemoteOSGiServiceImpl.MY_ADDRESS
-																+ ":" //$NON-NLS-1$
-																+ RemoteOSGiServiceImpl.R_OSGI_PORT
-																+ "#" //$NON-NLS-1$
-																+ regs[i]
-																		.getServiceID()));
+								handler.registerService(
+										regs[i].getReference(),
+										regs[i].getProperties(),
+										URI.create("r-osgi://" //$NON-NLS-1$
+												+ RemoteOSGiServiceImpl.MY_ADDRESS
+												+ ":" //$NON-NLS-1$
+												+ RemoteOSGiServiceImpl.R_OSGI_PORT
+												+ "#" //$NON-NLS-1$
+												+ regs[i].getServiceID()));
 							}
 							return handler;
 						}
@@ -494,9 +489,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 							// FIXME: Surrogates have to be monitored
 							// separately!!!
 							final ServiceReference service = Arrays
-									.asList(
-											(String[]) reference
-													.getProperty(Constants.OBJECTCLASS))
+									.asList((String[]) reference
+											.getProperty(Constants.OBJECTCLASS))
 									.contains(
 											SurrogateRegistration.class
 													.getName()) ? (ServiceReference) reference
@@ -559,9 +553,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 								final Object service) {
 
 							final ServiceReference sref = Arrays
-									.asList(
-											(String[]) reference
-													.getProperty(Constants.OBJECTCLASS))
+									.asList((String[]) reference
+											.getProperty(Constants.OBJECTCLASS))
 									.contains(
 											SurrogateRegistration.class
 													.getName()) ? (ServiceReference) reference
@@ -596,9 +589,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 								factory.activate(RemoteOSGiServiceImpl.this);
 							} catch (final IOException ioe) {
 								if (log != null) {
-									log.log(LogService.LOG_ERROR, ioe
-											.getMessage(), ioe);
+									log.log(LogService.LOG_ERROR,
+											ioe.getMessage(), ioe);
 								}
+								ioe.printStackTrace();
 							}
 							return factory;
 						}
@@ -624,8 +618,10 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	private NetworkChannelFactory getNetworkChannelFactory(final String protocol)
 			throws RemoteOSGiException {
 		try {
-			final Filter filter = RemoteOSGiActivator.getActivator()
-					.getContext().createFilter(
+			final Filter filter = RemoteOSGiActivator
+					.getActivator()
+					.getContext()
+					.createFilter(
 							"(" //$NON-NLS-1$
 									+ NetworkChannelFactory.PROTOCOL_PROPERTY
 									+ "=" + protocol //$NON-NLS-1$
@@ -828,9 +824,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 			final RemoteServiceReference ref) {
 		try {
 			final ServiceReference[] refs = RemoteOSGiActivator.getActivator()
-					.getContext().getServiceReferences(
-							ref.getServiceInterfaces()[0], "(" //$NON-NLS-1$
-									+ SERVICE_URI + "=" + ref.getURI() + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+					.getContext()
+					.getServiceReferences(ref.getServiceInterfaces()[0], "(" //$NON-NLS-1$
+							+ SERVICE_URI + "=" + ref.getURI() + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (refs != null) {
 				return refs[0];
 			}
@@ -1106,11 +1102,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 
 		if (handler != null) {
 			for (int i = 0; i < handler.length; i++) {
-				((ServiceDiscoveryHandler) handler[i]).registerService(reg
-						.getReference(), props, URI.create("r-osgi://" //$NON-NLS-1$
-						+ RemoteOSGiServiceImpl.MY_ADDRESS + ":" //$NON-NLS-1$
-						+ RemoteOSGiServiceImpl.R_OSGI_PORT + "#" //$NON-NLS-1$
-						+ reg.getServiceID()));
+				((ServiceDiscoveryHandler) handler[i]).registerService(
+						reg.getReference(), props, URI.create("r-osgi://" //$NON-NLS-1$
+								+ RemoteOSGiServiceImpl.MY_ADDRESS + ":" //$NON-NLS-1$
+								+ RemoteOSGiServiceImpl.R_OSGI_PORT + "#" //$NON-NLS-1$
+								+ reg.getServiceID()));
 			}
 		}
 
@@ -1136,8 +1132,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		final byte[] buffer = new byte[BUFFER_SIZE];
 		final CRC32 crc = getEntry == null ? null : new CRC32();
 		final ByteArrayOutputStream out = getEntry == null ? new ByteArrayOutputStream(
-				BUFFER_SIZE)
-				: null;
+				BUFFER_SIZE) : null;
 
 		if (getEntry == null) {
 			return getBundleConcierge(bundle, buffer, out);
@@ -1187,8 +1182,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 				return null;
 			}
 			for (int j = 0; j < pkgs.length; j++) {
-				final boolean matches = StringUtils.isVersionInRange(pkgs[j]
-						.getVersion(), versionString);
+				final boolean matches = StringUtils.isVersionInRange(
+						pkgs[j].getVersion(), versionString);
 				if (matches
 						&& (pkg == null || pkgs[j].getVersion().compareTo(
 								pkg.getVersion()) > 0)) {
@@ -1212,8 +1207,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		final byte[] buffer = new byte[BUFFER_SIZE];
 		final CRC32 crc = getEntry == null ? null : new CRC32();
 		final ByteArrayOutputStream out = getEntry == null ? new ByteArrayOutputStream(
-				BUFFER_SIZE)
-				: null;
+				BUFFER_SIZE) : null;
 
 		for (int i = 0; i < packages.length; i++) {
 			final Bundle bundle = getBundleForPackage(packages[i]);
@@ -1247,9 +1241,8 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	private static byte[] getBundleConcierge(final Bundle bundle,
 			final byte[] buffer, final ByteArrayOutputStream out)
 			throws IOException {
-		FileInputStream in = new FileInputStream(new File(base, bundle
-				.getBundleId()
-				+ "/bundle"));
+		FileInputStream in = new FileInputStream(new File(base,
+				bundle.getBundleId() + "/bundle"));
 		out.reset();
 
 		int read;

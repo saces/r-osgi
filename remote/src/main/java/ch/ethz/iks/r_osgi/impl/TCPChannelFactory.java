@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 import org.osgi.service.log.LogService;
 
@@ -97,7 +98,10 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 	 * @see ch.ethz.iks.r_osgi.channels.NetworkChannelFactory#deactivate(ch.ethz.iks.r_osgi.Remoting)
 	 */
 	public void deactivate(final Remoting r) throws IOException {
-		thread.interrupt();
+		if (thread != null) {
+			thread.close();
+			thread = null;
+		}
 		remoting = null;
 	}
 
@@ -377,6 +381,11 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 					RemoteOSGiServiceImpl.R_OSGI_PORT = listeningPort;
 					return;
 				} catch (final BindException b) {
+					// normal behavior, get a BindException if the port is
+					// already in use
+					e++;
+				} catch (final SocketException s) {
+					// Windows 7 behavior
 					e++;
 				}
 			}
@@ -394,9 +403,14 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 					// for them
 					remoting.createEndpoint(new TCPChannel(socket.accept()));
 				} catch (final IOException ioe) {
-					ioe.printStackTrace();
+					// TODO: to log
 				}
 			}
+		}
+
+		public void close() throws IOException {
+			interrupt();
+			socket.close();
 		}
 	}
 

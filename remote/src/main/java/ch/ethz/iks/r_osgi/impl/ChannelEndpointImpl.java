@@ -39,11 +39,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
@@ -83,8 +81,6 @@ import ch.ethz.iks.r_osgi.streams.InputStreamProxy;
 import ch.ethz.iks.r_osgi.streams.OutputStreamHandle;
 import ch.ethz.iks.r_osgi.streams.OutputStreamProxy;
 import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
-import ch.ethz.iks.util.CollectionUtils;
-import ch.ethz.iks.util.StringUtils;
 
 /**
  * <p>
@@ -117,7 +113,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 	int usageCounter = 1;
 
-	private static final boolean USE_THREAD_POOL = false;
+	private static final boolean USE_THREAD_POOL = true;
 
 	/**
 	 * the channel.
@@ -261,8 +257,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 								}
 								r.run();
 							}
-						} catch (InterruptedException ie) {
-							ie.printStackTrace();
+						} catch (final InterruptedException ie) {
+							// that's fine
 						}
 					}
 				};
@@ -298,7 +294,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					public void run() {
 						final RemoteOSGiMessage reply = handleMessage(msg);
 						if (reply != null) {
-
 							try {
 								networkChannel.sendMessage(reply);
 							} catch (final NotSerializableException nse) {
@@ -887,46 +882,6 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	}
 
 	/**
-	 * get the missing dependencies from remote for a given bundle defined by
-	 * its declared package import and exports.
-	 * 
-	 * @param importString
-	 *            the declared package imports
-	 * @param exportString
-	 *            the declared package exports
-	 */
-	private void retrieveDependencies(final String importString,
-			final String exportString) {
-
-		final Set exports = new HashSet(Arrays.asList(StringUtils.splitString(
-				exportString, ",")));
-		final Set imports = new HashSet(Arrays.asList(StringUtils.splitString(
-				importString, ",")));
-
-		final String[] missing = RemoteOSGiServiceImpl
-				.getMissingPackages((String[]) CollectionUtils.rightDifference(
-						imports, exports).toArray(new String[0]));
-
-		if (missing.length > 0) {
-			final RequestDependenciesMessage req = new RequestDependenciesMessage();
-			req.setPackages(missing);
-			final DeliverBundlesMessage deps = (DeliverBundlesMessage) sendAndWait(req);
-			final byte[][] depBytes = deps.getDependencies();
-			for (int i = 0; i < depBytes.length; i++) {
-				try {
-					RemoteOSGiActivator
-							.getActivator()
-							.getContext()
-							.installBundle("r-osgi://dep/" + missing[i],
-									new ByteArrayInputStream(depBytes[i]));
-				} catch (BundleException be) {
-					be.printStackTrace();
-				}
-			}
-		}
-	}
-
-	/**
 	 * get the remote reference for a given serviceID.
 	 * 
 	 * @param serviceID
@@ -1118,8 +1073,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 						be.printStackTrace();
 					}
 					proxiedServices.remove(serviceID);
-					remoteServices.remove(getRemoteAddress().resolve(
-							"#" + serviceID).toString()); //$NON-NLS-1$
+					try {
+						remoteServices.remove(getRemoteAddress().resolve(
+								"#" + serviceID).toString()); //$NON-NLS-1$
+					} catch (final RemoteOSGiException r) {
+						// channel was already closed.
+					}
 				}
 				return null;
 			}
@@ -1161,12 +1120,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 					if (!TCPChannelFactory.beSmart && arguments != null) {
 						for (int i = 0; i < arguments.length; i++) {
 							if (arguments[i] instanceof BoxedPrimitive) {
-								arguments[i] = ((BoxedPrimitive)arguments[i]).getBoxed();
+								arguments[i] = ((BoxedPrimitive) arguments[i])
+										.getBoxed();
 							}
 						}
 					}
-					final Object result = method.invoke(serv.getServiceObject(),
-							arguments);
+					final Object result = method.invoke(
+							serv.getServiceObject(), arguments);
 					final RemoteCallResultMessage m = new RemoteCallResultMessage();
 					m.setXID(invMsg.getXID());
 					if (result instanceof InputStream) {
