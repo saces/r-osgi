@@ -1,6 +1,5 @@
-/* Copyright (c) 2006-2009 Jan S. Rellermeyer
- * Systems Group,
- * Institute for Pervasive Computing, ETH Zurich.
+/* Copyright (c) 2006-2011 Jan S. Rellermeyer
+ * Systems Group, ETH Zurich.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,14 +29,10 @@
 package ch.ethz.iks.util;
 
 import java.io.IOException;
-import java.io.NotSerializableException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-
+import java.lang.reflect.Array;
 import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
 
 /**
@@ -46,16 +41,15 @@ import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
  * and the OSGi ServiceReference and ServiceRegistration classes.
  * 
  * @author Jan S. Rellermeyer
- * 
  */
 public final class SmartObjectOutputStream extends ObjectOutputStream {
 
-	private final ObjectOutputStream out;
+	private EnhancedObjectOutputStream out;
 
-	public SmartObjectOutputStream(final OutputStream out) throws IOException {
-		// implicitly: super();
-		// thereby, enableOverride is set
-		this.out = new ObjectOutputStream(out);
+	public SmartObjectOutputStream(final OutputStream out)
+			throws SecurityException, IOException {
+		super();
+		this.out = new EnhancedObjectOutputStream(out);
 	}
 
 	protected final void writeObjectOverride(final Object o) throws IOException {
@@ -68,74 +62,36 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 				.getBoxed() : o;
 
 		final String clazzName = obj.getClass().getName();
+		// if (obj instanceof String) {
+		// TODO:
+		// out.writeUTF((String) obj);
+		// return;
+		// } else
 		if (SmartConstants.positiveList.contains(clazzName)) {
 			// string serializable classes
 			out.writeByte(1);
 			final String id = (String) SmartConstants.classToId.get(clazzName);
-			out.writeUTF(id != null ? id : clazzName);
+
+			out.write(id == null ? 0 : id.getBytes()[0]);
+			if (id == null) {
+				out.writeUTF(id != null ? id : clazzName);
+			}
 			out.writeUTF(obj.toString());
 			return;
-		} else if (obj instanceof Serializable) {
-			// java serializable classes
+		} else if (obj.getClass().isArray()) {
+			// arrays
 			out.writeByte(2);
+			out.writeInt(Array.getLength(obj));
+			out.writeUTF(obj.getClass().getName());
+
+			for (int i = 0; i < Array.getLength(obj); i++) {
+				writeObjectOverride(Array.get(obj, i));
+			}
+		} else {
+			// java serializable classes
+			out.writeByte(3);
 			out.writeObject(obj);
 			return;
-		} else {
-			out.writeByte(3);
-
-			// all other classes: try smart serialization
-			Class clazz = obj.getClass();
-
-			if (SmartConstants.blackList.contains(clazz.getName())) {
-				throw new NotSerializableException("Class " + clazz.getName() //$NON-NLS-1$
-						+ " is not serializable"); //$NON-NLS-1$
-			}
-
-			out.writeUTF(clazz.getName());
-
-			// TODO: cache this information...
-			while (clazz != Object.class) {
-				// check for native methods
-				final Method[] methods = clazz.getDeclaredMethods();
-				for (int j = 0; j < methods.length; j++) {
-					final int mod = methods[j].getModifiers();
-					if (Modifier.isNative(mod)) {
-						throw new NotSerializableException(
-								"Class " //$NON-NLS-1$
-										+ clazz.getName()
-										+ " contains native methods and is therefore not serializable."); //$NON-NLS-1$ 
-					}
-				}
-
-				try {
-					final Field[] fields = clazz.getDeclaredFields();					
-					final int fieldCount = fields.length;
-					int realFieldCount = 0;
-					for (int i = 0; i < fieldCount; i++) {
-						final int mod = fields[i].getModifiers();
-						if (!(Modifier.isStatic(mod) || Modifier.isTransient(mod))) {
-							realFieldCount++;
-						}								
-					}							
-					out.writeInt(realFieldCount);
-					for (int i = 0; i < fieldCount; i++) {
-						final int mod = fields[i].getModifiers();
-						if (Modifier.isStatic(mod) || Modifier.isTransient(mod)) {
-							continue;
-						} else if (!Modifier.isPublic(mod)) {
-							fields[i].setAccessible(true);
-						}
-						out.writeUTF(fields[i].getName());
-						writeObjectOverride(fields[i].get(obj));
-					}
-				} catch (final Exception e) {
-					throw new NotSerializableException(
-							"Exception while serializing " + obj.toString() //$NON-NLS-1$
-									+ ":\n" + e.getMessage()); //$NON-NLS-1$ 
-				}
-				clazz = clazz.getSuperclass();
-			}
-			out.writeInt(-1);
 		}
 	}
 
@@ -274,6 +230,24 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 	 */
 	public final void writeUTF(final String str) throws IOException {
 		out.writeUTF(str);
+	}
+
+	class EnhancedObjectOutputStream extends ObjectOutputStream {
+
+		public EnhancedObjectOutputStream(final OutputStream out)
+				throws IOException {
+			super(out);
+			this.enableReplaceObject(true);
+		}
+
+		protected Object replaceObject(final Object obj) throws IOException {
+			if (obj instanceof Serializable) {
+				return obj;
+			}
+
+			return new SmartObjectStreamClass(obj, obj.getClass());
+		}
+
 	}
 
 }

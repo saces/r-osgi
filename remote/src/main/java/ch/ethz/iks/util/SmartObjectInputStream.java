@@ -32,9 +32,10 @@ package ch.ethz.iks.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.Method;
 
 /**
  * Smart object input stream that is able to deserialize classes which do not
@@ -46,12 +47,12 @@ import java.lang.reflect.Modifier;
  */
 public final class SmartObjectInputStream extends ObjectInputStream {
 
-	private final ObjectInputStream in;
+	final EnhancedObjectInputStream in;
 
-	public SmartObjectInputStream(final InputStream in) throws IOException {
-		// implicitly: super();
-		// thereby, enableOverride is set
-		this.in = new ObjectInputStream(in);
+	public SmartObjectInputStream(final InputStream in)
+			throws SecurityException, IOException {
+		super();
+		this.in = new EnhancedObjectInputStream(in);
 	}
 
 	protected final Object readObjectOverride() throws IOException,
@@ -66,9 +67,15 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 			// string serialized object
 			// TODO: cache constructors
 			try {
-				final String type = in.readUTF();
-				final Class test = (Class) SmartConstants.idToClass.get(type);
-				final Class clazz = test != null ? test : Class.forName(type);
+				final byte b = (byte) in.read();
+				final Class clazz;
+				if (b == 0) {
+					final String type = in.readUTF();
+					clazz = Class.forName(type);
+				} else {
+					clazz = (Class) SmartConstants.idToClass.get(String
+							.valueOf(b));
+				}
 				final Constructor constr = clazz
 						.getConstructor(new Class[] { String.class });
 				return constr.newInstance(new Object[] { in.readUTF() });
@@ -76,44 +83,21 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 				e.printStackTrace();
 				throw new IOException(e.getMessage());
 			}
-		case 2:
+		case 3:
 			// java serialized object
 			return in.readObject();
-		case 3:
-			// smart serialized object
-			final String clazzName = in.readUTF();
+		case 2:
+			final int size = in.readInt();
+			final String type = in.readUTF();
 
-			// TODO: cache this information...
-			Class clazz = Class.forName(clazzName);
+			final Object newInstance = Array.newInstance(Class.forName(type)
+					.getComponentType(), size);
 
-			try {
-				final Constructor constr = clazz.getDeclaredConstructor(null);
-				constr.setAccessible(true);
-				final Object newInstance = constr.newInstance(null);
-
-				int fieldCount = in.readInt();
-				while (fieldCount > -1) {
-					for (int i = 0; i < fieldCount; i++) {
-						final String fieldName = in.readUTF();
-						final Object value = readObjectOverride();
-						final Field field = clazz.getDeclaredField(fieldName);
-
-						final int mod = field.getModifiers();
-						if (!Modifier.isPublic(mod)) {
-							field.setAccessible(true);
-						}
-
-						field.set(newInstance, value);
-					}
-					clazz = clazz.getSuperclass();
-					fieldCount = in.readInt();
-				}
-				return newInstance;
-			} catch (final Exception e) {
-				e.printStackTrace();
-				throw new IOException("Error while deserializing " + clazzName //$NON-NLS-1$
-						+ ": " + e.getMessage()); //$NON-NLS-1$
+			for (int i = 0; i < size; i++) {
+				Array.set(newInstance, i, readObjectOverride());
 			}
+
+			return newInstance;
 		default:
 			throw new IllegalStateException("Unhandled case " + cat); //$NON-NLS-1$
 		}
@@ -272,4 +256,55 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 		return in.readUTF();
 	}
 
+	class EnhancedObjectInputStream extends ObjectInputStream {
+
+		private Object handles;
+		private Field handle;
+		private Method setHandle;
+
+		EnhancedObjectInputStream(final InputStream in) throws IOException {
+			super(in);
+			enableResolveObject(true);
+			try {
+				final Field field = getClass().getSuperclass()
+						.getDeclaredField("handles");
+				field.setAccessible(true);
+				handles = field.get(this);
+				handle = getClass().getSuperclass().getDeclaredField(
+						"passHandle");
+				handle.setAccessible(true);
+				setHandle = handles.getClass().getDeclaredMethod("setObject",
+						new Class[] { Integer.TYPE, Object.class });
+				setHandle.setAccessible(true);
+			} catch (Exception e) {
+				// handle replacement won't work.
+			}
+		}
+
+		protected Object resolveObject(final Object obj) throws IOException {
+			if (obj instanceof SmartObjectStreamClass) {
+				try {
+					return ((SmartObjectStreamClass) obj).restoreObject();
+				} catch (Exception e) {
+					final IOException f = new IOException(
+							"Exception while resolving object");
+					f.initCause(e);
+					throw f;
+				}
+			}
+			return obj;
+		}
+
+		void fixHandle(final Object obj) {
+			if (setHandle == null) {
+				return;
+			}
+			try {
+				setHandle.invoke(handles,
+						new Object[] { handle.get(this), obj });
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }
