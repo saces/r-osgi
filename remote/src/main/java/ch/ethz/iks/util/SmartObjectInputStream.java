@@ -50,7 +50,7 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 	private Field handle;
 	private Method setHandle;
 
-	SmartObjectInputStream(final InputStream in) throws IOException {
+	public SmartObjectInputStream(final InputStream in) throws IOException {
 		super(new GZIPInputStream(in));
 		enableResolveObject(true);
 		try {

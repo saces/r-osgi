@@ -57,7 +57,7 @@ import ch.ethz.iks.util.SmartObjectOutputStream;
  */
 final class TCPChannelFactory implements NetworkChannelFactory {
 
-	public static final boolean beSmart = false;
+	public static final boolean beSmart = true;
 
 	static final String PROTOCOL = "r-osgi"; //$NON-NLS-1$
 	Remoting remoting;
@@ -226,11 +226,9 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 			}
 			socket.setTcpNoDelay(true);
 			if (beSmart) {
-				output = new SmartObjectOutputStream(new BufferedOutputStream(
-						socket.getOutputStream()));
+				output = new SmartObjectOutputStream(socket.getOutputStream());
 				output.flush();
-				input = new SmartObjectInputStream(new BufferedInputStream(
-						socket.getInputStream()));
+				input = new SmartObjectInputStream(socket.getInputStream());
 			} else {
 				output = new ObjectOutputStream(new BufferedOutputStream(
 						socket.getOutputStream()));

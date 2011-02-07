@@ -668,7 +668,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		final ChannelEndpointImpl test = (ChannelEndpointImpl) channels
 				.get(endpoint.toString());
 		if (test != null) {
-			test.usageCounter++;
+			synchronized (test) {
+				test.usageCounter++;
+			}
 			return test.getAllRemoteReferences(null);
 		}
 
@@ -700,11 +702,13 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		final ChannelEndpointImpl channel = (ChannelEndpointImpl) channels
 				.get(channelURI);
 		if (channel != null) {
-			if (channel.usageCounter == 1) {
-				channel.dispose();
-				multiplexers.remove(channelURI);
-			} else {
-				channel.usageCounter--;
+			synchronized (channel) {
+				if (channel.usageCounter == 1) {
+					channel.dispose();
+					multiplexers.remove(channelURI);
+				} else {
+					channel.usageCounter--;
+				}
 			}
 		} else {
 			// TODO: to log

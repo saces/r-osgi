@@ -1127,11 +1127,13 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 
 				// invoke method
 				try {
-					if (!TCPChannelFactory.beSmart && arguments != null) {
-						for (int i = 0; i < arguments.length; i++) {
-							if (arguments[i] instanceof BoxedPrimitive) {
-								arguments[i] = ((BoxedPrimitive) arguments[i])
-										.getBoxed();
+					if (!TCPChannelFactory.beSmart) {
+						if (arguments != null) {
+							for (int i = 0; i < arguments.length; i++) {
+								if (arguments[i] instanceof BoxedPrimitive) {
+									arguments[i] = ((BoxedPrimitive) arguments[i])
+											.getBoxed();
+								}
 							}
 						}
 					}
