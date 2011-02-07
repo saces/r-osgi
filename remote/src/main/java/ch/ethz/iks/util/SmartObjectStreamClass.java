@@ -38,6 +38,7 @@ public class SmartObjectStreamClass implements Externalizable {
 				for (int i = 0; i < methods.length; i++) {
 					final int mod = methods[i].getModifiers();
 					if (Modifier.isNative(mod)) {
+						SmartObjectOutputStream.blackList.add(clazz);
 						throw new NotSerializableException(
 								"Class " //$NON-NLS-1$
 										+ clazz.getName()
@@ -71,6 +72,7 @@ public class SmartObjectStreamClass implements Externalizable {
 				fieldValues[i] = fields[i].get(obj);
 			}
 		} catch (final Exception e) {
+			SmartObjectOutputStream.blackList.add(clazz);
 			throw new NotSerializableException(
 					"Exception while serializing " + obj.toString() //$NON-NLS-1$
 							+ ":\n" + e.getMessage()); //$NON-NLS-1$ 
@@ -111,8 +113,7 @@ public class SmartObjectStreamClass implements Externalizable {
 			throw f;
 		}
 
-		((SmartObjectInputStream.EnhancedObjectInputStream) in)
-				.fixHandle(restored);
+		((SmartObjectInputStream) in).fixHandle(restored);
 
 		final int fieldCount = in.readInt();
 		fieldNames = new String[fieldCount];
