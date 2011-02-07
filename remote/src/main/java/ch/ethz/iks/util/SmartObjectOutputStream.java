@@ -67,11 +67,7 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 				.getBoxed() : o;
 
 		final String clazzName = obj.getClass().getName();
-		// if (obj instanceof String) {
-		// TODO:
-		// out.writeUTF((String) obj);
-		// return;
-		// } else
+		
 		if (SmartConstants.positiveList.contains(clazzName)) {
 			// string serializable classes
 			out.writeByte(1);
@@ -83,18 +79,9 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 			}
 			out.writeUTF(obj.toString());
 			return;
-		} else if (obj.getClass().isArray()) {
-			// arrays
-			out.writeByte(2);
-			out.writeInt(Array.getLength(obj));
-			out.writeUTF(obj.getClass().getName());
-
-			for (int i = 0; i < Array.getLength(obj); i++) {
-				writeObjectOverride(Array.get(obj, i));
-			}
 		} else {
 			// java serializable classes
-			out.writeByte(3);
+			out.writeByte(2);
 			out.writeObject(obj);
 			return;
 		}
@@ -272,17 +259,6 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 			public void write(final byte[] bytes, final int i, final int i1)
 					throws IOException {
 				super.write(bytes, i, i1);
-				hasPendingBytes = true;
-			}
-
-			public synchronized void write(final int i) throws IOException {
-				super.write(i);
-				hasPendingBytes = true;
-			}
-
-			public synchronized void write(final byte[] bytes)
-					throws IOException {
-				super.write(bytes);
 				hasPendingBytes = true;
 			}
 

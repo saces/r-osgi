@@ -32,15 +32,12 @@ package ch.ethz.iks.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.WeakHashMap;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
 
 /**
  * Smart object input stream that is able to deserialize classes which do not
@@ -53,6 +50,8 @@ import java.util.zip.InflaterInputStream;
 public final class SmartObjectInputStream extends ObjectInputStream {
 
 	final EnhancedObjectInputStream in;
+
+	private static final WeakHashMap constructorCache = new WeakHashMap();
 
 	public SmartObjectInputStream(final InputStream in)
 			throws SecurityException, IOException {
@@ -70,7 +69,6 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 			return null;
 		case 1:
 			// string serialized object
-			// TODO: cache constructors
 			try {
 				final byte b = (byte) in.read();
 				final Class clazz;
@@ -81,25 +79,17 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 					clazz = (Class) SmartConstants.idToClass.get(String
 							.valueOf(b));
 				}
-				final Constructor constr = clazz
-						.getConstructor(new Class[] { String.class });
+				Constructor constr = (Constructor) constructorCache.get(clazz);
+				if (constr == null) {
+					constr = clazz.getConstructor(new Class[] { String.class });
+					constructorCache.put(clazz, constr);
+				}
 				return constr.newInstance(new Object[] { in.readUTF() });
 			} catch (final Exception e) {
 				e.printStackTrace();
 				throw new IOException(e.getMessage());
 			}
 		case 2:
-			final int size = in.readInt();
-			final String type = in.readUTF();
-
-			final Object newInstance = Array.newInstance(Class.forName(type)
-					.getComponentType(), size);
-
-			for (int i = 0; i < size; i++) {
-				Array.set(newInstance, i, readObjectOverride());
-			}
-			return newInstance;
-		case 3:
 			// java serialized object
 			return in.readObject();
 		default:
