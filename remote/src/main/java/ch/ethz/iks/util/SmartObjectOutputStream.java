@@ -29,10 +29,14 @@
 package ch.ethz.iks.util;
 
 import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.util.zip.Deflater;
+import java.util.zip.GZIPOutputStream;
+
 import ch.ethz.iks.r_osgi.types.BoxedPrimitive;
 
 /**
@@ -50,6 +54,7 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 			throws SecurityException, IOException {
 		super();
 		this.out = new EnhancedObjectOutputStream(out);
+		this.flush();
 	}
 
 	protected final void writeObjectOverride(final Object o) throws IOException {
@@ -232,11 +237,11 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 		out.writeUTF(str);
 	}
 
-	class EnhancedObjectOutputStream extends ObjectOutputStream {
+	static class EnhancedObjectOutputStream extends ObjectOutputStream {
 
 		public EnhancedObjectOutputStream(final OutputStream out)
 				throws IOException {
-			super(out);
+			super(new EnhancedGZIPOutputStream(out));
 			this.enableReplaceObject(true);
 		}
 
@@ -245,9 +250,69 @@ public final class SmartObjectOutputStream extends ObjectOutputStream {
 				return obj;
 			}
 
-			return new SmartObjectStreamClass(obj, obj.getClass());
+			final Class clazz = obj.getClass();
+			if (SmartConstants.blackList.contains(clazz.getName())) {
+				throw new NotSerializableException(clazz.getName());
+			}
+
+			return new SmartObjectStreamClass(obj, clazz);
 		}
 
-	}
+		static class EnhancedGZIPOutputStream extends GZIPOutputStream {
 
+			private static final byte[] NOTHING = new byte[0];
+			private boolean hasPendingBytes = false;
+
+			public EnhancedGZIPOutputStream(final OutputStream out)
+					throws IOException {
+				super(out);
+				def.setLevel(Deflater.BEST_SPEED);
+			}
+
+			public void write(final byte[] bytes, final int i, final int i1)
+					throws IOException {
+				super.write(bytes, i, i1);
+				hasPendingBytes = true;
+			}
+
+			public synchronized void write(final int i) throws IOException {
+				super.write(i);
+				hasPendingBytes = true;
+			}
+
+			public synchronized void write(final byte[] bytes)
+					throws IOException {
+				super.write(bytes);
+				hasPendingBytes = true;
+			}
+
+			protected void deflate() throws IOException {
+				int len;
+				do {
+					len = def.deflate(buf, 0, buf.length);
+					if (len == 0) {
+						break;
+					}
+					this.out.write(buf, 0, len);
+				} while (true);
+			}
+
+			public void flush() throws IOException {
+				if (!hasPendingBytes) {
+					return;
+				}
+
+				if (!def.finished()) {
+					def.setInput(NOTHING, 0, 0);
+					def.setLevel(Deflater.NO_COMPRESSION);
+					deflate();
+					def.setLevel(Deflater.BEST_SPEED);
+					deflate();
+					super.flush();
+				}
+
+				hasPendingBytes = false;
+			}
+		}
+	}
 }

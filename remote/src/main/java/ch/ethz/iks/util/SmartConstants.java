@@ -33,6 +33,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SmartConstants {
 
@@ -40,18 +42,18 @@ public class SmartConstants {
 	 * the positive list contains class names of classes that are
 	 * string-serializable.
 	 */
-	static List positiveList = new ArrayList(Arrays.asList(new Object[] {
+	static Set positiveList = new HashSet(Arrays.asList(new Object[] {
 			"java.lang.Integer", "java.lang.Boolean", //$NON-NLS-1$ //$NON-NLS-2$
 			"java.lang.Long", "java.lang.Short", "java.lang.Byte" })); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
 
-	static HashSet blackList = new HashSet();
+	static Set blackList = new HashSet();
 	static {
 		blackList.add("org.osgi.framework.ServiceReference"); //$NON-NLS-1$
 		blackList.add("org.osgi.framework.ServiceRegistration"); //$NON-NLS-1$
 	}
 
-	static final HashMap idToClass = new HashMap();
-	static final HashMap classToId = new HashMap();
+	static final Map idToClass = new HashMap();
+	static final Map classToId = new HashMap();
 	static {
 		idToClass.put("I", Integer.class); //$NON-NLS-1$
 		classToId.put(Integer.class.getName(), "I"); //$NON-NLS-1$

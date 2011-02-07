@@ -32,10 +32,15 @@ package ch.ethz.iks.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 
 /**
  * Smart object input stream that is able to deserialize classes which do not
@@ -83,9 +88,6 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 				e.printStackTrace();
 				throw new IOException(e.getMessage());
 			}
-		case 3:
-			// java serialized object
-			return in.readObject();
 		case 2:
 			final int size = in.readInt();
 			final String type = in.readUTF();
@@ -96,8 +98,10 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 			for (int i = 0; i < size; i++) {
 				Array.set(newInstance, i, readObjectOverride());
 			}
-
 			return newInstance;
+		case 3:
+			// java serialized object
+			return in.readObject();
 		default:
 			throw new IllegalStateException("Unhandled case " + cat); //$NON-NLS-1$
 		}
@@ -263,7 +267,7 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 		private Method setHandle;
 
 		EnhancedObjectInputStream(final InputStream in) throws IOException {
-			super(in);
+			super(new GZIPInputStream(in));
 			enableResolveObject(true);
 			try {
 				final Field field = getClass().getSuperclass()
@@ -307,4 +311,5 @@ public final class SmartObjectInputStream extends ObjectInputStream {
 			}
 		}
 	}
+
 }

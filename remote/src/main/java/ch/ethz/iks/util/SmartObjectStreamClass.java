@@ -9,6 +9,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.WeakHashMap;
 
 public class SmartObjectStreamClass implements Externalizable {
 
@@ -16,38 +17,48 @@ public class SmartObjectStreamClass implements Externalizable {
 	private String[] fieldNames;
 	private Object[] fieldValues;
 	private SmartObjectStreamClass superStreamClass;
-	private Object restored;
+	private transient Object restored;
+
+	static final WeakHashMap fieldInfoCache = new WeakHashMap();
 
 	public SmartObjectStreamClass(final Object obj, final Class clazz)
 			throws NotSerializableException {
 
 		clazzName = clazz.getName();
 
-		// check for native methods
-		final Method[] methods = clazz.getDeclaredMethods();
-		for (int j = 0; j < methods.length; j++) {
-			final int mod = methods[j].getModifiers();
-			if (Modifier.isNative(mod)) {
-				throw new NotSerializableException(
-						"Class " //$NON-NLS-1$
-								+ clazz.getName()
-								+ " contains native methods and is therefore not serializable."); //$NON-NLS-1$ 
-			}
-		}
+		final String[] fieldInfo = (String[]) fieldInfoCache.get(clazzName);
+
+		final Field[] fields = clazz.getDeclaredFields();
+		final int fieldCount = fields.length;
 
 		try {
-			final Field[] fields = clazz.getDeclaredFields();
-			final int fieldCount = fields.length;
-			int realFieldCount = 0;
-			for (int i = 0; i < fieldCount; i++) {
-				final int mod = fields[i].getModifiers();
-				if (!(Modifier.isStatic(mod) || Modifier.isTransient(mod))) {
-					realFieldCount++;
+			if (fieldInfo == null) {
+				// check for native methods
+				final Method[] methods = clazz.getDeclaredMethods();
+				for (int i = 0; i < methods.length; i++) {
+					final int mod = methods[i].getModifiers();
+					if (Modifier.isNative(mod)) {
+						throw new NotSerializableException(
+								"Class " //$NON-NLS-1$
+										+ clazz.getName()
+										+ " contains native methods and is therefore not serializable."); //$NON-NLS-1$ 
+					}
 				}
+
+				int realFieldCount = 0;
+				for (int i = 0; i < fieldCount; i++) {
+					final int mod = fields[i].getModifiers();
+					if (!(Modifier.isStatic(mod) || Modifier.isTransient(mod))) {
+						realFieldCount++;
+					}
+				}
+				fieldNames = new String[realFieldCount];
+				fieldInfoCache.put(clazzName, fieldNames);
+			} else {
+				fieldNames = fieldInfo;
 			}
 
-			fieldNames = new String[realFieldCount];
-			fieldValues = new Object[realFieldCount];
+			fieldValues = new Object[fieldNames.length];
 
 			for (int i = 0; i < fieldCount; i++) {
 				final int mod = fields[i].getModifiers();
@@ -134,4 +145,5 @@ public class SmartObjectStreamClass implements Externalizable {
 			superStreamClass.restoreFields(o);
 		}
 	}
+
 }
