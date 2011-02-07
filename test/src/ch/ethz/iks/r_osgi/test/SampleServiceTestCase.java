@@ -19,7 +19,6 @@ public class SampleServiceTestCase extends TestCase {
 
 	public SampleServiceTestCase() {
 		super("SampleServiceTest");
-
 	}
 
 	protected void setUp() throws Exception {
@@ -127,7 +126,7 @@ public class SampleServiceTestCase extends TestCase {
 					assertEquals(res[a][b], s);
 				}
 			}
-			
+
 			service.echoByteArray1("great test".getBytes());
 
 			service.echoByteArray2(new byte[][] { "one".getBytes(),

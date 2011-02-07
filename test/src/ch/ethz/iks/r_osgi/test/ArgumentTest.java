@@ -6,6 +6,7 @@ import java.util.Hashtable;
 import junit.framework.TestCase;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
@@ -23,6 +24,8 @@ public class ArgumentTest extends TestCase {
 
 	private ArgumentTestService testService;
 
+	private ServiceRegistration reg;
+
 	public ArgumentTest() {
 		super("ArgumentTest");
 	}
@@ -33,13 +36,13 @@ public class ArgumentTest extends TestCase {
 		remote = Activator.getActivator().getR_OSGi();
 		final Dictionary props = new Hashtable();
 		props.put(RemoteOSGiService.R_OSGi_REGISTRATION, Boolean.TRUE);
-		context.registerService(ArgumentTestService.class.getName(),
+		reg = context.registerService(ArgumentTestService.class.getName(),
 				new ArgumentTestServiceImpl(), props);
 
 		remote.connect(uri);
 		final RemoteServiceReference[] refs = remote
-				.getRemoteServiceReferences(uri, ArgumentTestService.class
-						.getName(), null);
+				.getRemoteServiceReferences(uri,
+						ArgumentTestService.class.getName(), null);
 		assertNotNull(refs);
 		assertTrue(refs.length > 0);
 
@@ -48,6 +51,7 @@ public class ArgumentTest extends TestCase {
 
 	protected void tearDown() throws Exception {
 		remote.disconnect(uri);
+		reg.unregister();
 		super.tearDown();
 	}
 

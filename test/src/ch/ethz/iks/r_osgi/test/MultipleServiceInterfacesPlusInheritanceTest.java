@@ -6,6 +6,7 @@ import java.util.Hashtable;
 import junit.framework.TestCase;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
@@ -25,6 +26,8 @@ public class MultipleServiceInterfacesPlusInheritanceTest extends TestCase {
 
 	private Object testService;
 
+	private ServiceRegistration reg;
+
 	public MultipleServiceInterfacesPlusInheritanceTest() {
 		super("MultipleServiceInterfacesPlusInheritanceTest");
 	}
@@ -35,16 +38,16 @@ public class MultipleServiceInterfacesPlusInheritanceTest extends TestCase {
 		remote = Activator.getActivator().getR_OSGi();
 		final Dictionary props = new Hashtable();
 		props.put(RemoteOSGiService.R_OSGi_REGISTRATION, Boolean.TRUE);
-		context.registerService(new String[] {
-				ServiceInterfaceA.class.getName(),
-				ServiceInterfaceB.class.getName(),
-				ServiceInterfaceC.class.getName() },
+		reg = context.registerService(
+				new String[] { ServiceInterfaceA.class.getName(),
+						ServiceInterfaceB.class.getName(),
+						ServiceInterfaceC.class.getName() },
 				new MultipleInterfacesPlusInheritanceServiceImpl(), props);
 
 		remote.connect(uri);
 		final RemoteServiceReference[] refs = remote
-				.getRemoteServiceReferences(uri, ServiceInterfaceA.class
-						.getName(), null);
+				.getRemoteServiceReferences(uri,
+						ServiceInterfaceA.class.getName(), null);
 		assertNotNull(refs);
 		assertTrue(refs.length > 0);
 
@@ -54,6 +57,7 @@ public class MultipleServiceInterfacesPlusInheritanceTest extends TestCase {
 
 	protected void tearDown() throws Exception {
 		remote.disconnect(uri);
+		reg.unregister();
 		super.tearDown();
 	}
 

@@ -9,6 +9,7 @@ Import-Package: ch.ethz.iks.r_osgi;version="[1.0.0,2.0.0)",
  ch.ethz.iks.r_osgi.sample.api;version="[1.0.0,2.0.0)",
  ch.ethz.iks.r_osgi.sample.service;version="[1.0.0,2.0.0)",
  ch.ethz.iks.r_osgi.transport.mina.codec;version="[1.0.0,2.0.0)",
+ ch.ethz.iks.util,
  org.apache.mina.common;version="1.0.8",
  org.apache.mina.common.support;version="1.0.8",
  org.apache.mina.filter;version="1.0.8",
@@ -19,6 +20,7 @@ Import-Package: ch.ethz.iks.r_osgi;version="[1.0.0,2.0.0)",
  org.osgi.framework.launch;version="1.0.0",
  org.osgi.service.startlevel;version="1.0.0"
 Bundle-Activator: ch.ethz.iks.r_osgi.test.Activator
-Export-Package: ch.ethz.iks.r_osgi.test.service
+Export-Package: ch.ethz.iks.r_osgi.test.exported,
+ ch.ethz.iks.r_osgi.test.service
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
 Require-Bundle: org.junit;bundle-version="3.8.2"
