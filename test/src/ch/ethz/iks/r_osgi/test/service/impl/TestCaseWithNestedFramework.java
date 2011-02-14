@@ -27,6 +27,7 @@ import org.osgi.framework.launch.FrameworkFactory;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.RemoteServiceReference;
 import ch.ethz.iks.r_osgi.URI;
+import ch.ethz.iks.r_osgi.test.service.ILocationService;
 
 public abstract class TestCaseWithNestedFramework extends TestCase {
 
@@ -120,10 +121,10 @@ public abstract class TestCaseWithNestedFramework extends TestCase {
 			final Object[] translated = new Object[args.length];
 			for (int i = 0; i < args.length; i++) {
 				final Object o = args[i];
-				// if (o == null) {
-				// translated[i] = null;
-				// continue;
-				// }
+				if (o == null) {
+					translated[i] = null;
+					continue;
+				}
 
 				final Object t = translationTable.get(o);
 				if (t != null) {
@@ -167,8 +168,18 @@ public abstract class TestCaseWithNestedFramework extends TestCase {
 				return proxy;
 			}
 
-			// System.err.println("NO SUBSTITUTION FOR "
-			// + arg.getClass().getName() + " - " + type);
+			if (arg.getClass()
+					.getName()
+					.endsWith(".ch.ethz.iks.r_osgi.test.service.ILocationServiceImpl")) {
+				final Object proxy = Proxy.newProxyInstance(target,
+						new Class[] { ILocationService.class },
+						new ReflectiveDecoupling(arg, target));
+				translationTable.put(proxy, arg);
+				return proxy;
+			}
+
+			System.err.println("NO SUBSTITUTION FOR "
+					+ arg.getClass().getName() + " - " + type);
 
 			return null;
 		}
@@ -216,7 +227,7 @@ public abstract class TestCaseWithNestedFramework extends TestCase {
 			return remote.getListeningPort("r-osgi");
 		}
 
-		protected void shutdown() throws BundleException, InterruptedException {
+		public void shutdown() throws BundleException, InterruptedException {
 			fw.stop();
 			fw.waitForStop(0);
 		}
