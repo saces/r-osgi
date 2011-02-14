@@ -1,4 +1,4 @@
-/* Copyright (c) 2006-2009 Jan S. Rellermeyer
+/* Copyright (c) 2006-2010 Jan S. Rellermeyer
  * Systems Group,
  * Department of Computer Science, ETH Zurich.
  * All rights reserved.
@@ -34,9 +34,6 @@ import java.util.Hashtable;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogService;
-
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.Remoting;
 import ch.ethz.iks.r_osgi.channels.NetworkChannelFactory;
@@ -79,14 +76,6 @@ public final class RemoteOSGiActivator implements BundleActivator {
 		try {
 			instance = this;
 			this.context = context;
-
-			// get the log service, if present
-			final ServiceReference logRef = context
-					.getServiceReference("org.osgi.service.log.LogService"); //$NON-NLS-1$
-			if (logRef != null) {
-				RemoteOSGiServiceImpl.log = (LogService) context
-						.getService(logRef);
-			}
 
 			if (remoting == null) {
 				// get the instance of RemoteOSGiServiceImpl
@@ -131,4 +120,5 @@ public final class RemoteOSGiActivator implements BundleActivator {
 		instance = null;
 		this.context = null;
 	}
+
 }

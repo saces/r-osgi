@@ -30,6 +30,8 @@ package ch.ethz.iks.r_osgi.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -293,12 +295,14 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 		out.close();
 
 		if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
-			// final File file =
-			// RemoteOSGiActivator.context.getDataFile(fileName
-			// + "_" + sourceID + ".jar");
+			final File file = RemoteOSGiActivator.getActivator().getContext()
+					.getDataFile("bundle_" + sourceID + ".jar");
 
-			// RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
-			// "Created Proxy Bundle " + file);
+			final FileOutputStream fout = new FileOutputStream(file);
+			fout.write(bout.toByteArray());
+			fout.close();
+			System.err.println("Wrote proxy bundle to "
+					+ file.getAbsolutePath());
 		}
 
 		return new ByteArrayInputStream(bout.toByteArray());
@@ -426,7 +430,8 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 				|| (smartProxyClassName == null && name
 						.equals(serviceInterfaceNames[0].replace('.', '/')))) {
 
-			if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
+			if (RemoteOSGiServiceImpl.PROXY_DEBUG
+					&& RemoteOSGiServiceImpl.log != null) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 						"creating proxy class " + implName); //$NON-NLS-1$
 			}
@@ -463,7 +468,7 @@ class ProxyGenerator implements ClassVisitor, Opcodes {
 						(version >= V1_5 && RemoteOSGiServiceImpl.IS_JAVA5) ? V1_5
 								: V1_2, ACC_PUBLIC + ACC_SUPER, implName, null,
 						"java/lang/Object", serviceInterfaces); //$NON-NLS-1$
-				if (RemoteOSGiServiceImpl.PROXY_DEBUG) {
+				if (RemoteOSGiServiceImpl.PROXY_DEBUG && RemoteOSGiServiceImpl.log != null) {
 					RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 							"Creating Proxy Bundle from Interfaces " //$NON-NLS-1$
 									+ Arrays.asList(serviceInterfaceNames));

@@ -242,6 +242,11 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 	static LogService log;
 
 	/**
+	 * 
+	 */
+	static ServiceTracker logServiceTracker;
+
+	/**
 	 * the event admin tracker
 	 */
 	static ServiceTracker eventAdminTracker;
@@ -305,6 +310,28 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		// set the debug switches
 		final BundleContext context = RemoteOSGiActivator.getActivator()
 				.getContext();
+
+		logServiceTracker = new ServiceTracker(context,
+				LogService.class.getName(), new ServiceTrackerCustomizer() {
+
+					public Object addingService(ServiceReference reference) {
+						System.err.println("LOG SERVICE ATTACHED");
+						log = (LogService) context.getService(reference);
+						return log;
+					}
+
+					public void modifiedService(ServiceReference reference,
+							Object service) {
+
+					}
+
+					public void removedService(ServiceReference reference,
+							Object service) {
+						log = (LogService) logServiceTracker.getService();
+					}
+
+				});
+
 		String prop = context.getProperty(PROXY_DEBUG_PROPERTY);
 		PROXY_DEBUG = prop != null ? Boolean.valueOf(prop).booleanValue()
 				: false;
@@ -326,10 +353,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 		} else {
 			if (PROXY_DEBUG || MSG_DEBUG || DEBUG) {
 				System.err
-						.println("WARNING: NO LOG SERVICE PRESENT, DEBUG PROPERTIES HAVE NO EFFECT ..."); //$NON-NLS-1$
-				PROXY_DEBUG = false;
-				MSG_DEBUG = false;
-				DEBUG = false;
+						.println("WARNING: NO LOG SERVICE PRESENT, DEBUG PROPERTIES HAVE NO EFFECT UNTIL A LOG SERVICE HAS BEEN STARTED"); //$NON-NLS-1$
 			}
 		}
 
@@ -424,7 +448,7 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 					});
 			eventHandlerTracker.open();
 
-			if (DEBUG) {
+			if (DEBUG && log != null) {
 				log.log(LogService.LOG_DEBUG, "Local topic space " //$NON-NLS-1$
 						+ Arrays.asList(getTopics()));
 			}
@@ -524,6 +548,9 @@ final class RemoteOSGiServiceImpl implements RemoteOSGiService, Remoting {
 								e.printStackTrace();
 								throw new RemoteOSGiException(
 										"Cannot find class " + service, e); //$NON-NLS-1$
+							} catch (final RemoteOSGiException r) {
+								r.printStackTrace();
+								throw r;
 							}
 						}
 

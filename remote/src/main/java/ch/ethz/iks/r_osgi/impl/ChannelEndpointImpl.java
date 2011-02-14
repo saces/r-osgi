@@ -210,7 +210,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 	ChannelEndpointImpl(final NetworkChannelFactory factory,
 			final URI endpointAddress) throws RemoteOSGiException, IOException {
 		networkChannel = factory.getConnection(this, endpointAddress);
-		if (RemoteOSGiServiceImpl.DEBUG) {
+		if (RemoteOSGiServiceImpl.DEBUG && RemoteOSGiServiceImpl.log != null) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"opening new channel " + getRemoteAddress()); //$NON-NLS-1$
 		}
@@ -539,7 +539,7 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			return;
 		}
 
-		if (RemoteOSGiServiceImpl.DEBUG) {
+		if (RemoteOSGiServiceImpl.DEBUG && RemoteOSGiServiceImpl.log != null) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"DISPOSING ENDPOINT " + getRemoteAddress()); //$NON-NLS-1$
 		}
@@ -1477,7 +1477,8 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 			}
 		}
 
-		if (RemoteOSGiServiceImpl.MSG_DEBUG) {
+		if (RemoteOSGiServiceImpl.MSG_DEBUG
+				&& RemoteOSGiServiceImpl.log != null) {
 			RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 					"NEW REMOTE TOPIC SPACE for " + getRemoteAddress() + " is " //$NON-NLS-1$ //$NON-NLS-2$
 							+ remoteTopics);
@@ -1561,9 +1562,12 @@ public final class ChannelEndpointImpl implements ChannelEndpoint {
 				} else if (s[i] instanceof OutputStream) {
 					((OutputStream) s[i]).close();
 				} else {
-					RemoteOSGiServiceImpl.log
-							.log(LogService.LOG_WARNING,
-									"Object in input streams map was not an instance of a stream."); //$NON-NLS-1$
+					if (RemoteOSGiServiceImpl.DEBUG
+							&& RemoteOSGiServiceImpl.log != null) {
+						RemoteOSGiServiceImpl.log
+								.log(LogService.LOG_WARNING,
+										"Object in input streams map was not an instance of a stream."); //$NON-NLS-1$
+					}
 				}
 			}
 		} catch (final IOException e) {

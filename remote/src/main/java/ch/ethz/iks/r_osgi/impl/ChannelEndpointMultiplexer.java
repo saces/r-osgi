@@ -138,22 +138,25 @@ final class ChannelEndpointMultiplexer implements ChannelEndpoint,
 				if (policy == LOADBALANCING_ANY_POLICY) {
 					final ChannelEndpoint endpoint = mapping.getAny();
 					try {
-						return endpoint.invokeMethod(mapping
-								.getMapped(endpoint), methodSignature, args);
+						return endpoint.invokeMethod(
+								mapping.getMapped(endpoint), methodSignature,
+								args);
 					} catch (final RemoteOSGiException e) {
 						final ChannelEndpointImpl next = mapping.getNext();
 						if (next != null) {
 							primary.untrackRegistration(serviceURI);
 							primary = next;
 							primary.trackRegistration(serviceURI, reg);
-							if (RemoteOSGiServiceImpl.DEBUG) {
+							if (RemoteOSGiServiceImpl.DEBUG
+									&& RemoteOSGiServiceImpl.log != null) {
 								RemoteOSGiServiceImpl.log.log(
 										LogService.LOG_INFO,
 										"DOING FAILOVER TO " //$NON-NLS-1$
 												+ primary.getRemoteAddress());
 							}
-							return primary.invokeMethod(mapping
-									.getMapped(primary), methodSignature, args);
+							return primary.invokeMethod(
+									mapping.getMapped(primary),
+									methodSignature, args);
 						}
 						dispose();
 						throw e;
@@ -173,17 +176,17 @@ final class ChannelEndpointMultiplexer implements ChannelEndpoint,
 								primary.untrackRegistration(serviceURI);
 								primary = next;
 								primary.trackRegistration(serviceURI, reg);
-								if (RemoteOSGiServiceImpl.DEBUG) {
+								if (RemoteOSGiServiceImpl.DEBUG
+										&& RemoteOSGiServiceImpl.log != null) {
 									RemoteOSGiServiceImpl.log
-											.log(
-													LogService.LOG_INFO,
+											.log(LogService.LOG_INFO,
 													"DOING FAILOVER TO " //$NON-NLS-1$
 															+ primary
 																	.getRemoteAddress());
 								}
-								return primary.invokeMethod(mapping
-										.getMapped(primary), methodSignature,
-										args);
+								return primary.invokeMethod(
+										mapping.getMapped(primary),
+										methodSignature, args);
 							}
 						}
 						dispose();

@@ -296,7 +296,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 		 */
 		public void sendMessage(final RemoteOSGiMessage message)
 				throws IOException {
-			if (RemoteOSGiServiceImpl.MSG_DEBUG) {
+			if (RemoteOSGiServiceImpl.MSG_DEBUG && RemoteOSGiServiceImpl.log != null) {
 				RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 						"{TCP Channel} sending " + message); //$NON-NLS-1$
 			}
@@ -321,7 +321,7 @@ final class TCPChannelFactory implements NetworkChannelFactory {
 					try {
 						final RemoteOSGiMessage msg = RemoteOSGiMessage
 								.parse(input);
-						if (RemoteOSGiServiceImpl.MSG_DEBUG) {
+						if (RemoteOSGiServiceImpl.MSG_DEBUG && RemoteOSGiServiceImpl.log != null) {
 							RemoteOSGiServiceImpl.log.log(LogService.LOG_DEBUG,
 									"{TCP Channel} received " + msg); //$NON-NLS-1$
 						}

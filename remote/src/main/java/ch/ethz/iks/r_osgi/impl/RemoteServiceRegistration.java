@@ -39,6 +39,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 
+import ch.ethz.iks.r_osgi.RemoteOSGiException;
 import ch.ethz.iks.r_osgi.RemoteOSGiService;
 import ch.ethz.iks.r_osgi.messages.DeliverServiceMessage;
 
@@ -118,10 +119,17 @@ final class RemoteServiceRegistration {
 		// build up the method table for each interface
 		for (int i = 0; i < interfaceCount; i++) {
 			serviceInterfaces[i] = bundleLoader.loadClass(interfaceNames[i]);
+			if (!serviceInterfaces[i].isInterface()) {
+				throw new RemoteOSGiException(
+						"Service registered under non-interface "
+								+ serviceInterfaces[i].getName());
+			}
 			final Method[] methods = serviceInterfaces[i].getMethods();
 			for (int j = 0; j < methods.length; j++) {
-				methodTable.put(methods[j].getName()
-						+ Type.getMethodDescriptor(methods[j]), methods[j]);
+				methodTable.put(
+						methods[j].getName()
+								+ Type.getMethodDescriptor(methods[j]),
+						methods[j]);
 			}
 		}
 
@@ -148,16 +156,14 @@ final class RemoteServiceRegistration {
 						e.printStackTrace();
 						if (RemoteOSGiServiceImpl.log != null) {
 							RemoteOSGiServiceImpl.log
-									.log(
-											LogService.LOG_ERROR,
+									.log(LogService.LOG_ERROR,
 											"Error during remote service registration", e); //$NON-NLS-1$
 						}
 					} catch (final ClassNotFoundException cnf) {
 						cnf.printStackTrace();
 						if (RemoteOSGiServiceImpl.log != null) {
 							RemoteOSGiServiceImpl.log
-									.log(
-											LogService.LOG_ERROR,
+									.log(LogService.LOG_ERROR,
 											"Error during remote service registration", cnf); //$NON-NLS-1$
 						}
 					}
